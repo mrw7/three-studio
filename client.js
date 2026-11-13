@@ -136,8 +136,6 @@ window.__ModuleLoader__.load({
       'editor.exposure': '曝光',
       'editor.shadows': '阴影',
       'editor.background': '背景',
-      'editor.confirmColor': '确认颜色',
-      'editor.confirm': '确认',
       'editor.backgroundNone': '无背景',
       'editor.backgroundTexture': '贴图',
       'editor.backgroundOther': '其他',
@@ -1037,8 +1035,6 @@ window.__ModuleLoader__.load({
       'editor.exposure': 'Exposure',
       'editor.shadows': 'Shadows',
       'editor.background': 'Background',
-      'editor.confirmColor': 'Apply color',
-      'editor.confirm': 'Apply',
       'editor.backgroundNone': 'No background',
       'editor.backgroundTexture': 'Texture',
       'editor.backgroundOther': 'Other',
@@ -14519,7 +14515,6 @@ THE SOFTWARE.
       }
       const gestureRef = React.useRef(null)
       const colorGestureRef = React.useRef(new Map())
-      const backgroundInputRef = React.useRef(null)
       const [backgroundDraft, setBackgroundDraft] = React.useState(null)
       const rendererBackgroundSetting = overrides.renderer !== null && overrides.renderer !== undefined
         && typeof overrides.renderer === 'object' && !Array.isArray(overrides.renderer)
@@ -14752,7 +14747,6 @@ THE SOFTWARE.
                 applyRenderer({ background: value }, false)
               },
               ref: node => {
-                backgroundInputRef.current = node
                 if (node === null) return
                 node.onchange = () => commitColorGesture(backgroundKey, node, backgroundStart,
                   value => applyRenderer({ background: value }, true), false)
@@ -14761,27 +14755,6 @@ THE SOFTWARE.
                 value => applyRenderer({ background: value }, true), true),
               style: { width: 36, height: 20, padding: 0, border: 'none', background: 'transparent' },
             }),
-            h('button', {
-              type: 'button',
-              'data-three-workbench-color-confirm': 'background',
-              title: t('editor.confirmColor'),
-              'aria-label': t('editor.confirmColor'),
-              onMouseDown: event => event.preventDefault(),
-              onClick: () => {
-                const node = backgroundInputRef.current
-                const value = backgroundDraft !== null ? backgroundDraft
-                  : (node !== null && node !== undefined && typeof node.value === 'string' ? node.value : null)
-                setBackgroundDraft(null)
-                if (value !== null && value !== backgroundStart) {
-                  applyRenderer({ background: value }, true)
-                }
-              },
-              style: { height: 20, flex: '0 0 auto', padding: '0 5px', borderRadius: 4,
-                cursor: 'pointer', color: 'inherit',
-                border: '1px solid color-mix(in srgb, currentColor 16%, transparent)',
-                background: 'color-mix(in srgb, currentColor 5%, transparent)',
-                font: '9px/1 system-ui, -apple-system, Segoe UI, sans-serif' },
-            }, t('editor.confirm')),
             rendererHas('background') ? resetGlyph(() => resetRenderer('background'), t('editor.resetProperty')) : null),
           rendererHint(backgroundBaseText),
           h('div', { style: { display: 'flex', alignItems: 'center' } },
