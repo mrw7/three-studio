@@ -25,5 +25,5 @@ jobs:
             tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs \
             tests/history.test.mjs tests/share.test.mjs tests/smoke.test.mjs \
             tests/studio-ai.test.mjs tests/tracks.test.mjs
-      - name: Standalone plugin tests
-        run: node --test standalone/plugins/runtime.test.mjs
+      - name: Standalone plugin and settings tests
+        run: node --test standalone/plugins/runtime.test.mjs standalone/settings.test.mjs

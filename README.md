@@ -27,9 +27,9 @@ remains available as an optional legacy mode.
 - **Sandboxed execution** — model-written code runs only inside an opaque-origin
   `srcDoc` iframe (`allow-scripts allow-pointer-lock allow-downloads`, never
   `allow-same-origin`, never navigable).
-- **Bring your own model** — DeepSeek and Anthropic are built in; add any
-  OpenAI-compatible or Anthropic-compatible provider with its own API key, base
-  URL and model list.
+- **Bring your own model** — DeepSeek and Anthropic are built in; add, edit or
+  delete any OpenAI-compatible or Anthropic-compatible provider with its own API
+  key, base URL and model list.
 - **Plugin market** — install native Studio modules such as skills, planning,
   todo, subagents and web reading; more capabilities are listed on the roadmap.
 - **Light and dark themes** — the standalone header has a one-click sun/moon

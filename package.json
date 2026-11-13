@@ -5,11 +5,14 @@
   "type": "module",
   "description": "Standalone AI-native Three.js 3D workbench with an embedded AI Studio, plus an optional DeepSeek Harness plugin mode.",
   "license": "UNLICENSED",
-  "engines": { "node": ">=24", "dsh": ">=0.2.0 <0.3.0" },
+  "engines": {
+    "node": ">=24",
+    "dsh": ">=0.2.0 <0.3.0"
+  },
   "scripts": {
     "start": "./standalone/start.sh",
     "start:harness": "./start.sh",
-    "test": "node --test tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs tests/history.test.mjs tests/share.test.mjs tests/smoke.test.mjs tests/studio-ai.test.mjs tests/tracks.test.mjs standalone/plugins/runtime.test.mjs",
+    "test": "node --test tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs tests/history.test.mjs tests/share.test.mjs tests/smoke.test.mjs tests/studio-ai.test.mjs tests/tracks.test.mjs standalone/plugins/runtime.test.mjs standalone/settings.test.mjs",
     "test:disk": "node --test tests/disk.test.mjs",
     "test:e2e": "node tests/e2e/run.mjs"
   },
@@ -17,9 +20,16 @@
     ".": "./index.js",
     "./client": "./client.js"
   },
-  "files": ["index.js", "client.js", "cordis.patch.yml", "runtime/**"],
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "runtime/**"
+  ],
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
       "immediately": true,

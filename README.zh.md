@@ -21,7 +21,7 @@ React 外壳。原 Harness 插件模式作为可选旧版保留。
 - **沙箱执行**：模型代码仅在 opaque-origin `srcDoc` iframe 中运行
   （`allow-scripts allow-pointer-lock allow-downloads`，绝不 `allow-same-origin`，
   不可作为 URL 导航）
-- **自带模型**：内置 DeepSeek / Anthropic；可添加任意 OpenAI 兼容或
+- **自带模型**：内置 DeepSeek / Anthropic；可添加、编辑或删除任意 OpenAI 兼容或
   Anthropic 兼容供应商，填写 Base URL、模型列表和 API Key
 - **插件市场**：可安装技能库、计划、任务清单、子代理、网页阅读；更多能力在路线图中
 - **浅色 / 深色主题**：独立版顶部提供太阳/月亮一键切换，界面与默认视口背景同步切换，选择会本地持久化；场景代码显式设置的背景会保留作者效果

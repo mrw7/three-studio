@@ -153,5 +153,40 @@ export async function createModelSettings(home) {
       }
       return { ok: true, provider: publicProviders().find(provider => provider.id === id) }
     },
+    async updateProvider(id, draft) {
+      const provider = providerOf(id)
+      if (provider === undefined) return { ok: false, message: 'Unknown provider.' }
+      const baseURL = typeof draft.baseURL === 'string' ? draft.baseURL.trim() : ''
+      const api = draft.api === 'anthropic-messages' ? 'anthropic-messages' : 'openai-completions'
+      const modelIds = Array.isArray(draft.models)
+        ? draft.models.filter(model => typeof model === 'string' && model.trim() !== '').map(model => model.trim())
+        : []
+      if (!validURL(baseURL)) return { ok: false, message: 'Base URL must be an http(s) URL.' }
+      if (modelIds.length === 0) return { ok: false, message: 'At least one model id is required.' }
+      const existingModels = Array.isArray(provider.models) ? provider.models : []
+      const models = [...new Set(modelIds)].map(modelId => {
+        const existing = existingModels.find(model => model.id === modelId)
+        return existing === undefined ? { id: modelId, name: modelId } : existing
+      })
+      document.providers = providers().map(row => row.id === id ? Object.assign({}, row, {
+        name: typeof draft.name === 'string' && draft.name.trim() !== '' ? draft.name.trim() : row.name,
+        api,
+        baseURL,
+        models,
+      }) : row)
+      await saveSettings()
+      if (typeof draft.apiKey === 'string' && draft.apiKey.trim() !== '') {
+        credentials[id] = draft.apiKey.trim()
+        await saveCredentials()
+      }
+      return { ok: true, provider: publicProviders().find(row => row.id === id) }
+    },
+    async deleteProvider(id) {
+      if (providerOf(id) === undefined) return { ok: false, message: 'Unknown provider.' }
+      document.providers = providers().filter(provider => provider.id !== id)
+      delete credentials[id]
+      await Promise.all([saveSettings(), saveCredentials()])
+      return { ok: true }
+    },
   }
 }

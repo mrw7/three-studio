@@ -70,7 +70,7 @@ more). They are visible but disabled until a native implementation lands.
   measures, assets, history, sessions, plugin market
 - AI chat with streaming, tool calls and scene revisions
 - Session model picker and reasoning effort (when a provider declares it)
-- Provider API keys and custom OpenAI/Anthropic-compatible providers
+- Provider API keys, custom OpenAI/Anthropic-compatible providers, and inline edit/delete of provider profiles and model lists
 - Light/dark theme toggle in the header; the editor chrome and default viewport background follow it, persisted in `localStorage`. Authored scene backgrounds are preserved.
 - Sandboxed `srcDoc` scene execution and the existing export/share paths
 

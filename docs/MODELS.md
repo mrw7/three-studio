@@ -40,6 +40,20 @@ are UI labels only.
 The provider is written to `models.json`; the key is stored separately in
 `credentials.json` under `<PROVIDER_ID>_API_KEY`.
 
+## Editing and deleting providers
+
+Each editable provider card exposes **Edit** and **Delete**:
+
+- **Edit** reopens the provider form with its display name, base URL, protocol
+  and model ids. Saving updates the provider and its model list in place; the
+  stored API key is preserved.
+- Removing model ids from the model list removes them from the picker.
+- **Delete** asks for a second confirmation, then removes the provider from
+  `models.json` and its key from `credentials.json`. Sessions whose selected
+  provider/model disappears are reset to no explicit selection.
+- Built-in seeded providers can also be removed; use **Add** to recreate them
+  with a different endpoint or model list.
+
 ## Storage
 
 `~/.three-studio/models.json` (no secrets):

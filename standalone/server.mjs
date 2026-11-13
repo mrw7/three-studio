@@ -353,6 +353,48 @@ const handleApi = async (request, pathname) => {
       return json(result, result.ok ? 200 : 400)
     }
   }
+  const providerMatch = /^\/api\/providers\/([^/]+)$/.exec(pathname)
+  if (providerMatch !== null) {
+    const providerId = decodeURIComponent(providerMatch[1])
+    if (request.method === 'PUT') {
+      const body = await request.json().catch(() => null)
+      if (body === null || typeof body !== 'object') return json({ ok: false, message: 'Invalid provider body.' }, 400)
+      const result = await modelSettings.updateProvider(providerId, {
+        name: body.name,
+        baseURL: body.baseURL,
+        api: body.api,
+        models: body.models,
+        apiKey: body.apiKey,
+      })
+      if (result.ok) {
+        const provider = result.provider
+        const known = new Set((provider.models || []).map(model => model.id))
+        for (const session of sessions.values()) {
+          if (session.selection !== null && session.selection !== undefined
+            && session.selection.provider === providerId && !known.has(session.selection.model)) {
+            session.selection = null
+            broadcast(session.id, { kind: 'selection', selection: null })
+          }
+        }
+        void saveSessions()
+      }
+      return json(result, result.ok ? 200 : 400)
+    }
+    if (request.method === 'DELETE') {
+      const result = await modelSettings.deleteProvider(providerId)
+      if (result.ok) {
+        for (const session of sessions.values()) {
+          if (session.selection !== null && session.selection !== undefined
+            && session.selection.provider === providerId) {
+            session.selection = null
+            broadcast(session.id, { kind: 'selection', selection: null })
+          }
+        }
+        void saveSessions()
+      }
+      return json(result, result.ok ? 200 : 400)
+    }
+  }
   const keyMatch = /^\/api\/providers\/([^/]+)\/key$/.exec(pathname)
   if (keyMatch !== null) {
     const providerId = decodeURIComponent(keyMatch[1])

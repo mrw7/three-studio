@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Light/dark theme toggle; the default viewport background follows the theme
+  while authored scene backgrounds are preserved
+- Background color edits commit on native change and are allowed on the demo
+  scene
+- Model providers can be edited and deleted inline, including model-list
+  changes; deleting a provider also removes its credential and resets stale
+  session selections
+
 ## 0.1.0 — 2026-11-13
 
 Initial standalone release.

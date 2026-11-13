@@ -258,6 +258,15 @@ window.__ModuleLoader__.load({
       'studio.models.adding': '正在添加…',
       'studio.models.showAll': '显示全部 {n} 个供应商',
       'studio.models.showLess': '收起',
+      'studio.models.edit': '编辑',
+      'studio.models.delete': '删除',
+      'studio.models.confirmDelete': '确认删除',
+      'studio.models.cancelDelete': '取消',
+      'studio.models.editTitle': '编辑供应商',
+      'studio.models.saveProvider': '保存供应商',
+      'studio.models.summary': '{url} · {n} 个模型',
+      'studio.models.deleteFailed': '删除供应商失败。',
+      'studio.models.updateFailed': '更新供应商失败。',
       'studio.market.title': '插件市场',
       'studio.market.search': '搜索插件…',
       'studio.market.all': '全部',
@@ -1157,6 +1166,15 @@ window.__ModuleLoader__.load({
       'studio.models.adding': 'Adding…',
       'studio.models.showAll': 'Show all {n} providers',
       'studio.models.showLess': 'Show less',
+      'studio.models.edit': 'Edit',
+      'studio.models.delete': 'Delete',
+      'studio.models.confirmDelete': 'Confirm delete',
+      'studio.models.cancelDelete': 'Cancel',
+      'studio.models.editTitle': 'Edit provider',
+      'studio.models.saveProvider': 'Save provider',
+      'studio.models.summary': '{url} · {n} models',
+      'studio.models.deleteFailed': 'Could not delete the provider.',
+      'studio.models.updateFailed': 'Could not update the provider.',
       'studio.market.title': 'Plugin market',
       'studio.market.search': 'Search plugins…',
       'studio.market.all': 'All',
@@ -19706,6 +19724,8 @@ THE SOFTWARE.
       const [drafts, setDrafts] = React.useState({})
       const [busy, setBusy] = React.useState('')
       const [addOpen, setAddOpen] = React.useState(false)
+      const [editingId, setEditingId] = React.useState(null)
+      const [deleteArm, setDeleteArm] = React.useState('')
       const [showAll, setShowAll] = React.useState(false)
       const emptyForm = { providerId: '', displayName: '', baseURL: '', protocol: 'openai-completions', models: '', apiKey: '' }
       const [form, setForm] = React.useState(emptyForm)
@@ -19787,13 +19807,41 @@ THE SOFTWARE.
           report(t('studio.models.clearFailed'))
         }
       }
-      const submitAdd = () => {
+      const closeForm = () => {
+        setAddOpen(false)
+        setEditingId(null)
+        setForm(emptyForm)
+        setFormError('')
+      }
+      const startAdd = () => {
+        setEditingId(null)
+        setForm(emptyForm)
+        setFormError('')
+        setDeleteArm('')
+        setAddOpen(true)
+      }
+      const startEdit = row => {
+        setEditingId(row.provider)
+        setForm({
+          providerId: row.provider,
+          displayName: row.name,
+          baseURL: row.baseURL || '',
+          protocol: row.api === 'anthropic-messages' ? 'anthropic-messages' : 'openai-completions',
+          models: Array.isArray(row.modelIds) ? row.modelIds.join(', ') : '',
+          apiKey: '',
+        })
+        setFormError('')
+        setDeleteArm('')
+        setAddOpen(true)
+      }
+      const submitProvider = () => {
         if (busy !== '') return
+        const editing = editingId !== null
         const providerId = form.providerId.trim()
         const baseURL = form.baseURL.trim()
         const models = form.models.split(/[\n,]+/u).map(value => value.trim())
           .filter(value => value !== '')
-        if (!/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(providerId)) {
+        if (!editing && !/^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/u.test(providerId)) {
           setFormError(t('studio.models.invalidRoute'))
           return
         }
@@ -19805,36 +19853,72 @@ THE SOFTWARE.
           setFormError(t('studio.models.invalidModels'))
           return
         }
+        if (editing && typeof admin.updateProvider !== 'function') {
+          setFormError(t('studio.models.unavailable'))
+          return
+        }
         setBusy('add')
         setFormError('')
+        const pending = editing
+          ? admin.updateProvider(editingId, {
+              displayName: form.displayName,
+              baseURL,
+              protocol: form.protocol,
+              models,
+            })
+          : admin.addProvider({
+              providerId,
+              displayName: form.displayName,
+              baseURL,
+              protocol: form.protocol,
+              models,
+              apiKey: form.apiKey,
+            })
         try {
-          Promise.resolve(admin.addProvider({
-            providerId,
-            displayName: form.displayName,
-            baseURL,
-            protocol: form.protocol,
-            models,
-            apiKey: form.apiKey,
-          })).then(result => {
+          Promise.resolve(pending).then(result => {
             setBusy('')
             if (result !== null && typeof result === 'object' && result.ok === true) {
-              setAddOpen(false)
-              setForm(emptyForm)
+              closeForm()
               load()
             } else {
+              const fallback = editing ? t('studio.models.updateFailed') : t('studio.models.addFailed')
               setFormError(result !== null && typeof result === 'object' && result.message === 'provider-exists'
                 ? t('studio.models.providerExists')
                 : result !== null && typeof result === 'object' && typeof result.message === 'string'
-                  && result.message !== '' ? result.message : t('studio.models.addFailed'))
+                  && result.message !== '' ? result.message : fallback)
             }
           }, error => {
             setBusy('')
             setFormError(error !== null && error !== undefined && typeof error.message === 'string'
-              ? error.message : t('studio.models.addFailed'))
+              ? error.message : (editing ? t('studio.models.updateFailed') : t('studio.models.addFailed')))
           })
         } catch (error) {
           setBusy('')
-          setFormError(t('studio.models.addFailed'))
+          setFormError(editing ? t('studio.models.updateFailed') : t('studio.models.addFailed'))
+        }
+      }
+      const deleteProvider = row => {
+        if (busy !== '' || typeof admin.deleteProvider !== 'function') return
+        setBusy('delete')
+        setDeleteArm('')
+        try {
+          Promise.resolve(admin.deleteProvider(row.provider)).then(result => {
+            setBusy('')
+            if (result !== null && typeof result === 'object' && result.ok === true) {
+              if (editingId === row.provider) closeForm()
+              load()
+            } else {
+              report(result !== null && typeof result === 'object' && typeof result.message === 'string'
+                && result.message !== '' ? result.message : t('studio.models.deleteFailed'))
+            }
+          }, error => {
+            setBusy('')
+            report(error !== null && error !== undefined && typeof error.message === 'string'
+              ? error.message : t('studio.models.deleteFailed'))
+          })
+        } catch (error) {
+          setBusy('')
+          report(t('studio.models.deleteFailed'))
         }
       }
       const inputStyle = { width: '100%', height: 26, boxSizing: 'border-box', padding: '0 7px',
@@ -19911,7 +19995,56 @@ THE SOFTWARE.
                     opacity: readOnly || busy !== '' ? .45 : 1 }),
                 }, t('studio.models.clear'))
                 : null))
-          : h('div', { style: { fontSize: 8, color: STUDIO_MUTED } }, t('studio.models.hostManaged')))
+          : h('div', { style: { fontSize: 8, color: STUDIO_MUTED } }, t('studio.models.hostManaged')),
+        row.editable === true && readOnly !== true
+          ? h(React.Fragment, null,
+            h('div', {
+              title: row.baseURL || '',
+              style: { fontSize: 7.5, color: STUDIO_MUTED, fontFamily: mono,
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+            }, t('studio.models.summary', {
+              url: row.baseURL === undefined || row.baseURL === '' ? '—' : row.baseURL,
+              n: Array.isArray(row.modelIds) ? row.modelIds.length : 0,
+            })),
+            h('div', { style: { display: 'flex', gap: 3, justifyContent: 'flex-end', flexWrap: 'wrap' } },
+              h('button', {
+                type: 'button',
+                'data-three-workbench-provider-action': 'edit',
+                disabled: busy !== '',
+                onClick: () => startEdit(row),
+                style: Object.assign({}, buttonStyle, {
+                  cursor: busy !== '' ? 'not-allowed' : 'pointer', opacity: busy !== '' ? .45 : 1,
+                }),
+              }, t('studio.models.edit')),
+              deleteArm === row.provider
+                ? h(React.Fragment, null,
+                  h('button', {
+                    type: 'button',
+                    'data-three-workbench-provider-action': 'confirm-delete',
+                    disabled: busy !== '',
+                    onClick: () => deleteProvider(row),
+                    style: Object.assign({}, buttonStyle, {
+                      cursor: busy !== '' ? 'not-allowed' : 'pointer', opacity: busy !== '' ? .45 : 1,
+                      color: 'var(--twb-danger-strong)', borderColor: 'var(--twb-danger-line)',
+                      background: 'var(--twb-danger-fill)',
+                    }),
+                  }, t('studio.models.confirmDelete')),
+                  h('button', {
+                    type: 'button',
+                    'data-three-workbench-provider-action': 'cancel-delete',
+                    onClick: () => setDeleteArm(''),
+                    style: Object.assign({}, buttonStyle, { cursor: 'pointer' }),
+                  }, t('studio.models.cancelDelete')))
+                : h('button', {
+                  type: 'button',
+                  'data-three-workbench-provider-action': 'delete',
+                  disabled: busy !== '',
+                  onClick: () => setDeleteArm(row.provider),
+                  style: Object.assign({}, buttonStyle, {
+                    cursor: busy !== '' ? 'not-allowed' : 'pointer', opacity: busy !== '' ? .45 : 1,
+                  }),
+                }, t('studio.models.delete'))))
+          : null)
       }
       return h('div', {
         'data-three-workbench-model-providers': '',
@@ -19923,10 +20056,7 @@ THE SOFTWARE.
         h('button', {
           type: 'button',
           'data-three-workbench-model-provider-add': '',
-          onClick: () => {
-            setAddOpen(value => !value)
-            setFormError('')
-          },
+          onClick: startAdd,
           style: Object.assign({}, buttonStyle, { color: STUDIO_ACCENT, borderColor: STUDIO_ACCENT_LINE,
             background: STUDIO_ACCENT_SOFT, cursor: 'pointer' }),
         }, t('studio.models.add'))),
@@ -19961,10 +20091,12 @@ THE SOFTWARE.
           style: { display: 'flex', flexDirection: 'column', gap: 5, padding: 7, borderRadius: 6,
             border: '1px solid ' + STUDIO_ACCENT_LINE, background: 'var(--twb-fill)' },
         },
-        h('div', { style: { fontSize: 9, fontWeight: 700 } }, t('studio.models.addTitle')),
+        h('div', { style: { fontSize: 9, fontWeight: 700 } },
+          t(editingId === null ? 'studio.models.addTitle' : 'studio.models.editTitle')),
         field(t('studio.models.providerId'), h('input', {
           type: 'text', value: form.providerId, placeholder: 'acme-gateway', autoComplete: 'off',
           'aria-label': t('studio.models.providerId'), style: inputStyle,
+          disabled: editingId !== null,
           onChange: event => setFormField('providerId', event.currentTarget.value),
         })),
         field(t('studio.models.displayName'), h('input', {
@@ -19989,25 +20121,28 @@ THE SOFTWARE.
           style: Object.assign({}, inputStyle, { height: 52, padding: '5px 7px', resize: 'vertical' }),
           onChange: event => setFormField('models', event.currentTarget.value),
         })),
-        field(t('studio.models.apiKey'), h('input', {
-          type: 'password', value: form.apiKey, autoComplete: 'off',
-          'aria-label': t('studio.models.apiKey'), style: inputStyle,
-          onChange: event => setFormField('apiKey', event.currentTarget.value),
-        })),
+        editingId === null
+          ? field(t('studio.models.apiKey'), h('input', {
+            type: 'password', value: form.apiKey, autoComplete: 'off',
+            'aria-label': t('studio.models.apiKey'), style: inputStyle,
+            onChange: event => setFormField('apiKey', event.currentTarget.value),
+          }))
+          : null,
         formError === '' ? null : h('div', { role: 'alert',
           style: { fontSize: 8.5, color: 'var(--twb-danger)', wordBreak: 'break-word' } }, formError),
         h('div', { style: { display: 'flex', gap: 4, justifyContent: 'flex-end' } },
           h('button', {
-            type: 'button', onClick: () => { setAddOpen(false); setFormError('') },
+            type: 'button', onClick: closeForm,
             style: Object.assign({}, buttonStyle, { cursor: 'pointer' }),
           }, t('studio.models.cancel')),
           h('button', {
-            type: 'button', onClick: submitAdd, disabled: busy !== '',
+            type: 'button', onClick: submitProvider, disabled: busy !== '',
             'data-three-workbench-model-provider-submit': '',
             style: Object.assign({}, buttonStyle, { cursor: busy !== '' ? 'not-allowed' : 'pointer',
               color: 'var(--twb-on-accent)', borderColor: STUDIO_ACCENT_LINE, background: STUDIO_ACCENT,
               opacity: busy !== '' ? .5 : 1 }),
-          }, busy === 'add' ? t('studio.models.adding') : t('studio.models.submit'))))
+          }, busy === 'add' ? t('studio.models.adding')
+            : (editingId === null ? t('studio.models.submit') : t('studio.models.saveProvider')))))
         : null)
     }
 
@@ -32111,14 +32246,28 @@ THE SOFTWARE.
               }
               const derived = modelCredentialRef(provider)
               if (!candidates.includes(derived)) candidates.push(derived)
+              const profileRecord = profile !== null && typeof profile === 'object' && !Array.isArray(profile)
+                ? profile : null
+              const modelIds = profileRecord !== null && Array.isArray(profileRecord.models)
+                ? profileRecord.models.map(model => typeof model === 'string' ? model : model?.id)
+                  .filter(model => typeof model === 'string' && model !== '')
+                : []
               return {
                 provider,
                 name: modelProviderName(entry, registered.value, provider),
                 active: active.has(provider),
                 configured,
                 account: provider === 'deepseek-account',
+                editable: settingsNs === 'studio-models' && profileRecord !== null
+                  && provider !== 'deepseek-account',
                 settingsNs,
                 settingsPath,
+                baseURL: profileRecord !== null && typeof profileRecord.baseURL === 'string'
+                  ? profileRecord.baseURL
+                  : (entry !== undefined && typeof entry.defaultBaseURL === 'string' ? entry.defaultBaseURL : ''),
+                api: profileRecord !== null && profileRecord.api === 'anthropic-messages'
+                  ? 'anthropic-messages' : 'openai-completions',
+                modelIds,
                 keyCandidates: candidates,
                 keyRef: candidates[0],
               }
@@ -32219,11 +32368,49 @@ THE SOFTWARE.
             return { ok: false, message: studioFailureText(error) }
           }
         }
+        const updateModelProvider = async (id, draft) => {
+          const providerId = typeof id === 'string' ? id.trim() : ''
+          const baseURL = typeof draft.baseURL === 'string' ? draft.baseURL.trim() : ''
+          const protocol = draft.protocol === 'anthropic-messages' ? 'anthropic-messages' : 'openai-completions'
+          const models = Array.isArray(draft.models)
+            ? draft.models.filter(model => typeof model === 'string' && model.trim() !== '').map(model => model.trim())
+            : []
+          if (providerId === '' || baseURL === '' || models.length === 0) {
+            return { ok: false, message: '' }
+          }
+          try {
+            const profile = {
+              displayName: typeof draft.displayName === 'string' && draft.displayName.trim() !== ''
+                ? draft.displayName.trim() : providerId,
+              api: protocol,
+              baseURL,
+              models: models.map(model => ({ id: model, name: model, contextWindow: 128000, maxTokens: 8192 })),
+            }
+            const written = await ctx.remote.settings.mutate('llm-pi-ai',
+              [{ op: 'set', path: ['providers', providerId], value: profile }], undefined)
+            return written.ok ? { ok: true } : { ok: false, message: written.error.message }
+          } catch (error) {
+            return { ok: false, message: studioFailureText(error) }
+          }
+        }
+        const deleteModelProvider = async id => {
+          const providerId = typeof id === 'string' ? id.trim() : ''
+          if (providerId === '') return { ok: false, message: '' }
+          try {
+            const written = await ctx.remote.settings.mutate('llm-pi-ai',
+              [{ op: 'unset', path: ['providers', providerId] }], undefined)
+            return written.ok ? { ok: true } : { ok: false, message: written.error.message }
+          } catch (error) {
+            return { ok: false, message: studioFailureText(error) }
+          }
+        }
         const modelAdmin = {
           load: describeModelProviders,
           setKey: setModelCredential,
           clearKey: clearModelCredential,
           addProvider: addModelProvider,
+          updateProvider: updateModelProvider,
+          deleteProvider: deleteModelProvider,
         }
 
         // The Studio AI panel speaks the Session binding directly: the same

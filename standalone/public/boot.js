@@ -221,6 +221,8 @@
           },
         })
         publishEvents()
+      } else if (payload.kind === 'selection') {
+        modelStore.set({ next: payload.selection === undefined ? null : payload.selection })
       } else if (payload.kind === 'state' && payload.state !== null && typeof payload.state === 'object') {
         sessionStore.set(payload.state)
       }
@@ -413,12 +415,24 @@
         }
       },
       mutate: async function (ns, ops) {
-        var operation = Array.isArray(ops)
-          ? ops.find(function (entry) {
-              return entry !== null && typeof entry === 'object' && entry.op === 'set'
-                && Array.isArray(entry.path) && entry.path[0] === 'providers' && typeof entry.path[1] === 'string'
-            })
-          : undefined
+        var list = Array.isArray(ops) ? ops : []
+        var unset = list.find(function (entry) {
+          return entry !== null && typeof entry === 'object' && entry.op === 'unset'
+            && Array.isArray(entry.path) && entry.path[0] === 'providers' && typeof entry.path[1] === 'string'
+        })
+        if (unset !== undefined) {
+          var removed = await fetch('/api/providers/' + encodeURIComponent(unset.path[1]), { method: 'DELETE' })
+          var removal = await removed.json()
+          await refreshModels()
+          if (removal.ok !== true) {
+            return { ok: false, error: { code: 'settings-refused', message: removal.message || 'Could not delete the provider.' } }
+          }
+          return { ok: true, value: { ns: ns, value: { providers: {} }, revision: Date.now() } }
+        }
+        var operation = list.find(function (entry) {
+          return entry !== null && typeof entry === 'object' && entry.op === 'set'
+            && Array.isArray(entry.path) && entry.path[0] === 'providers' && typeof entry.path[1] === 'string'
+        })
         if (operation === undefined) {
           return { ok: false, error: { code: 'invalid-operation', message: 'Unsupported settings operation.' } }
         }
@@ -427,8 +441,12 @@
         var models = Array.isArray(profile.models)
           ? profile.models.map(function (model) { return typeof model === 'string' ? model : model.id })
           : []
-        var response = await fetch('/api/providers', {
-          method: 'POST',
+        var catalog = await modelCatalog()
+        var exists = catalog.providers.some(function (provider) { return provider.id === route })
+        var response = await fetch(exists
+          ? '/api/providers/' + encodeURIComponent(route)
+          : '/api/providers', {
+          method: exists ? 'PUT' : 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
             id: route,
@@ -442,7 +460,7 @@
         var result = await response.json()
         await refreshModels()
         if (result.ok !== true) {
-          return { ok: false, error: { code: 'settings-refused', message: result.message || 'Could not add the provider.' } }
+          return { ok: false, error: { code: 'settings-refused', message: result.message || 'Could not save the provider.' } }
         }
         return {
           ok: true,

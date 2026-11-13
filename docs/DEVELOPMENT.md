@@ -45,10 +45,10 @@ Unit and protocol tests (Node 24; no external runner):
   tests/studio-ai.test.mjs tests/tracks.test.mjs
 ```
 
-Plugin runtime tests:
+Standalone runtime tests (plugins and model settings):
 
 ```sh
-~/.local/node24/bin/node --test standalone/plugins/runtime.test.mjs
+~/.local/node24/bin/node --test standalone/plugins/runtime.test.mjs standalone/settings.test.mjs
 ```
 
 Syntax checks:
