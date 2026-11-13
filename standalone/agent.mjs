@@ -90,6 +90,37 @@ function toAnthropicMessages(history) {
   return messages
 }
 
+/** Human-readable transport detail from a failed provider fetch. */
+const fetchFailure = (provider, endpoint, error) => {
+  const cause = error !== null && typeof error === 'object' ? error.cause : undefined
+  const detail = cause !== null && typeof cause === 'object'
+    && (typeof cause.code === 'string' || typeof cause.message === 'string')
+    ? (typeof cause.code === 'string' && cause.code !== '' ? cause.code : cause.message)
+    : error instanceof Error && error.message !== '' ? error.message : 'network error'
+  return `${provider.name} request failed (${detail}) · ${endpoint}`
+}
+
+const sleep = ms => new Promise(resolve => { setTimeout(resolve, ms) })
+
+/**
+ * Local gateways (LiteLLM and similar) intermittently reset the first
+ * connection attempt. Retry transport failures briefly; HTTP error statuses
+ * are the provider's answer and are never retried.
+ */
+async function fetchWithRetry(endpoint, init, provider) {
+  let lastError
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      return await fetch(endpoint, init)
+    } catch (error) {
+      if (init.signal !== undefined && init.signal.aborted) throw error
+      lastError = error
+      if (attempt < 2) await sleep(250 * (attempt + 1))
+    }
+  }
+  throw new Error(fetchFailure(provider, endpoint, lastError))
+}
+
 async function readSSE(response, onEvent) {
   if (response.body === null) throw new Error('Provider returned no body.')
   const reader = response.body.getReader()
@@ -115,7 +146,7 @@ async function readSSE(response, onEvent) {
 
 async function streamOpenAI(provider, key, model, system, history, tools, onText, signal) {
   const endpoint = `${provider.baseURL.replace(/\/+$/u, '')}/chat/completions`
-  const response = await fetch(endpoint, {
+  const response = await fetchWithRetry(endpoint, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -129,7 +160,7 @@ async function streamOpenAI(provider, key, model, system, history, tools, onText
       stream: true,
     }),
     signal,
-  })
+  }, provider)
   if (!response.ok) {
     const body = await response.text()
     throw new Error(`Provider ${response.status}: ${body.slice(0, 500)}`)
@@ -172,7 +203,7 @@ async function streamOpenAI(provider, key, model, system, history, tools, onText
 
 async function streamAnthropic(provider, key, model, system, history, tools, onText, signal) {
   const endpoint = `${provider.baseURL.replace(/\/+$/u, '')}/messages`
-  const response = await fetch(endpoint, {
+  const response = await fetchWithRetry(endpoint, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -188,7 +219,7 @@ async function streamAnthropic(provider, key, model, system, history, tools, onT
       stream: true,
     }),
     signal,
-  })
+  }, provider)
   if (!response.ok) {
     const body = await response.text()
     throw new Error(`Provider ${response.status}: ${body.slice(0, 500)}`)
