@@ -71,7 +71,7 @@ more). They are visible but disabled until a native implementation lands.
 - AI chat with streaming, tool calls and scene revisions
 - Session model picker and reasoning effort (when a provider declares it)
 - Provider API keys and custom OpenAI/Anthropic-compatible providers
-- Light/dark theme toggle in the header, persisted in `localStorage`
+- Light/dark theme toggle in the header; the editor chrome and default viewport background follow it, persisted in `localStorage`. Authored scene backgrounds are preserved.
 - Sandboxed `srcDoc` scene execution and the existing export/share paths
 
 ## Not supported

@@ -7345,8 +7345,15 @@ window.__ModuleLoader__.load({
      * @param editorState - optional v2 record; the UID registry travels in the
      *   document so the standalone/ZIP runtime resolves without its parent.
      */
-    function previewDocument(record, camera, editorState, assetManifest) {
-      const payload = embed({ title: record.title, revision: record.revision, code: record.code })
+    function previewDocument(record, camera, editorState, assetManifest, background) {
+      const themeBackground = typeof background === 'string' && /^#[0-9a-fA-F]{6}$/u.test(background)
+        ? background : '#0b0d10'
+      const payload = embed({
+        title: record.title,
+        revision: record.revision,
+        code: record.code,
+        background: themeBackground,
+      })
       const initialCamera = embed(camera && Array.isArray(camera.position) && Array.isArray(camera.target) ? camera : null)
       const initialEditorState = embed(editorState === undefined || editorState === null ? null : editorState)
       const initialAssets = embed(assetManifest === undefined || assetManifest === null
@@ -7359,7 +7366,7 @@ window.__ModuleLoader__.load({
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Three.js preview</title>
 <style>
-  html, body { margin: 0; height: 100%; background: #0b0d10; overflow: hidden; }
+  html, body { margin: 0; height: 100%; background: ${themeBackground}; overflow: hidden; }
   body { display: flex; align-items: center; justify-content: center; }
   canvas { display: block; outline: none; -webkit-touch-callout: none; user-select: none; }
   #hud { position: fixed; left: 10px; bottom: 8px; font: 11px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -7540,7 +7547,10 @@ try {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
 
   const scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x0b0d10)
+  const defaultSceneBackground = new THREE.Color(SCENE.background || '#0b0d10')
+  scene.background = defaultSceneBackground
+  let scriptBackgroundAuthored = false
+  let currentThemeBackground = SCENE.background || '#0b0d10'
 
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 4000)
   camera.position.set(0, 2.5, 7)
@@ -9294,7 +9304,8 @@ try {
         markMaterialsNeedsUpdate()
       }
     } else if (channel === 'background') {
-      scene.background = scriptRenderer.background
+      scene.background = scriptBackgroundAuthored
+        ? scriptRenderer.background : new THREE.Color(currentThemeBackground)
       rendererPinBackground = null
     } else if (channel === 'fog') {
       const hadFog = scene.fog !== null && scene.fog !== undefined
@@ -10938,6 +10949,9 @@ try {
   // registry as first-class script objects. Persisted values are merged with
   // descriptor defaults; the callback is idempotent and never diffed.
   applyInitialParams()
+  // The runtime default follows the Studio theme; only a script (or its
+  // parameter callback) that assigned its own background opts out.
+  scriptBackgroundAuthored = scene.background !== defaultSceneBackground
 
   // The camera the script chose, kept so the inspector can restore it after a
   // manual camera override without reloading the whole scene.
@@ -12761,6 +12775,14 @@ try {
     }
     if (data.command === 'pause') { timeline.playing = false; sendTimeline() }
     if (data.command === 'play') { timeline.playing = true; timeline.last = performance.now(); sendTimeline() }
+    if (data.command === 'theme-background' && typeof data.background === 'string'
+      && /^#[0-9a-fA-F]{6}$/u.test(data.background)) {
+      currentThemeBackground = data.background
+      const backgroundPinned = rendererPins.background !== undefined && rendererPins.background !== null
+      if (!scriptBackgroundAuthored && !backgroundPinned) {
+        scene.background = new THREE.Color(data.background)
+      }
+    }
     if (data.command === 'capture-frame') handleCaptureFrame(data)
     if (data.command === 'capture-end') finishCaptureSession(data.requestId, false)
     if (data.command === 'capture-cancel') finishCaptureSession(data.requestId, true)
@@ -20166,6 +20188,7 @@ THE SOFTWARE.
       }
       const studioLight = useStudioHostLight()
       const studioThemeVars = studioLight ? STUDIO_THEME_LIGHT : STUDIO_THEME_DARK
+      const studioViewportBackground = studioLight ? '#f3f5f9' : '#0b0d10'
       const sessionId = props.sessionId
       const overlay = props.overlay === true
       const viewportWidth = typeof props.viewportWidth === 'number' ? props.viewportWidth : 0
@@ -26989,12 +27012,27 @@ THE SOFTWARE.
           html: previewDocument(effectiveRecord, initialCamera, payload, {
             revision: assetManifestRevisionRef.current,
             assets: manifestAssets(assetListRef.current),
-          }),
+          }, studioViewportBackground),
         }
       }
       // Never keep the previous Session's HTML mounted while a new record is
       // loading; the pane shows its loading/empty state instead.
       const document_ = docToken === null ? null : documentRef.current.html
+      // Theme switching is live: the iframe keeps its scene and only swaps the
+      // runtime default background, so the demo and scripts that never set a
+      // background follow the Studio theme without a reload.
+      const postStudioThemeBackground = () => {
+        const frame = frameRef.current
+        if (frame === null || frame === undefined) return
+        try {
+          frame.contentWindow.postMessage({
+            type: 'three-workbench:command',
+            command: 'theme-background',
+            background: studioViewportBackground,
+          }, '*')
+        } catch (error) { void error }
+      }
+      React.useEffect(() => { postStudioThemeBackground() }, [studioLight, document_])
       const modeButton = (value, label, extraStyle) => h('button', {
         type: 'button',
         style: { ...(extraStyle === undefined ? compactButton : extraStyle), ...(mode === value ? { background: 'color-mix(in srgb, currentColor 16%, transparent)', fontWeight: 600 } : {}) },
@@ -30244,7 +30282,7 @@ THE SOFTWARE.
               key: docToken,
               srcDoc: document_,
               title: t('tab.title'),
-              onLoad: reapplyViewportChrome,
+              onLoad: () => { reapplyViewportChrome(); postStudioThemeBackground() },
               'data-three-workbench-frame': '',
               sandbox: 'allow-scripts allow-pointer-lock allow-downloads',
               style: { flex: 1, width: '100%', minWidth: 0, border: 0, background: 'var(--twb-code-bg)', display: 'block', minHeight: 0 },
