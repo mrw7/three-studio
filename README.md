@@ -32,6 +32,8 @@ remains available as an optional legacy mode.
   URL and model list.
 - **Plugin market** — install native Studio modules such as skills, planning,
   todo, subagents and web reading; more capabilities are listed on the roadmap.
+- **Light and dark themes** — the standalone header has a one-click sun/moon
+  toggle; the choice is persisted locally.
 - **Local-first data** — sessions, scenes, settings and credentials live under
   `~/.three-studio`; the server binds loopback only and sends no telemetry.
 - **No Harness at runtime** — `standalone/server.mjs` depends only on Node 24 and

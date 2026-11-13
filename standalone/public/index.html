@@ -8,8 +8,18 @@
     <style>
       html, body, #root { height: 100%; margin: 0; }
       body { background: #0b0e14; color: #e6e9f0; overflow: hidden; }
+      html[data-studio-theme="light"] body { background: #f4f5f8; color: #1a2433; }
       #boot { position: fixed; inset: 0; display: grid; place-items: center; font: 14px/1.5 system-ui, sans-serif; color: #7d8796; }
     </style>
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem('three-studio:theme') === 'light' ? 'light' : 'dark'
+          document.documentElement.dataset.studioTheme = theme
+          document.documentElement.style.colorScheme = theme
+        } catch (error) { void error }
+      })()
+    </script>
   </head>
   <body>
     <div id="root"><div id="boot">Loading Three Studio…</div></div>

@@ -636,8 +636,13 @@
 
   async function start() {
     document.documentElement.lang = activeLocale === 'zh' ? 'zh-CN' : 'en'
-    document.body.setAttribute('data-ds-theme-source', 'dark')
-    document.body.setAttribute('data-ds-dark-theme', '')
+    var savedTheme = 'dark'
+    try { savedTheme = localStorage.getItem('three-studio:theme') === 'light' ? 'light' : 'dark' } catch (error) { void error }
+    var dark = savedTheme !== 'light'
+    document.documentElement.dataset.studioTheme = savedTheme
+    document.documentElement.style.colorScheme = savedTheme
+    document.body.toggleAttribute('data-ds-dark-theme', dark)
+    document.body.setAttribute('data-ds-theme-source', savedTheme)
     if (definition === null) {
       document.getElementById('root').textContent = 'client.js did not register.'
       return

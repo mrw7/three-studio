@@ -191,6 +191,8 @@ window.__ModuleLoader__.load({
       'studio.language': '语言',
       'studio.language.zh': '中文',
       'studio.language.en': '英文',
+      'studio.theme.light': '浅色模式',
+      'studio.theme.dark': '深色模式',
       'studio.close': '关闭工作台',
       'studio.ai.open': '打开 AI 对话',
       'studio.panel.left': '场景面板',
@@ -1088,6 +1090,8 @@ window.__ModuleLoader__.load({
       'studio.language': 'Language',
       'studio.language.zh': 'Chinese',
       'studio.language.en': 'English',
+      'studio.theme.light': 'Light mode',
+      'studio.theme.dark': 'Dark mode',
       'studio.close': 'Close workbench',
       'studio.ai.open': 'Open AI conversation',
       'studio.panel.left': 'Scene panel',
@@ -17801,6 +17805,10 @@ THE SOFTWARE.
         'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z'],
       chevronRight: ['m9 6 6 6-6 6'],
       plug: ['M9 3v6', 'M15 3v6', 'M6 9h12v4a6 6 0 0 1-12 0Z', 'M12 19v3'],
+      sun: ['M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z',
+        'M12 2v2', 'M12 20v2', 'M4.9 4.9l1.4 1.4', 'M17.7 17.7l1.4 1.4',
+        'M2 12h2', 'M20 12h2', 'M4.9 19.1l1.4-1.4', 'M17.7 6.3l1.4-1.4'],
+      moon: ['M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5 8.5 8.5 0 1 0 20.5 14.2Z'],
       sparkles: ['m12 3 1.4 4.1L17.5 8.5l-4.1 1.4L12 14l-1.4-4.1L6.5 8.5l4.1-1.4Z',
         'M19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8Z',
         'M5 15l.6 1.7L7.3 17l-1.7.6L5 19l-.6-1.4L2.7 17l1.7-.3Z'],
@@ -20384,6 +20392,16 @@ THE SOFTWARE.
       const openStudioHistory = () => openStudioTab('history')
       const openStudioSessions = () => openStudioTab('sessions')
       const openStudioPlugins = () => openStudioTab('plugins')
+      const toggleStudioTheme = () => {
+        if (!standaloneMode) return
+        const nextLight = !studioLight
+        try {
+          document.body.toggleAttribute('data-ds-dark-theme', !nextLight)
+          document.documentElement.dataset.studioTheme = nextLight ? 'light' : 'dark'
+          document.documentElement.style.colorScheme = nextLight ? 'light' : 'dark'
+          localStorage.setItem('three-studio:theme', nextLight ? 'light' : 'dark')
+        } catch (error) { void error }
+      }
       // The desktop editor has no off state any more; implicit gestures such
       // as the transform gizmo stay enabled while Studio is shown.
       React.useEffect(() => {
@@ -29200,6 +29218,11 @@ THE SOFTWARE.
           { active: studioLeftShown && studioTab === 'ai', pressed: studioLeftShown && studioTab === 'ai', data: 'ai' }),
         studioIconButton('clock', t('studio.rail.history'), openStudioHistory,
           { active: studioLeftShown && studioTab === 'history', pressed: studioLeftShown && studioTab === 'history', data: 'history' }),
+        standaloneMode
+          ? studioIconButton(studioLight ? 'moon' : 'sun',
+            studioLight ? t('studio.theme.dark') : t('studio.theme.light'),
+            toggleStudioTheme, { data: 'theme' })
+          : null,
         studioDivider,
         studioLanguageSwitch,
         h('div', { style: { position: 'relative' } },
