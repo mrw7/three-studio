@@ -81,7 +81,9 @@ Each editable provider card exposes **Edit** and **Delete**:
 ```
 
 Secrets are write-only from the UI: the server reports `keyConfigured` but never
-returns the key value.
+returns the key value. A saved key is displayed as a masked `********`
+placeholder with a replace hint; typing a new value and pressing **Save**
+replaces it.
 
 ## Wire behavior
 

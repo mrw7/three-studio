@@ -237,6 +237,8 @@ window.__ModuleLoader__.load({
       'studio.models.keyRef': '凭据：{ref}',
       'studio.models.readOnly': '只读',
       'studio.models.keyPlaceholder': '输入 API Key',
+      'studio.models.keySavedMask': '********',
+      'studio.models.keySavedHint': '已保存 API Key；输入新值可替换。',
       'studio.models.apiKey': 'API Key',
       'studio.models.save': '保存',
       'studio.models.clear': '清除',
@@ -1145,6 +1147,8 @@ window.__ModuleLoader__.load({
       'studio.models.keyRef': 'Credential: {ref}',
       'studio.models.readOnly': 'Read only',
       'studio.models.keyPlaceholder': 'Enter API key',
+      'studio.models.keySavedMask': '********',
+      'studio.models.keySavedHint': 'API key saved; type a new value to replace it.',
       'studio.models.apiKey': 'API Key',
       'studio.models.save': 'Save',
       'studio.models.clear': 'Clear',
@@ -19963,7 +19967,13 @@ THE SOFTWARE.
               h('input', {
                 type: 'password',
                 value: draft,
-                placeholder: readOnly ? t('studio.models.readOnly') : t('studio.models.keyPlaceholder'),
+                placeholder: readOnly
+                  ? t('studio.models.readOnly')
+                  : row.keyConfigured === true
+                    ? t('studio.models.keySavedMask')
+                    : t('studio.models.keyPlaceholder'),
+                title: row.keyConfigured === true
+                  ? t('studio.models.keySavedHint') : t('studio.models.keyPlaceholder'),
                 'aria-label': t('studio.models.apiKey') + ' · ' + row.name,
                 autoComplete: 'off',
                 disabled: readOnly || busy !== '',
