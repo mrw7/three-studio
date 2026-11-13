@@ -444,8 +444,15 @@ const handleApi = async (request, pathname) => {
       session.updatedAt = Date.now()
       broadcast(sessionId, { kind: 'state', state: sessionSnapshot(session) })
       const attemptId = `attempt-${randomUUID()}`
+      // A stale selection (its provider was deleted) must not fall back to a
+      // hardcoded provider: resolve the current default and persist it.
+      if (selectionOf(session) === null || session.selection === null
+        || modelSettings.providerOf(session.selection.provider) === undefined) {
+        session.selection = defaultSelection()
+      }
       void runAgent({
         session,
+        selection: selectionOf(session),
         settings: modelSettings,
         tools,
         promptSections,

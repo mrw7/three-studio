@@ -27254,7 +27254,6 @@ THE SOFTWARE.
       menuItem(pickMode ? t('action.pickOff') : t('action.pick'), togglePick),
       menuItem(t('action.copy'), copyCode),
       menuItem(t('action.templates'), () => setTemplates(true)),
-      menuItem(t('action.display'), openDisplay),
       mode === 'preview'
         ? h('div', { style: { height: 1, margin: '4px 0', background: 'color-mix(in srgb, currentColor 14%, transparent)' } })
         : null,
@@ -27605,7 +27604,6 @@ THE SOFTWARE.
         paletteAdd(t('action.copy'), '', copyCode)
       }
       paletteAdd(t('action.templates'), '', () => setTemplates(true))
-      paletteAdd(t('action.display'), '', openDisplay)
       const paletteNeedle = paletteQuery.trim().toLowerCase()
       const paletteFiltered = paletteNeedle === ''
         ? paletteCommands
@@ -29400,7 +29398,6 @@ THE SOFTWARE.
         },
         studioModeButton('preview', t('mode.preview'), 'eye'),
         studioModeButton('code', t('mode.code'), 'code')),
-        studioIconButton('monitor', t('action.display'), openDisplay),
         studioIconButton('share', t('editor.shareMenu'), openShareCreate,
           { disabled: record === null || shareEntryDisabled }),
         standaloneMode
@@ -29472,14 +29469,7 @@ THE SOFTWARE.
           })
           : null)
       }),
-      h('span', { style: { flex: 1 } }),
-      h('button', {
-        type: 'button', title: t('action.display'), 'aria-label': t('action.display'),
-        className: 'twb-studio-rail', onClick: openDisplay,
-        style: { width: 34, height: 34, padding: 0, borderRadius: 8, display: 'flex',
-          alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-          border: '1px solid transparent', background: 'transparent', color: STUDIO_MUTED },
-      }, h(StudioGlyph, { name: 'monitor', size: 17 })))
+      h('span', { style: { flex: 1 } }))
 
       const studioLeftTitle = studioTab === 'ai' && studioAiSettings ? t('studio.settings.title')
         : studioTab === 'scene' ? t('studio.sceneTree')

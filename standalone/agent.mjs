@@ -234,12 +234,15 @@ async function streamAnthropic(provider, key, model, system, history, tools, onT
  */
 export async function runAgent(options) {
   const {
-    session, settings, tools, promptSections, emit, emitChunk, signal,
+    session, settings, tools, promptSections, emit, emitChunk, signal, selection: override,
   } = options
-  const selection = session.selection ?? {}
-  const providerId = typeof selection.provider === 'string' ? selection.provider : 'deepseek'
+  const selection = override ?? session.selection ?? {}
+  const providerId = typeof selection.provider === 'string' ? selection.provider : ''
   const provider = settings.providerOf(providerId)
-  if (provider === undefined) throw new Error(`Unknown model provider: ${providerId}`)
+  if (provider === undefined) {
+    throw new Error(providerId === ''
+      ? 'No model provider configured. Add one in Settings.' : `Unknown model provider: ${providerId}`)
+  }
   const key = settings.keyOf(providerId)
   if (key === undefined) throw new Error(`Add an API key for ${provider.name} in Settings.`)
   const modelId = typeof selection.model === 'string' && selection.model !== ''
@@ -330,9 +333,12 @@ export async function runAgent(options) {
 export async function runSubagent(options) {
   const { prompt, settings, selection, signal, system } = options
   const providerId = selection !== null && typeof selection === 'object'
-    && typeof selection.provider === 'string' ? selection.provider : 'deepseek'
+    && typeof selection.provider === 'string' ? selection.provider : ''
   const provider = settings.providerOf(providerId)
-  if (provider === undefined) throw new Error(`Unknown model provider: ${providerId}`)
+  if (provider === undefined) {
+    throw new Error(providerId === ''
+      ? 'No model provider configured. Add one in Settings.' : `Unknown model provider: ${providerId}`)
+  }
   const key = settings.keyOf(providerId)
   if (key === undefined) throw new Error(`Add an API key for ${provider.name} in Settings.`)
   const modelId = selection !== null && typeof selection === 'object'
