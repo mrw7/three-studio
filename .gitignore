@@ -1,0 +1,22 @@
+# Local runtime data and logs
+node_modules/
+.preview-tmp/
+*.log
+.DS_Store
+
+# Generated Harness patch (created by start.sh)
+.dev.patch.yml
+
+# Internal project workspace files, not part of the public repo
+AUDIT.md
+TODO.md
+docs/BATCH-*.md
+docs/P*-*.md
+docs/DESIGN-*.md
+docs/DECISIONS.md
+
+# Local editor/OS noise
+*.swp
+*.swo
+.idea/
+.vscode/

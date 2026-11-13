@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Three Studio</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230b0e14'/%3E%3Cpath d='M12 3.5 20 18.5H4Z' fill='none' stroke='%234f7cff' stroke-width='1.5' stroke-linejoin='round'/%3E%3Cpath d='M4 12.2h5.2l2.6-3.6 2.7 7.2 2.8-3.6H20' fill='none' stroke='%234f7cff' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <style>
+      html, body, #root { height: 100%; margin: 0; }
+      body { background: #0b0e14; color: #e6e9f0; overflow: hidden; }
+      #boot { position: fixed; inset: 0; display: grid; place-items: center; font: 14px/1.5 system-ui, sans-serif; color: #7d8796; }
+    </style>
+  </head>
+  <body>
+    <div id="root"><div id="boot">Loading Three Studio…</div></div>
+    <script src="/vendor/react.production.min.js"></script>
+    <script src="/vendor/react-dom.production.min.js"></script>
+    <script src="/boot.js"></script>
+    <script src="/client.js"></script>
+    <script>window.ThreeStudioStandalone.start()</script>
+  </body>
+</html>

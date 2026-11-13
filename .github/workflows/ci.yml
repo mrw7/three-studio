@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Syntax checks
+        run: |
+          node --check client.js
+          node --check index.js
+          node --check standalone/server.mjs
+          node --check standalone/agent.mjs
+          node --check standalone/plugins/runtime.mjs
+      - name: Unit and protocol tests
+        run: |
+          node --test \
+            tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs \
+            tests/history.test.mjs tests/share.test.mjs tests/smoke.test.mjs \
+            tests/studio-ai.test.mjs tests/tracks.test.mjs
+      - name: Standalone plugin tests
+        run: node --test standalone/plugins/runtime.test.mjs

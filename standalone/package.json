@@ -1,0 +1,12 @@
+{
+  "name": "three-studio-standalone",
+  "private": true,
+  "type": "module",
+  "version": "0.1.0",
+  "description": "Standalone Three Studio AI 3D workbench; no DeepSeek Harness runtime.",
+  "license": "UNLICENSED",
+  "engines": { "node": ">=24" },
+  "scripts": {
+    "start": "./start.sh"
+  }
+}

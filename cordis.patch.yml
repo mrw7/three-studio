@@ -1,0 +1,5 @@
+# Bundle patch for the Three.js workbench.
+# Installed into a host profile with the host plugin command.
+- insert:
+    - id: three-workbench
+      name: three-workbench
