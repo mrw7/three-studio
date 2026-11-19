@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url'
 import { apply as applyWorkbench } from '../index.js'
 import { createModelSettings } from './settings.mjs'
 import { runAgent, runSubagent } from './agent.mjs'
+import { SESSION_LIMITS, compactSessions, createSessionWriter } from './sessions.mjs'
 import { createPluginRuntime } from './plugins/runtime.mjs'
 
 const HERE = dirname(fileURLToPath(import.meta.url))
@@ -96,6 +97,8 @@ try {
           running: false,
           seq: Number.isSafeInteger(row.seq) ? row.seq : 0,
           lastAgentError: typeof row.lastAgentError === 'string' ? row.lastAgentError : '',
+          archived: row.archived === true,
+          historyTrimmed: row.historyTrimmed === true,
         })
       }
     }
@@ -107,13 +110,12 @@ if (sessions.size === 0) {
   const id = `studio-${randomUUID()}`
   sessions.set(id, {
     id, title: 'New scene', createdAt: Date.now(), updatedAt: Date.now(),
-    events: [], history: [], selection: null, running: false, seq: 0, lastAgentError: '',
+    events: [], history: [], selection: null, running: false, seq: 0, lastAgentError: '', archived: false, historyTrimmed: false,
   })
 }
 
-const saveSessions = async () => {
-  await writeFile(SESSIONS_FILE, JSON.stringify([...sessions.values()], null, 2), { mode: 0o600 })
-}
+const saveSessions = createSessionWriter(SESSIONS_FILE, sessions)
+const saveInBackground = () => { void saveSessions().catch(error => console.error('Session save failed:', error.message)) }
 // Persist the initial catalog before serving, so a restart before the first
 // prompt keeps the same Session id and scene binding.
 await saveSessions()
@@ -125,6 +127,8 @@ const sessionRows = () => [...sessions.values()]
     updatedAt: row.updatedAt,
     running: row.running === true,
     blank: !Array.isArray(row.history) || row.history.length === 0,
+    archived: row.archived === true,
+    historyTrimmed: row.historyTrimmed === true,
     parentId: undefined,
     origin: undefined,
     retainedBy: { mainView: index === 0 ? 1 : 0 },
@@ -140,7 +144,7 @@ const controllers = new Map()
 let saveTimer = null
 const scheduleSave = () => {
   if (saveTimer !== null) clearTimeout(saveTimer)
-  saveTimer = setTimeout(() => { saveTimer = null; void saveSessions() }, 250)
+  saveTimer = setTimeout(() => { saveTimer = null; saveInBackground() }, 250)
 }
 const sessionSnapshot = session => ({
   running: session.running === true,
@@ -148,6 +152,7 @@ const sessionSnapshot = session => ({
   promptError: null,
   lastAgentError: session.lastAgentError === undefined ? '' : session.lastAgentError,
   loadingOlder: false,
+  historyTrimmed: session.historyTrimmed === true,
 })
 const broadcast = (sessionId, payload) => {
   const listeners = subscribers.get(sessionId)
@@ -181,7 +186,8 @@ const selectionOf = session => {
   const current = session.selection
   if (current !== null && typeof current === 'object'
     && typeof current.provider === 'string' && typeof current.model === 'string') {
-    return current
+    const provider = modelSettings.providerOf(current.provider)
+    if (Array.isArray(provider?.models) && provider.models.some(model => model.id === current.model)) return current
   }
   return defaultSelection()
 }
@@ -291,7 +297,7 @@ const createSession = async () => {
   const now = Date.now()
   sessions.set(id, {
     id, title: 'New scene', createdAt: now, updatedAt: now,
-    events: [], history: [], selection: null, running: false, seq: 0, lastAgentError: '',
+    events: [], history: [], selection: null, running: false, seq: 0, lastAgentError: '', archived: false, historyTrimmed: false,
   })
   await saveSessions()
   return id
@@ -299,9 +305,12 @@ const createSession = async () => {
 
 const handleApi = async (request, pathname) => {
   if (request.method === 'GET' && pathname === '/api/sessions') {
-    return json({ sessions: sessionRows() })
+    const storage = compactSessions(sessions)
+    if (storage.trimmed > 0) saveInBackground()
+    return json({ sessions: sessionRows(), storage })
   }
   if (request.method === 'POST' && pathname === '/api/sessions') {
+    if (sessions.size >= SESSION_LIMITS.sessions) return json({ ok: false, message: 'Session limit reached. Delete unused sessions before creating another.' }, 409)
     const id = await createSession()
     return json({ id, session: sessionRows().find(row => row.id === id) }, 201)
   }
@@ -353,6 +362,54 @@ const handleApi = async (request, pathname) => {
       return json(result, result.ok ? 200 : 400)
     }
   }
+  const testMatch = /^\/api\/providers\/([^/]+)\/test$/.exec(pathname)
+  if (request.method === 'POST' && testMatch !== null) {
+    const providerId = decodeURIComponent(testMatch[1])
+    const provider = modelSettings.providerOf(providerId)
+    if (provider === undefined) return json({ ok: false, message: 'Unknown provider.' }, 404)
+    const body = await request.json().catch(() => ({}))
+    const model = typeof body?.model === 'string'
+      ? body.model : (Array.isArray(provider.models) ? provider.models[0]?.id : undefined)
+    if (!Array.isArray(provider.models) || !provider.models.some(entry => entry.id === model)) {
+      return json({ ok: false, message: 'Unknown model.' }, 400)
+    }
+    const started = Date.now()
+    try {
+      const text = await runSubagent({
+        prompt: 'Reply with OK.', system: 'This is a connection test. Reply with OK only.',
+        selection: { provider: providerId, model }, settings: modelSettings,
+        signal: AbortSignal.timeout(15000), maxTokens: 16,
+      })
+      if (text.trim() === '') throw new Error('The model returned an empty response.')
+      return json({ ok: true, model, latencyMs: Date.now() - started })
+    } catch (error) {
+      const key = modelSettings.keyOf(providerId)
+      let message = error instanceof Error ? error.message : 'Connection test failed.'
+      if (key) message = message.split(key).join('[redacted]')
+      return json({ ok: false, message: message.slice(0, 600), latencyMs: Date.now() - started }, 400)
+    }
+  }
+  const managedSession = /^\/api\/sessions\/([^/]+)$/.exec(pathname)
+  if (managedSession !== null && (request.method === 'PATCH' || request.method === 'DELETE')) {
+    const id = decodeURIComponent(managedSession[1])
+    const session = sessions.get(id)
+    if (session === undefined) return json({ ok: false, message: 'Session not found.' }, 404)
+    if (session.running || controllers.has(id)) return json({ ok: false, message: 'Stop this session before archiving or deleting it.' }, 409)
+    if (request.method === 'PATCH') {
+      const body = await request.json().catch(() => null)
+      if (typeof body?.archived !== 'boolean') return json({ ok: false, message: 'Expected an archived boolean.' }, 400)
+      session.archived = body.archived
+    } else {
+      sessions.delete(id)
+      const listeners = subscribers.get(id)
+      if (listeners) for (const response of listeners) response.end()
+      subscribers.delete(id)
+      if (![...sessions.values()].some(row => !row.archived)) await createSession()
+    }
+    await saveSessions()
+    broadcast(id, { kind: 'state', state: sessionSnapshot(session) })
+    return json({ ok: true })
+  }
   const providerMatch = /^\/api\/providers\/([^/]+)$/.exec(pathname)
   if (providerMatch !== null) {
     const providerId = decodeURIComponent(providerMatch[1])
@@ -376,7 +433,7 @@ const handleApi = async (request, pathname) => {
             broadcast(session.id, { kind: 'selection', selection: null })
           }
         }
-        void saveSessions()
+        saveInBackground()
       }
       return json(result, result.ok ? 200 : 400)
     }
@@ -390,7 +447,7 @@ const handleApi = async (request, pathname) => {
             broadcast(session.id, { kind: 'selection', selection: null })
           }
         }
-        void saveSessions()
+        saveInBackground()
       }
       return json(result, result.ok ? 200 : 400)
     }
@@ -424,10 +481,12 @@ const handleApi = async (request, pathname) => {
       })
     }
     if (request.method === 'POST' && action === 'prompt') {
+      if (session.archived) return json({ ok: false, error: { message: 'Restore this archived session before sending a prompt.' } }, 409)
       if (session.running === true) return json({ ok: false, error: { message: 'Session is already running.' } }, 409)
       const body = await request.json().catch(() => null)
       const text = textFromParts(body?.parts)
       if (text.trim() === '') return json({ ok: false, error: { message: 'Prompt is empty.' } }, 400)
+      if (Buffer.byteLength(text) > SESSION_LIMITS.promptBytes) return json({ ok: false, error: { message: 'Prompt exceeds the 64 KiB limit. Shorten it and try again.' } }, 413)
       const controller = new AbortController()
       controllers.set(sessionId, controller)
       emitEvent(session, {
@@ -457,24 +516,40 @@ const handleApi = async (request, pathname) => {
         tools,
         promptSections,
         signal: controller.signal,
-        emit: event => emitEvent(session, event),
-        emitChunk: textDelta => emitChunk(session, attemptId, textDelta),
+        // A canceled attempt can finish after a replacement prompt starts.
+        // Its late events must not leak into the new attempt's transcript.
+        emit: event => {
+          if (controllers.get(sessionId) === controller) emitEvent(session, event)
+        },
+        emitChunk: textDelta => {
+          if (controllers.get(sessionId) === controller) emitChunk(session, attemptId, textDelta)
+        },
       }).catch(error => {
         if (controller.signal.aborted) return
-        session.lastAgentError = error instanceof Error ? error.message : String(error)
+        if (controllers.get(sessionId) === controller) {
+          session.lastAgentError = error instanceof Error ? error.message : String(error)
+        }
       }).finally(() => {
+        if (controllers.get(sessionId) !== controller) return
         session.running = false
         controllers.delete(sessionId)
         session.updatedAt = Date.now()
-        void saveSessions()
+        saveInBackground()
         broadcast(sessionId, { kind: 'state', state: sessionSnapshot(session) })
       })
       return json({ ok: true, value: { accepted: true } }, 202)
     }
     if (request.method === 'POST' && action === 'cancel') {
       const controller = controllers.get(sessionId)
-      if (controller !== undefined) controller.abort()
-      session.running = false
+      if (controller !== undefined) {
+        // Keep the session busy until the aborted attempt reaches its finally
+        // block. This prevents a replacement prompt from interleaving with
+        // the old attempt's history and tool work.
+        controller.abort()
+      } else {
+        session.running = false
+      }
+      scheduleSave()
       broadcast(sessionId, { kind: 'state', state: sessionSnapshot(session) })
       return json({ ok: true })
     }
@@ -586,7 +661,10 @@ server.listen(PORT, '127.0.0.1', () => {
   console.log(`data: ${HOME}`)
 })
 
-const shutdown = () => {
+const shutdown = async () => {
+  if (saveTimer !== null) clearTimeout(saveTimer)
+  for (const controller of controllers.values()) controller.abort()
+  await saveSessions()
   for (const dispose of disposers.splice(0)) {
     try { dispose() } catch (error) { void error }
   }

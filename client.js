@@ -211,6 +211,14 @@ window.__ModuleLoader__.load({
       'studio.sessions.empty': '没有匹配的会话。',
       'studio.sessions.current': '当前',
       'studio.sessions.running': '运行中',
+      'studio.sessions.archived': '已归档',
+      'studio.sessions.showArchived': '显示已归档',
+      'studio.sessions.archive': '归档',
+      'studio.sessions.restore': '恢复',
+      'studio.sessions.delete': '删除',
+      'studio.sessions.confirmDelete': '再次点击确认删除',
+      'studio.sessions.compacted': '历史已压缩',
+      'studio.sessions.manageFailed': '会话操作失败',
       'studio.sessions.blankTitle': '新任务',
       'studio.sessions.openFailed': '无法打开该会话',
       'studio.sessions.hint': '切换会话不会关闭工作台；每个会话保留各自的工作台状态。',
@@ -227,6 +235,10 @@ window.__ModuleLoader__.load({
       'studio.models.loadFailed': '无法读取模型供应商配置。',
       'studio.models.saveFailed': '保存 API Key 失败。',
       'studio.models.clearFailed': '清除 API Key 失败。',
+      'studio.models.test': '测试连接',
+      'studio.models.testing': '测试中…',
+      'studio.models.testPassed': '连接正常 · {ms} ms',
+      'studio.models.testFailed': '连接失败：{message}',
       'studio.models.invalidRoute': '供应商标识只能包含小写字母、数字和连字符，且以字母开头。',
       'studio.models.invalidBaseURL': 'Base URL 必须是 http(s) 地址。',
       'studio.models.invalidModels': '至少填写一个模型 ID。',
@@ -1121,6 +1133,14 @@ window.__ModuleLoader__.load({
       'studio.sessions.empty': 'No matching sessions.',
       'studio.sessions.current': 'Current',
       'studio.sessions.running': 'Running',
+      'studio.sessions.archived': 'Archived',
+      'studio.sessions.showArchived': 'Show archived',
+      'studio.sessions.archive': 'Archive',
+      'studio.sessions.restore': 'Restore',
+      'studio.sessions.delete': 'Delete',
+      'studio.sessions.confirmDelete': 'Click again to confirm deletion',
+      'studio.sessions.compacted': 'History compacted',
+      'studio.sessions.manageFailed': 'Session action failed',
       'studio.sessions.blankTitle': 'New task',
       'studio.sessions.openFailed': 'Could not open that session',
       'studio.sessions.hint': 'Switching sessions keeps Studio open; each session keeps its own workbench state.',
@@ -1137,6 +1157,10 @@ window.__ModuleLoader__.load({
       'studio.models.loadFailed': 'Could not load model providers.',
       'studio.models.saveFailed': 'Could not save the API key.',
       'studio.models.clearFailed': 'Could not clear the API key.',
+      'studio.models.test': 'Test connection',
+      'studio.models.testing': 'Testing…',
+      'studio.models.testPassed': 'Connected · {ms} ms',
+      'studio.models.testFailed': 'Connection failed: {message}',
       'studio.models.invalidRoute': 'Provider id must start with a letter and contain only lowercase letters, digits and hyphens.',
       'studio.models.invalidBaseURL': 'Base URL must be an http(s) URL.',
       'studio.models.invalidModels': 'Enter at least one model id.',
@@ -19626,27 +19650,24 @@ THE SOFTWARE.
       const error = typeof props.error === 'string' ? props.error : ''
       const onOpen = typeof props.onOpen === 'function' ? props.onOpen : () => {}
       const onQuery = typeof props.onQuery === 'function' ? props.onQuery : () => {}
+      const onArchive = typeof props.onArchive === 'function' ? props.onArchive : () => {}
+      const onDelete = typeof props.onDelete === 'function' ? props.onDelete : () => {}
       const chip = (label, color, background, border) => h('span', {
         style: { flex: '0 0 auto', fontSize: 8, padding: '1px 5px', borderRadius: 7,
           color, background, border: '1px solid ' + border },
       }, label)
       const sessionRow = row => {
-        const meta = [row.time, row.running ? t('studio.sessions.running') : '']
+        const meta = [row.time, row.running ? t('studio.sessions.running') : '', row.historyTrimmed ? t('studio.sessions.compacted') : '']
           .filter(part => part !== '').join(' · ')
-        return h('button', {
-          key: row.id,
-          type: 'button',
-          'data-three-workbench-session-row': row.id,
-          'data-current': row.current ? '' : undefined,
-          'aria-current': row.current ? 'true' : undefined,
-          title: row.title + ' · ' + row.id,
-          onClick: () => onOpen(row.id),
-          style: { display: 'flex', gap: 8, alignItems: 'flex-start', width: '100%',
+        const main = h('button', {
+          type: 'button', 'data-three-workbench-session-row': row.id,
+          'data-current': row.current ? '' : undefined, 'aria-current': row.current ? 'true' : undefined,
+          title: row.title + ' · ' + row.id, onClick: () => onOpen(row.id),
+          style: { display: 'flex', gap: 8, alignItems: 'flex-start', flex: 1, minWidth: 0,
             padding: '7px 8px', boxSizing: 'border-box', borderRadius: 7, textAlign: 'left',
             cursor: row.current ? 'default' : 'pointer', color: STUDIO_TEXT,
             border: '1px solid ' + (row.current ? STUDIO_ACCENT_LINE : STUDIO_LINE),
-            background: row.current ? STUDIO_ACCENT_SOFT : 'var(--twb-fill-soft)',
-            font: 'inherit' },
+            background: row.current ? STUDIO_ACCENT_SOFT : 'var(--twb-fill-soft)', font: 'inherit' },
         },
         h('span', {
           'aria-hidden': 'true',
@@ -19667,11 +19688,28 @@ THE SOFTWARE.
           row.current
             ? chip(t('studio.sessions.current'), STUDIO_ACCENT,
               STUDIO_ACCENT_SOFT, STUDIO_ACCENT_LINE)
+            : null,
+          row.archived
+            ? chip(t('studio.sessions.archived'), STUDIO_MUTED, 'var(--twb-fill-strong)', STUDIO_LINE)
             : null),
         h('span', {
           style: { fontSize: 8.5, color: STUDIO_MUTED, overflow: 'hidden',
             textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
         }, meta)))
+        const action = h('button', {
+          type: 'button', title: row.archived ? t('studio.sessions.restore') : t('studio.sessions.archive'),
+          'aria-label': row.archived ? t('studio.sessions.restore') : t('studio.sessions.archive'),
+          onClick: event => { event.stopPropagation(); onArchive(row) },
+          style: { height: 24, padding: '0 5px', borderRadius: 5, border: '1px solid ' + STUDIO_LINE,
+            background: 'var(--twb-fill)', color: STUDIO_MUTED, cursor: 'pointer', fontSize: 8 },
+        }, row.archived ? t('studio.sessions.restore') : t('studio.sessions.archive'))
+        const deleteButton = row.current || row.running ? null : h('button', {
+          type: 'button', title: t('studio.sessions.delete'), 'aria-label': t('studio.sessions.delete'),
+          onClick: event => { event.stopPropagation(); onDelete(row) },
+          style: { height: 24, padding: '0 5px', borderRadius: 5, border: '1px solid var(--twb-danger-line)',
+            background: 'var(--twb-danger-fill)', color: 'var(--twb-danger-strong)', cursor: 'pointer', fontSize: 8 },
+        }, row.deleteArmed ? t('studio.sessions.confirmDelete') : t('studio.sessions.delete'))
+        return h('div', { key: row.id, style: { display: 'flex', gap: 4, alignItems: 'stretch' } }, main, action, deleteButton)
       }
       const list = rows.length === 0
         ? h('div', {
@@ -19702,6 +19740,9 @@ THE SOFTWARE.
           background: 'var(--twb-fill)', color: STUDIO_TEXT, outline: 'none',
           font: '10.5px/1 system-ui, -apple-system, Segoe UI, sans-serif' },
       }),
+      h('label', { style: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 8.5, color: STUDIO_MUTED } },
+        h('input', { type: 'checkbox', 'aria-label': t('studio.sessions.showArchived'), checked: props.showArchived === true, onChange: event => props.onShowArchived(event.currentTarget.checked) }),
+        t('studio.sessions.showArchived')),
       error === ''
         ? null
         : h('div', {
@@ -19730,6 +19771,7 @@ THE SOFTWARE.
       const [addOpen, setAddOpen] = React.useState(false)
       const [editingId, setEditingId] = React.useState(null)
       const [deleteArm, setDeleteArm] = React.useState('')
+      const [testResults, setTestResults] = React.useState({})
       const [showAll, setShowAll] = React.useState(false)
       const emptyForm = { providerId: '', displayName: '', baseURL: '', protocol: 'openai-completions', models: '', apiKey: '' }
       const [form, setForm] = React.useState(emptyForm)
@@ -19809,6 +19851,31 @@ THE SOFTWARE.
         } catch (error) {
           setBusy('')
           report(t('studio.models.clearFailed'))
+        }
+      }
+      const testConnection = row => {
+        if (busy !== '' || typeof admin.testConnection !== 'function') return
+        const model = Array.isArray(row.modelIds) ? row.modelIds[0] : undefined
+        setTestResults(current => Object.assign({}, current, { [row.provider]: { status: 'testing' } }))
+        try {
+          Promise.resolve(admin.testConnection(row.provider, model)).then(result => {
+            if (result !== null && typeof result === 'object' && result.ok === true) {
+              const value = result.value || {}
+              setTestResults(current => Object.assign({}, current, {
+                [row.provider]: { status: 'passed', latencyMs: value.latencyMs },
+              }))
+            } else {
+              setTestResults(current => Object.assign({}, current, {
+                [row.provider]: { status: 'failed', message: result?.message || t('studio.models.testFailed', { message: '' }) },
+              }))
+            }
+          }, error => setTestResults(current => Object.assign({}, current, {
+            [row.provider]: { status: 'failed', message: error?.message || t('studio.models.testFailed', { message: '' }) },
+          })))
+        } catch (error) {
+          setTestResults(current => Object.assign({}, current, {
+            [row.provider]: { status: 'failed', message: error?.message || t('studio.models.testFailed', { message: '' }) },
+          }))
         }
       }
       const closeForm = () => {
@@ -19946,6 +20013,7 @@ THE SOFTWARE.
         : rows.filter(row => row.active === true || row.configured === true || row.keyConfigured === true)
       const providerCard = row => {
         const draft = typeof drafts[row.keyRef] === 'string' ? drafts[row.keyRef] : ''
+        const test = testResults[row.provider]
         const readOnly = state.writable !== true
         return h('div', {
           key: row.provider,
@@ -19995,6 +20063,21 @@ THE SOFTWARE.
                   opacity: readOnly || busy !== '' || draft.trim() === '' ? .45 : 1,
                 }),
               }, t('studio.models.save')),
+              h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 5 } },
+                test === undefined || test.status === 'testing' ? null : h('span', {
+                  role: test.status === 'failed' ? 'alert' : 'status',
+                  style: { flex: 1, minWidth: 0, fontSize: 8, color: test.status === 'passed' ? STUDIO_ACCENT : 'var(--twb-danger)',
+                    overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+                }, test.status === 'passed'
+                  ? t('studio.models.testPassed', { ms: Number.isFinite(test.latencyMs) ? test.latencyMs : '—' })
+                  : t('studio.models.testFailed', { message: test.message || '' })),
+                h('button', {
+                  type: 'button', 'data-three-workbench-provider-action': 'test',
+                  disabled: busy !== '' || test?.status === 'testing' || row.keyConfigured !== true,
+                  onClick: () => testConnection(row),
+                  style: Object.assign({}, buttonStyle, { cursor: busy !== '' || row.keyConfigured !== true ? 'not-allowed' : 'pointer',
+                    color: STUDIO_ACCENT, borderColor: STUDIO_ACCENT_LINE, opacity: busy !== '' || row.keyConfigured !== true ? .45 : 1 }),
+                }, test?.status === 'testing' ? t('studio.models.testing') : t('studio.models.test'))),
               row.keyConfigured
                 ? h('button', {
                   type: 'button',
@@ -20482,6 +20565,8 @@ THE SOFTWARE.
       const [studioSuggestionPage, setStudioSuggestionPage] = React.useState(0)
       const [studioSessionQuery, setStudioSessionQuery] = React.useState('')
       const [studioSessionError, setStudioSessionError] = React.useState('')
+      const [studioShowArchived, setStudioShowArchived] = React.useState(false)
+      const [studioDeleteArm, setStudioDeleteArm] = React.useState('')
       const [studioAiSettings, setStudioAiSettings] = React.useState(false)
       const [studioPreviewNote, setStudioPreviewNote] = React.useState('')
       const studioPreviewNoteTimer = React.useRef(null)
@@ -20504,6 +20589,7 @@ THE SOFTWARE.
         setStudioDismissedSuggestions([])
         setStudioSuggestionPage(0)
         setStudioSessionError('')
+        setStudioDeleteArm('')
         // Opening a Host Session from the revealed shell is a return to
         // Studio, so the peek ends with the Session switch.
         setStudioAiSettings(false)
@@ -29079,6 +29165,8 @@ THE SOFTWARE.
           if (summary.parentId !== undefined && summary.parentId !== null) continue
           if (summary.origin === 'subagent') continue
           const id = String(rawId)
+          const archived = summary.archived === true
+          if (archived && !studioShowArchived && id !== String(sessionId)) continue
           // Empty Sessions are reusable scratch space, not history. Keep the
           // current one and any blank the user already visited; drop the rest
           // so named, reopenable windows stay easy to scan.
@@ -29096,6 +29184,9 @@ THE SOFTWARE.
             updatedAt: typeof summary.updatedAt === 'number' && Number.isFinite(summary.updatedAt)
               ? summary.updatedAt : 0,
             running: summary.running === true,
+            archived,
+            historyTrimmed: summary.historyTrimmed === true,
+            deleteArmed: studioDeleteArm === id,
             current: id === String(sessionId),
           })
         }
@@ -29121,6 +29212,27 @@ THE SOFTWARE.
           return
         }
         setStudioSessionError('')
+      }
+      const studioArchiveSession = row => {
+        if (typeof props.onArchiveSession !== 'function' || row.running) return
+        Promise.resolve(props.onArchiveSession(row.id, row.archived !== true)).then(result => {
+          if (result !== null && typeof result === 'object' && result.ok === false) {
+            setStudioSessionError(result.message || t('studio.sessions.manageFailed'))
+          }
+        }, error => setStudioSessionError(studioFailureText(error) || t('studio.sessions.manageFailed')))
+      }
+      const studioDeleteSession = row => {
+        if (typeof props.onDeleteSession !== 'function' || row.running || row.current) return
+        if (studioDeleteArm !== row.id) {
+          setStudioDeleteArm(row.id)
+          return
+        }
+        setStudioDeleteArm('')
+        Promise.resolve(props.onDeleteSession(row.id)).then(result => {
+          if (result !== null && typeof result === 'object' && result.ok === false) {
+            setStudioSessionError(result.message || t('studio.sessions.manageFailed'))
+          }
+        }, error => setStudioSessionError(studioFailureText(error) || t('studio.sessions.manageFailed')))
       }
       // Model picker: the Host catalog and the Session's durable selection
       // projection share one directory, so a switch here is the same state the
@@ -29734,6 +29846,10 @@ THE SOFTWARE.
                   if (studioSessionError !== '') setStudioSessionError('')
                 },
                 onOpen: studioOpenSession,
+                showArchived: studioShowArchived,
+                onShowArchived: setStudioShowArchived,
+                onArchive: studioArchiveSession,
+                onDelete: studioDeleteSession,
               })
               : studioTab === 'history' ? studioHistoryPanel : studioAiBody
 
@@ -31258,6 +31374,8 @@ THE SOFTWARE.
         modelAdmin: props.modelAdmin,
         sessionList,
         onOpenSession: props.openSession,
+        onArchiveSession: props.archiveSession,
+        onDeleteSession: props.deleteSession,
         onClose: props.close,
       }))
     }
@@ -31330,6 +31448,8 @@ THE SOFTWARE.
         modelAdmin: props.modelAdmin,
         sessionList,
         onOpenSession: props.openSession,
+        onArchiveSession: props.archiveSession,
+        onDeleteSession: props.deleteSession,
       })
     }
 
@@ -32178,6 +32298,14 @@ THE SOFTWARE.
             return { ok: false, message: studioFailureText(error) }
           }
         }
+        const archiveSession = (sessionId, archived) => {
+          if (typeof ctx.sessions.archive !== 'function') return { ok: false, message: '' }
+          return ctx.sessions.archive(sessionId, archived === true)
+        }
+        const deleteSession = sessionId => {
+          if (typeof ctx.sessions.remove !== 'function') return { ok: false, message: '' }
+          return ctx.sessions.remove(sessionId)
+        }
         // The AI panel's model picker reuses the Host's per-Session model
         // directory. The service is optional so a minimal profile still loads
         // the workbench, just without the picker.
@@ -32411,6 +32539,15 @@ THE SOFTWARE.
           addProvider: addModelProvider,
           updateProvider: updateModelProvider,
           deleteProvider: deleteModelProvider,
+          testConnection: async (provider, model) => {
+            if (typeof ctx.remote.testConnection !== 'function') return { ok: false, message: t('studio.models.unavailable') }
+            try {
+              const result = await ctx.remote.testConnection(provider, model)
+              return result.ok === true ? { ok: true, value: result.value } : { ok: false, message: result.error?.message || t('studio.models.testFailed', { message: '' }) }
+            } catch (error) {
+              return { ok: false, message: studioFailureText(error) }
+            }
+          },
         }
 
         // The Studio AI panel speaks the Session binding directly: the same
@@ -32634,6 +32771,8 @@ THE SOFTWARE.
             prompt: promptSession,
             createTask,
             openSession,
+            archiveSession,
+            deleteSession,
             agent: studioAgentFor,
             model: studioModelFor,
             modelAdmin,
@@ -32706,6 +32845,8 @@ THE SOFTWARE.
             applyEditorTransform,
             createTask,
             openSession,
+            archiveSession,
+            deleteSession,
             model: studioModelFor,
             modelAdmin,
             language: languageApi,

@@ -126,25 +126,34 @@ async function readSSE(response, onEvent) {
   const reader = response.body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
+  const processBlock = async block => {
+    const lines = block.split('\n')
+    const eventName = lines.find(line => line.startsWith('event:'))?.slice(6).trim() ?? 'message'
+    const data = lines.filter(line => line.startsWith('data:'))
+      .map(line => line.slice(5).trim()).join('\n')
+    if (data !== '') await onEvent(eventName, data)
+  }
   while (true) {
     const { value, done } = await reader.read()
-    if (done) break
-    buffer += decoder.decode(value, { stream: true })
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !done })
+    // Providers and local gateways use both LF and CRLF SSE framing.
+    buffer = buffer.replace(/\r\n/gu, '\n')
     let boundary = buffer.indexOf('\n\n')
     while (boundary >= 0) {
       const block = buffer.slice(0, boundary)
       buffer = buffer.slice(boundary + 2)
-      const lines = block.split('\n')
-      const eventName = lines.find(line => line.startsWith('event:'))?.slice(6).trim() ?? 'message'
-      const data = lines.filter(line => line.startsWith('data:'))
-        .map(line => line.slice(5).trim()).join('\n')
-      if (data !== '') await onEvent(eventName, data)
+      await processBlock(block)
       boundary = buffer.indexOf('\n\n')
     }
+    if (done) break
   }
+  // A few gateways omit the final blank line. Do not lose the last delta.
+  buffer += decoder.decode()
+  buffer = buffer.replace(/\r\n/gu, '\n')
+  if (buffer.trim() !== '') await processBlock(buffer)
 }
 
-async function streamOpenAI(provider, key, model, system, history, tools, onText, signal) {
+async function streamOpenAI(provider, key, model, system, history, tools, onText, signal, maxTokens = 8192) {
   const endpoint = `${provider.baseURL.replace(/\/+$/u, '')}/chat/completions`
   const response = await fetchWithRetry(endpoint, {
     method: 'POST',
@@ -157,6 +166,7 @@ async function streamOpenAI(provider, key, model, system, history, tools, onText
       messages: toOpenAIMessages(system, history),
       tools: asToolsOpenAI(tools),
       tool_choice: 'auto',
+      max_tokens: maxTokens,
       stream: true,
     }),
     signal,
@@ -201,7 +211,7 @@ async function streamOpenAI(provider, key, model, system, history, tools, onText
   }
 }
 
-async function streamAnthropic(provider, key, model, system, history, tools, onText, signal) {
+async function streamAnthropic(provider, key, model, system, history, tools, onText, signal, maxTokens = 8192) {
   const endpoint = `${provider.baseURL.replace(/\/+$/u, '')}/messages`
   const response = await fetchWithRetry(endpoint, {
     method: 'POST',
@@ -212,7 +222,7 @@ async function streamAnthropic(provider, key, model, system, history, tools, onT
     },
     body: JSON.stringify({
       model,
-      max_tokens: 8192,
+      max_tokens: maxTokens,
       system,
       messages: toAnthropicMessages(history),
       tools: asToolsAnthropic(tools),
@@ -284,10 +294,20 @@ export async function runAgent(options) {
     .join('\n\n')
   const history = Array.isArray(session.history) ? session.history : []
   const stream = provider.api === 'anthropic-messages' ? streamAnthropic : streamOpenAI
+  const completeCanceledCalls = calls => {
+    for (const call of calls) {
+      history.push({
+        role: 'tool', toolCallId: call.id, name: call.name,
+        resultText: 'Tool call canceled before execution.', isError: true,
+      })
+    }
+  }
   let round = 0
   while (round < MAX_TOOL_ROUNDS) {
+    if (signal?.aborted) return
     round += 1
     const result = await stream(provider, key, modelId, system, history, tools, emitChunk, signal)
+    if (signal?.aborted) return
     const text = result.text.trim()
     if (result.toolCalls.length === 0) {
       if (text !== '') {
@@ -300,7 +320,12 @@ export async function runAgent(options) {
     if (text !== '') {
       emit({ type: 'assistant/message', data: { message: { content: [{ type: 'text', text }] }, interrupted: false } })
     }
-    for (const call of result.toolCalls) {
+    for (let index = 0; index < result.toolCalls.length; index += 1) {
+      if (signal?.aborted) {
+        completeCanceledCalls(result.toolCalls.slice(index))
+        return
+      }
+      const call = result.toolCalls[index]
       const tool = tools.get(call.name)
       emit({ type: 'tool/call', data: { callId: call.id, name: call.name, args: call.args } })
       if (tool === undefined) {
@@ -362,7 +387,7 @@ export async function runAgent(options) {
  * @returns the subagent's text.
  */
 export async function runSubagent(options) {
-  const { prompt, settings, selection, signal, system } = options
+  const { prompt, settings, selection, signal, system, maxTokens = 8192 } = options
   const providerId = selection !== null && typeof selection === 'object'
     && typeof selection.provider === 'string' ? selection.provider : ''
   const provider = settings.providerOf(providerId)
@@ -386,6 +411,7 @@ export async function runSubagent(options) {
     new Map(),
     () => {},
     signal,
+    maxTokens,
   )
   return result.text
 }

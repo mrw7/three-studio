@@ -22,7 +22,8 @@ React 外壳。原 Harness 插件模式作为可选旧版保留。
   （`allow-scripts allow-pointer-lock allow-downloads`，绝不 `allow-same-origin`，
   不可作为 URL 导航）
 - **自带模型**：内置 DeepSeek / Anthropic；可添加、编辑或删除任意 OpenAI 兼容或
-  Anthropic 兼容供应商，填写 Base URL、模型列表和 API Key
+  Anthropic 兼容供应商，填写 Base URL、模型列表和 API Key，并可在设置中先测试连接
+- **会话生命周期**：归档、恢复或删除旧会话；对话历史按完整轮次压缩并原子保存，长期使用不会无限增长
 - **插件市场**：可安装技能库、计划、任务清单、子代理、网页阅读；更多能力在路线图中
 - **浅色 / 深色主题**：独立版顶部提供太阳/月亮一键切换，界面与默认视口背景同步切换，选择会本地持久化；场景代码显式设置的背景会保留作者效果
 - **本地数据**：会话、场景、设置和凭据保存在 `~/.three-studio`；只监听回环地址，
@@ -63,7 +64,8 @@ THREE_STUDIO_PORT=4000 THREE_STUDIO_HOME=/path/to/data ./standalone/start.sh
 1. 打开 AI Prompt → 输入框右下角齿轮
 2. 填入 **DeepSeek** 或 **Anthropic** 的 API Key；或点 **添加** 创建自定义供应商
    （供应商标识、Base URL、协议、模型 ID）
-3. 在输入框右下角选择模型与推理强度
+3. 点击 **测试连接**，先验证 API Key 和第一个模型
+4. 在输入框右下角选择模型与推理强度
 
 API Key 存于 `~/.three-studio/credentials.json`（0600）；供应商配置存于
 `~/.three-studio/models.json`。除发送给你配置的模型供应商外，不上传任何数据。

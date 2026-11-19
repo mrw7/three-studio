@@ -64,6 +64,17 @@ Syntax checks:
 disk-lock probes hang in this WSL environment. Run it on a native filesystem or
 in CI when changing the durable store.
 
+The standalone browser smoke flow uses a temporary Three Studio home and a
+local mock OpenAI-compatible gateway:
+
+```sh
+~/.local/node24/bin/node tests/e2e/standalone.mjs
+```
+
+It covers mobile overlay entry, desktop session switching, provider connection
+testing, session archive/restore/delete, and cancel-then-send behavior. Keep
+its browser setup local and never point it at a real provider key.
+
 ## Screenshots
 
 The documentation screenshots in `docs/screenshots/` were captured at

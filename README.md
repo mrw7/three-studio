@@ -29,7 +29,11 @@ remains available as an optional legacy mode.
   `allow-same-origin`, never navigable).
 - **Bring your own model** — DeepSeek and Anthropic are built in; add, edit or
   delete any OpenAI-compatible or Anthropic-compatible provider with its own API
-  key, base URL and model list.
+  key, base URL and model list; test the connection from Settings before sending
+  a task.
+- **Session lifecycle** — archive and restore old sessions, permanently delete
+  unused sessions, and keep conversation history bounded with whole-turn
+  compaction and atomic persistence.
 - **Plugin market** — install native Studio modules such as skills, planning,
   todo, subagents and web reading; more capabilities are listed on the roadmap.
 - **Light and dark themes** — the standalone header has a one-click sun/moon
@@ -76,7 +80,8 @@ THREE_STUDIO_PORT=4000 THREE_STUDIO_HOME=/path/to/data ./standalone/start.sh
 1. Open the AI Prompt → gear at the bottom-right of the composer.
 2. Enter an API key for **DeepSeek** or **Anthropic**, or choose **Add** to
    create a custom provider (provider id, base URL, protocol and model ids).
-3. Pick the provider/model and reasoning effort from the composer.
+3. Click **Test connection** to verify the saved key and first model.
+4. Pick the provider/model and reasoning effort from the composer.
 
 Keys are stored in `~/.three-studio/credentials.json` with mode `0600`; provider
 settings live in `~/.three-studio/models.json`. Nothing is uploaded anywhere

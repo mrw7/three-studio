@@ -114,8 +114,10 @@
       displayTitle: row.displayTitle || row.title || row.id,
       title: row.title,
       updatedAt: Number.isFinite(row.updatedAt) ? row.updatedAt : Date.now(),
-      running: false,
-      blank: true,
+      running: row.running === true,
+      blank: row.blank === true,
+      archived: row.archived === true,
+      historyTrimmed: row.historyTrimmed === true,
       retainedBy: { mainView: active ? 1 : 0 },
     }
   }
@@ -202,8 +204,10 @@
           events = payload.events.map(function (event) { return { type: 'committed', event: event } })
           publishEvents()
         }
-        if (payload.selection !== null && payload.selection !== undefined) {
-          modelStore.set({ next: payload.selection })
+        // `null` is meaningful: a deleted provider or an empty catalog must
+        // clear a previously cached selection from this session binding.
+        if (Object.prototype.hasOwnProperty.call(payload, 'selection')) {
+          modelStore.set({ next: payload.selection === undefined ? null : payload.selection })
         }
       } else if (payload.kind === 'event' && payload.event !== null && typeof payload.event === 'object') {
         events.push({ type: 'committed', event: payload.event })
@@ -382,6 +386,16 @@
           : { ok: false, error: { code: 'credential-failed', message: result.message || 'Could not clear the API key.' } }
       },
     },
+      testConnection: async function (providerId, model) {
+        var response = await fetch('/api/providers/' + encodeURIComponent(providerId) + '/test', {
+          method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ model: model }),
+        })
+        var result = await response.json()
+        return result.ok === true ? { ok: true, value: result } : {
+          ok: false, error: { message: result.message || 'Connection test failed.' },
+        }
+      },
     settings: {
       describe: async function () {
         var data = await modelCatalog()
@@ -578,6 +592,25 @@
         var data = await response.json()
         await refreshSessions()
         return data.id
+      },
+      archive: async function (id, archived) {
+        var response = await fetch('/api/sessions/' + encodeURIComponent(id), {
+          method: 'PATCH', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ archived: archived === true }),
+        })
+        var data = await response.json()
+        if (!response.ok || data.ok !== true) return { ok: false, message: data.message || 'Could not update the session.' }
+        await refreshSessions()
+        await refreshWorkspaces()
+        return { ok: true }
+      },
+      remove: async function (id) {
+        var response = await fetch('/api/sessions/' + encodeURIComponent(id), { method: 'DELETE' })
+        var data = await response.json()
+        if (!response.ok || data.ok !== true) return { ok: false, message: data.message || 'Could not delete the session.' }
+        await refreshSessions()
+        await refreshWorkspaces()
+        return { ok: true }
       },
     },
     workspaces: { list: workspaceStore },

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+- Model settings now include a live provider connection test with latency and
+  redacted failure feedback.
+- Sessions can be archived, restored and deleted; persisted conversations use
+  atomic writes, bounded whole-turn history compaction and prompt/session caps.
+- Added a standalone browser smoke command covering mobile layout, session
+  switching, session lifecycle and cancel-then-send behavior.
+- Session status in the standalone shell now stays in sync while an agent is
+  running or stopping; canceled requests cannot overwrite a replacement
+  prompt's transcript or state.
+- Clearing or removing a model provider clears stale per-session selections,
+  and streaming responses from CRLF or incomplete SSE gateways keep their
+  final content.
 - Light/dark theme toggle; the default viewport background follows the theme
   while authored scene backgrounds are preserved
 - Background color edits commit on native change and are allowed on the demo
