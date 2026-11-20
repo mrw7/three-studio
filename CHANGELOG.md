@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+- Documentation is bilingual for the new surfaces: `docs/PLUGINS.zh.md`,
+  `docs/EXPORTS.zh.md`, `docs/SECURITY.zh.md`, paired README limitation
+  sections, and copy-ready plugin config samples under
+  `examples/plugin-config/` with Chinese and English guides.
+- The full plugin catalog is now installable (twenty modules). Batch 2 adds
+  the workspace file browser (guarded home-directory routes plus a Files
+  panel) and document preview; batch 3 adds background jobs, scheduled tasks
+  (session-scoped recurring prompts) and user-authored automation hooks;
+  batch 4 adds web search (zero-config DuckDuckGo, keyed Tavily/Brave) and
+  sourced deep research; batch 5 adds opt-in MCP stdio connectors, CDP browser
+  automation and a sandboxed web pane behind the frozen trust-boundary design
+  (`docs/TRUST-BOUNDARIES.md`).
+- Five more marketplace plugins are available: project memory (durable
+  `memory_write`/`memory_forget` with prompt re-injection), context files
+  (sandboxed `~/.three-studio/context/` reading with AGENTS.md injection),
+  action cards (clickable follow-ups that fill the composer, never auto-send),
+  deliverables (session-scoped text file handover with copyable transcript
+  cards) and voice input (SpeechRecognition dictation in the composer).
+- Added USDZ export (vendored three r186 `USDZExporter`, stored zip with
+  `model.usda`) and a native binary FBX 7.4 exporter for static scenes:
+  geometry, hierarchy, local transforms, normals, one UV set and
+  Phong-converted materials; verified end-to-end through the real three.js
+  `FBXLoader` and a browser export probe (`npm run test:e2e:exports`).
 - Model settings now include a live provider connection test with latency and
   redacted failure feedback.
 - Sessions can be archived, restored and deleted; persisted conversations use

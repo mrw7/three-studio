@@ -24,6 +24,13 @@ remains available as an optional legacy mode.
 - **Real Three.js editing** — outliner, inspector, material/lighting controls,
   transform gizmos, parameters, timeline, keyframes, dope sheet, shots, review
   pins, measurements and deterministic exports.
+- **Many export targets** — PNG, deterministic MP4/GIF/WebM, animated or static
+  glTF (`.glb`), STL, OBJ, project ZIP and standalone HTML; USDZ for AR
+  previews and a native binary FBX 7.4 writer for DCC interop. USDZ/FBX are
+  static exports: geometry, hierarchy, transforms, Phong-converted materials,
+  normals and one UV set survive; animation, skinning, textures, PBR channels
+  and vertex colors are not carried over (FBX uses metre units via
+  `UnitScaleFactor=100`, matching Blender's metre-unit output).
 - **Sandboxed execution** — model-written code runs only inside an opaque-origin
   `srcDoc` iframe (`allow-scripts allow-pointer-lock allow-downloads`, never
   `allow-same-origin`, never navigable).
@@ -34,8 +41,12 @@ remains available as an optional legacy mode.
 - **Session lifecycle** — archive and restore old sessions, permanently delete
   unused sessions, and keep conversation history bounded with whole-turn
   compaction and atomic persistence.
-- **Plugin market** — install native Studio modules such as skills, planning,
-  todo, subagents and web reading; more capabilities are listed on the roadmap.
+- **Plugin market** — twenty native modules install with one click: skills,
+  planning, todo, subagents, web reading and search, deep research, project
+  memory, context files, action cards, deliverables, voice input, workspace
+  file browser with document preview, background jobs, scheduled tasks,
+  automation hooks, MCP connectors, browser automation and a sandboxed web
+  pane. Trust surfaces (MCP, browser control) are strictly user-configured.
 - **Light and dark themes** — the standalone header has a one-click sun/moon
   toggle; the editor chrome and the default viewport background follow it, and
   the choice is persisted locally. A scene that explicitly sets its own
@@ -89,22 +100,24 @@ except the requests sent to the provider you configure.
 
 ### Install a plugin
 
-Open **Plugin market** in the left rail or the plug icon in the header. Five
-native modules are installable now:
+Open **Plugin market** in the left rail or the plug icon in the header. All
+twenty native modules are installable with one click:
 
-| Plugin | What it adds |
+| Area | Plugins |
 | --- | --- |
-| **Skills library** | `read_skill` over `~/.three-studio/skills/*.md`; seeded with a Three.js scene skill |
-| **Planning and goals** | `write_plan` and plan-first prompt guidance |
-| **Todo checklist** | `todo_write` for visible multi-step progress |
-| **Subagents** | One-shot `spawn_subagent` research/review using the current model |
-| **Web reader** | `web_fetch` with private/loopback address refusal and bounded output |
+| Agent context | Skills library, planning, todo, project memory, context files, project conventions via `AGENTS.md` |
+| Research and web | Subagents, web reader (`web_fetch`), web search, deep research |
+| Studio workspace | Deliverables, file browser, document preview, action cards, voice input |
+| Automation | Background jobs, scheduled tasks, automation hooks |
+| Connectors (opt-in) | MCP connectors, browser automation over CDP, sandboxed web pane |
 
-Installing activates tools immediately; uninstalling removes them. The market
-also lists scheduled tasks, MCP connectors, web search, deliverables, file and
-document panes, browser automation, background jobs, memory, hooks and voice
-input as roadmap entries. See [`docs/PLUGINS.md`](docs/PLUGINS.md) and
-[`standalone/plugins/RESEARCH.md`](standalone/plugins/RESEARCH.md).
+Installing activates tools immediately; uninstalling removes them. Trust
+surfaces are user-authored only: MCP and browser automation read config files
+you create by hand and refuse to install until they exist. See
+[`docs/PLUGINS.md`](docs/PLUGINS.md) for every tool, its limits and the
+configuration files, and
+[`docs/TRUST-BOUNDARIES.md`](docs/TRUST-BOUNDARIES.md)
+for the trust model. Chinese readers: [`docs/PLUGINS.zh.md`](docs/PLUGINS.zh.md).
 
 ## Architecture
 
@@ -135,8 +148,11 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the component contracts,
 
 - [Architecture](docs/ARCHITECTURE.md)
 - [Models and providers](docs/MODELS.md)
-- [Plugins and marketplace](docs/PLUGINS.md)
-- [Security and trust boundaries](docs/SECURITY.md)
+- [Exports](docs/EXPORTS.md) ([中文](docs/EXPORTS.zh.md))
+- [Plugins and marketplace](docs/PLUGINS.md) ([中文](docs/PLUGINS.zh.md))
+- [Security and trust boundaries](docs/SECURITY.md) ([中文](docs/SECURITY.zh.md))
+- [Plugin trust boundaries](docs/TRUST-BOUNDARIES.md) ([中文](docs/TRUST-BOUNDARIES.zh.md))
+- [Plugin configuration examples](examples/plugin-config/README.md)
 - [Development and testing](docs/DEVELOPMENT.md)
 - [Scene/editor protocol](docs/PROTOCOL.md)
 - [IP provenance audit](docs/IP-PROVENANCE-AUDIT.md)
@@ -152,8 +168,8 @@ The unit suite runs on Node 24 and uses no external test framework:
 ```sh
 ~/.local/node24/bin/node --test \
   tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs \
-  tests/history.test.mjs tests/share.test.mjs tests/smoke.test.mjs \
-  tests/studio-ai.test.mjs tests/tracks.test.mjs
+  tests/export-fbx.test.mjs tests/history.test.mjs tests/share.test.mjs \
+  tests/smoke.test.mjs tests/studio-ai.test.mjs tests/tracks.test.mjs
 ~/.local/node24/bin/node --test standalone/plugins/runtime.test.mjs
 ```
 
@@ -162,12 +178,38 @@ hang in this WSL environment; CI/owners should run it on a native filesystem.
 See [`docs/DEVELOPMENT.md`](docs/DEVELOPMENT.md) for layout, screenshot capture
 and troubleshooting.
 
-## Optional Harness plugin mode
+## Limitations
 
-The historical host-integrated build lives at `index.js` + `client.js` and is
-launched with `./start.sh` against a DeepSeek Harness checkout. It is documented
-in [`docs/HARNESS-PLUGIN.md`](docs/HARNESS-PLUGIN.md) and is **not required** for
-the standalone Studio.
+- **USDZ and FBX are static exports.** Geometry, hierarchy, local transforms,
+  normals, one UV set and Phong-converted materials survive; animation,
+  skinning, textures, PBR channels and vertex colors do not. FBX object names
+  are transliterated to printable ASCII and units are metres
+  (`UnitScaleFactor=100`). USDZ keeps textures through three's exporter and is
+  intended for AR Quick Look. See [`docs/EXPORTS.md`](docs/EXPORTS.md).
+- **Web pane embedding.** The sandboxed web pane cannot display sites that send
+  `X-Frame-Options`/CSP frame-ancestors; it also refuses private and loopback
+  hosts. The pane shares no cookies or storage with the Studio.
+- **Web search** defaults to the free DuckDuckGo HTML endpoint, which may rate
+  limit or change markup; configure Tavily or Brave with a key in
+  `~/.three-studio/search.json` for production use. Results only carry titles,
+  URLs and snippets; page bodies still come from `web_fetch`.
+- **MCP** supports stdio servers and the tools capability only (no HTTP/SSE
+  transport, sampling or roots). Server stderr is discarded, never shown.
+- **Scheduled tasks** fire only while the standalone server is running, target
+  the session that created them, and stop when the plugin is uninstalled.
+- **Voice input** depends on the browser's SpeechRecognition (Chromium-based
+  browsers and Safari; Firefox needs a flag), and the button only appears when
+  the plugin is installed.
+- **Browser automation** needs a Chrome started with
+  `--remote-debugging-port` and a hand-written
+  `~/.three-studio/browser-automation.json`; it is never enabled by the agent.
+- **Plugin trust config** (`mcp.json`, `browser-automation.json`, `hooks.json`,
+  `search.json`) is deliberately user-authored: the agent can read state but
+  has no tool that writes these files.
+- **Local single-user scope.** The server binds loopback only and has no
+  authentication; do not expose the port to an untrusted network.
+
+## Optional Harness plugin mode
 
 ## License
 

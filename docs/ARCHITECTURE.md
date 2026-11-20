@@ -105,9 +105,17 @@ reconstructs `SessionFace` and `EventSource` snapshots for the Studio transcript
 
 ## Plugin runtime
 
-`standalone/plugins/runtime.mjs` activates a plugin by adding tools and system
-prompt sections to the live context; uninstalling removes exactly those
-contributions. Installed ids persist in `plugins.json`.
+`standalone/plugins/runtime.mjs` activates a plugin by adding tools, system
+prompt sections, HTTP routes and event listeners to the live context;
+uninstalling removes exactly those contributions (including timers, child
+processes and CDP sockets). Installed ids persist in `plugins.json`.
+
+Activators receive `pluginRoutes` for UI-facing routes (file-browser),
+`subscribe('turn-end')` for completed-turn events (hooks) and
+`submitPrompt(sessionId, text)`, which reuses the same `startAgentTurn` pipeline
+as a manual prompt (scheduled tasks). All twenty catalog entries are
+implementable native modules; trust surfaces (MCP and browser automation) are
+user-configured and refuse to install without their config file.
 
 The catalog (`catalog.mjs`) is metadata only. Available and roadmap entries are
 distinguished by `available`. See [PLUGINS.md](PLUGINS.md).
@@ -124,12 +132,22 @@ distinguished by `available`. See [PLUGINS.md](PLUGINS.md).
 | `plugins.json` | installed plugin ids |
 | `skills/` | flat `<name>.md` skills |
 | `scenes/` | durable scene store used by `index.js` |
+| `memory.json` | project memory entries (memory plugin) |
+| `context/` | user-provided context files; `AGENTS.md` is injected |
+| `deliverables/<session>/` | text deliverables from the agent |
+| `schedules.json` | recurring prompts (scheduled-tasks plugin) |
+| `hooks.json` | user-authored automation hooks |
+| `search.json` | optional Tavily/Brave key (user-authored) |
+| `mcp.json` | user-authored MCP stdio servers |
+| `browser-automation.json` | user-authored CDP endpoint |
+| `browser-captures/` | screenshots from browser automation |
 
 `THREE_WORKBENCH_DATA_DIR` can point the scene store at an existing directory.
 
 ## Data flow
 
 1. The browser sends a prompt (`POST /api/sessions/:id/prompt`) with text parts.
+   Scheduled tasks enter the same `startAgentTurn` path without a browser.
 2. The server appends a `user/message` event and starts the agent.
 3. The agent streams `assistant/live-chunk` frames, then executes tool calls.
 4. `three_scene` writes a durable revision; the UI polls/fetches the scene state

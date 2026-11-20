@@ -106,10 +106,14 @@ the named symbol before relying on one).
   workbench directory. Everything there is disposable local data.
 - **Adding a plugin**: metadata in `standalone/plugins/catalog.mjs`, an
   activator in `IMPLEMENTATIONS` in `runtime.mjs`, tests in
-  `standalone/plugins/runtime.test.mjs`, and docs in `docs/PLUGINS.md`.
+  `standalone/plugins/runtime.test.mjs`, and docs in `docs/PLUGINS.md` +
+  `docs/PLUGINS.zh.md`. Trust-sensitive config stays user-authored; samples
+  live in `examples/plugin-config/`.
 - **Docs stay in sync**: update `README.md`/`README.zh.md` and the relevant
-  `docs/*.md` in the same change. The screenshots in `docs/screenshots/` are
-  committed; replace them when a surface changes materially.
+  `docs/*.md` in the same change, including the Chinese counterparts
+  (`docs/PLUGINS.zh.md`, `docs/EXPORTS.zh.md`, `docs/SECURITY.zh.md`). The
+  screenshots in `docs/screenshots/` are committed; replace them when a surface
+  changes materially. Browser probes live in `tests/e2e/{standalone,exports,plugins}.mjs`.
 - `AUDIT.md`, `TODO.md`, `docs/BATCH-*.md`, `docs/P*-*.md`, `docs/DESIGN-*.md`
   and `docs/DECISIONS.md` are gitignored internal notes, not published docs.
 - The repository is not open source; do not add license or contribution

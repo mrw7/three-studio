@@ -1,0 +1,5 @@
+{
+  "hooks": [
+    { "event": "turn-end", "say": "Keep scene units in metres." }
+  ]
+}

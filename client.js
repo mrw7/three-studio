@@ -64,6 +64,8 @@ window.__ModuleLoader__.load({
       'editor.keys.animatedCap': '动画 glTF 帧数过多：最多 {max} 帧（当前 {count} 帧）',
       'action.exportStl': '导出 STL（3D 打印 · 静态）',
       'action.exportObj': '导出 OBJ（静态）',
+      'action.exportUsdz': '导出 USDZ（AR · 静态）',
+      'action.exportFbx': '导出 FBX（静态网格）',
       'action.projectZip': '导出项目 ZIP',
       'action.standalone': '导出独立 HTML（CDN）',
       'action.resetView': '重置视角',
@@ -282,6 +284,21 @@ window.__ModuleLoader__.load({
       'studio.models.deleteFailed': '删除供应商失败。',
       'studio.models.updateFailed': '更新供应商失败。',
       'studio.market.title': '插件市场',
+      'studio.files.title': '工作区文件',
+      'studio.files.empty': '目录为空',
+      'studio.files.error': '读取目录失败',
+      'studio.files.back': '返回上级',
+      'studio.files.root': '工作区根目录',
+      'studio.files.previewNone': '安装“文档预览”插件后可在此预览文本与图片。',
+      'studio.files.pickHint': '点击文件预览，点击目录进入。',
+      'studio.files.previewUnsupported': '该文件不支持预览（二进制或过大）。',
+      'studio.files.previewTruncated': '内容过长，已截断显示。',
+      'studio.web.title': '网页面板',
+      'studio.web.placeholder': 'https://example.com',
+      'studio.web.open': '打开',
+      'studio.web.refused': '仅允许公网 http(s) 地址。',
+      'studio.web.hint': '面板使用沙箱 iframe（不共享站点数据）；部分站点禁止被嵌入。',
+      'studio.web.empty': '输入公网网址后打开。',
       'studio.market.search': '搜索插件…',
       'studio.market.all': '全部',
       'studio.market.installed': '已安装',
@@ -307,6 +324,15 @@ window.__ModuleLoader__.load({
       'studio.ai.placeholder': '描述场景，或提出修改要求…',
       'studio.ai.placeholderBlank': '例如：做一个蓝色调的机械手表展示场景…',
       'studio.ai.send': '发送指令',
+      'studio.ai.actions.title': '建议操作',
+      'studio.ai.actions.hint': '点击把指令填入输入框，确认后发送',
+      'studio.ai.deliverable.title': '交付文件',
+      'studio.ai.deliverable.copy': '复制内容',
+      'studio.ai.deliverable.copied': '已复制',
+      'studio.ai.deliverable.saved': '已保存到',
+      'studio.ai.voice.start': '语音输入',
+      'studio.ai.voice.stop': '停止听写（正在聆听）',
+      'studio.ai.voice.error': '当前浏览器不支持语音输入',
       'studio.ai.newTask': '新建任务',
       'studio.ai.newTaskBusy': '正在新建…',
       'studio.ai.newTaskHint': '新建一个会话；输入内容会作为新任务的第一条消息发送，且不附加当前场景上下文。',
@@ -986,6 +1012,8 @@ window.__ModuleLoader__.load({
       'editor.keys.animatedCap': 'Animated glTF is too large: at most {max} frames (this plan has {count})',
       'action.exportStl': 'Export STL (print · static)',
       'action.exportObj': 'Export OBJ (static)',
+      'action.exportUsdz': 'Export USDZ (AR · static)',
+      'action.exportFbx': 'Export FBX (static meshes)',
       'action.projectZip': 'Export project ZIP',
       'action.standalone': 'Export standalone HTML (CDN)',
       'action.resetView': 'Reset view',
@@ -1204,6 +1232,21 @@ window.__ModuleLoader__.load({
       'studio.models.deleteFailed': 'Could not delete the provider.',
       'studio.models.updateFailed': 'Could not update the provider.',
       'studio.market.title': 'Plugin market',
+      'studio.files.title': 'Workspace files',
+      'studio.files.empty': 'Empty directory',
+      'studio.files.error': 'Could not read the directory',
+      'studio.files.back': 'Up one level',
+      'studio.files.root': 'Workspace root',
+      'studio.files.previewNone': 'Install the document preview plugin to preview text and images here.',
+      'studio.files.pickHint': 'Click a file to preview it; directories open on click.',
+      'studio.files.previewUnsupported': 'This file cannot be previewed (binary or too large).',
+      'studio.files.previewTruncated': 'Content truncated for display.',
+      'studio.web.title': 'Web pane',
+      'studio.web.placeholder': 'https://example.com',
+      'studio.web.open': 'Open',
+      'studio.web.refused': 'Only public http(s) addresses are allowed.',
+      'studio.web.hint': 'The pane is a sandboxed iframe with no shared site data; some sites refuse embedding.',
+      'studio.web.empty': 'Enter a public URL to open it.',
       'studio.market.search': 'Search plugins…',
       'studio.market.all': 'All',
       'studio.market.installed': 'Installed',
@@ -1229,6 +1272,15 @@ window.__ModuleLoader__.load({
       'studio.ai.placeholder': 'Describe a scene or request a change…',
       'studio.ai.placeholderBlank': 'e.g. Build a blue mechanical watch product scene…',
       'studio.ai.send': 'Send instruction',
+      'studio.ai.actions.title': 'Suggested actions',
+      'studio.ai.actions.hint': 'Click to fill the composer, then send when it reads right',
+      'studio.ai.deliverable.title': 'Deliverable',
+      'studio.ai.deliverable.copy': 'Copy content',
+      'studio.ai.deliverable.copied': 'Copied',
+      'studio.ai.deliverable.saved': 'Saved to',
+      'studio.ai.voice.start': 'Voice input',
+      'studio.ai.voice.stop': 'Stop dictation (listening)',
+      'studio.ai.voice.error': 'Voice input is not supported by this browser',
       'studio.ai.newTask': 'New task',
       'studio.ai.newTaskBusy': 'Creating…',
       'studio.ai.newTaskHint': 'Start a fresh session; any prompt is sent as the task\'s first message without the current scene context.',
@@ -13259,6 +13311,45 @@ try {
         reportError(error)
       })
     }
+    if (data.command === 'export-usdz') {
+      const releaseHold = beginExportHold()
+      forceTrackPoseAt(timeline.time)
+      import('three/addons/exporters/USDZExporter.js').then(async ({ USDZExporter }) => {
+        const restoreHelpers = detachHelpers()
+        const restoreNames = applyExportNames()
+        try {
+          const result = await new USDZExporter().parseAsync(scene, {})
+          const buffer = result instanceof Uint8Array ? result.buffer : result
+          parent.postMessage({ type: 'three-workbench:usdz', buffer }, '*')
+        } finally {
+          restoreNames()
+          restoreHelpers()
+          releaseHold()
+        }
+      }).catch(error => {
+        releaseHold()
+        reportError(error, { command: 'export-usdz' })
+      })
+    }
+    if (data.command === 'export-fbx') {
+      const releaseHold = beginExportHold()
+      forceTrackPoseAt(timeline.time)
+      import('three/addons/exporters/FBXExporter.js').then(({ FBXExporter }) => {
+        const restoreHelpers = detachHelpers()
+        const restoreNames = applyExportNames()
+        try {
+          const result = new FBXExporter().parse(scene)
+          parent.postMessage({ type: 'three-workbench:fbx', buffer: result.buffer }, '*')
+        } finally {
+          restoreNames()
+          restoreHelpers()
+          releaseHold()
+        }
+      }).catch(error => {
+        releaseHold()
+        reportError(error, { command: 'export-fbx' })
+      })
+    }
     if (data.command === 'record' && captureSession !== null && !recording) {
       // Resizing the canvas under MediaRecorder would corrupt both outputs.
       send({ type: 'three-workbench:error', message: 'Cannot record WebM while a deterministic export is active.' })
@@ -16882,7 +16973,7 @@ THE SOFTWARE.
     const normalizeStudioLayout = value => {
       const source = value !== null && typeof value === 'object' ? value : {}
       const legacy = typeof source.version !== 'number' || source.version < STUDIO_LAYOUT_VERSION
-      const tab = ['scene', 'create', 'assets', 'params', 'history', 'sessions', 'plugins', 'ai', 'cases'].includes(source.tab) ? source.tab : 'ai'
+      const tab = ['scene', 'create', 'assets', 'params', 'history', 'sessions', 'plugins', 'files', 'web', 'ai', 'cases'].includes(source.tab) ? source.tab : 'ai'
       return {
         version: STUDIO_LAYOUT_VERSION,
         left: clampStudioWidth('left', source.left),
@@ -17880,6 +17971,7 @@ THE SOFTWARE.
         'M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z'],
       chevronRight: ['m9 6 6 6-6 6'],
       plug: ['M9 3v6', 'M15 3v6', 'M6 9h12v4a6 6 0 0 1-12 0Z', 'M12 19v3'],
+      mic: ['M12 3a3 3 0 0 1 3 3v5a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Z', 'M6 11a6 6 0 0 0 12 0', 'M12 17v4', 'M9 21h6'],
       sun: ['M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z',
         'M12 2v2', 'M12 20v2', 'M4.9 4.9l1.4 1.4', 'M17.7 17.7l1.4 1.4',
         'M2 12h2', 'M20 12h2', 'M4.9 19.1l1.4-1.4', 'M17.7 6.3l1.4-1.4'],
@@ -18111,6 +18203,325 @@ THE SOFTWARE.
         }
       }
       return durable
+    }
+
+    /**
+     * Action-card row (action-cards plugin). Each button fills the composer
+     * with a ready-to-send prompt; nothing is sent until the user confirms, so
+     * the card proposes rather than executes. Parent DOM only, like every
+     * transcript card, so it never enters thumbnails or exports.
+     */
+    function StudioActionCard(props) {
+      const t = props.t
+      const actions = Array.isArray(props.actions) ? props.actions.filter(action =>
+        action !== null && typeof action === 'object'
+        && typeof action.label === 'string' && action.label !== ''
+        && typeof action.prompt === 'string' && action.prompt !== '') : []
+      if (actions.length === 0) return null
+      return h('div', {
+        'data-three-workbench-action-card': '',
+        style: { display: 'flex', flexDirection: 'column', gap: 5, padding: '6px 8px', borderRadius: 7,
+          border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill-soft)' },
+      },
+      h('div', { style: { fontSize: 9, color: STUDIO_ACCENT, letterSpacing: '.02em' } }, t('studio.ai.actions.title')),
+      ...actions.map((action, index) => h('button', {
+        type: 'button',
+        key: String(index),
+        'data-three-workbench-action-button': String(index),
+        title: action.prompt,
+        onClick: () => { if (typeof props.onActionPrompt === 'function') props.onActionPrompt(action.prompt) },
+        style: { display: 'flex', alignItems: 'baseline', gap: 6, textAlign: 'left', cursor: 'pointer',
+          padding: '5px 8px', borderRadius: 6, border: '1px solid ' + STUDIO_LINE,
+          background: 'var(--twb-fill)', color: STUDIO_TEXT,
+          font: '10.5px/1.4 system-ui, sans-serif' },
+      },
+        h('span', { style: { flex: '0 0 auto', fontSize: 9.5, color: STUDIO_ACCENT, fontWeight: 600 } }, action.label),
+        h('span', { style: { flex: 1, minWidth: 0, fontSize: 9, color: STUDIO_MUTED,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+          typeof action.note === 'string' && action.note !== '' ? action.note : action.prompt))),
+      h('div', { style: { fontSize: 8, color: STUDIO_MUTED } }, t('studio.ai.actions.hint')))
+    }
+
+    /**
+     * Deliverable card (deliverables plugin). The agent hands over finished
+     * text files here; small ones can be copied straight from the card, and
+     * the on-disk path is always shown for larger ones.
+     */
+    function StudioDeliverableCard(props) {
+      const t = props.t
+      const deliverable = props.deliverable
+      const [copied, setCopied] = React.useState(false)
+      const copyable = typeof deliverable.text === 'string' && deliverable.text !== ''
+      return h('div', {
+        'data-three-workbench-deliverable-card': '',
+        style: { display: 'flex', flexDirection: 'column', gap: 5, padding: '6px 8px', borderRadius: 7,
+          border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill-soft)' },
+      },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 } },
+        h(StudioGlyph, { name: 'download', size: 11 }),
+        h('span', { style: { flex: 1, minWidth: 0, fontSize: 9.5, color: STUDIO_ACCENT,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+        `${t('studio.ai.deliverable.title')}: ${deliverable.name}`),
+        h('span', { style: { flex: '0 0 auto', fontSize: 8, color: STUDIO_MUTED, whiteSpace: 'nowrap' } },
+          `${String(deliverable.bytes)} B`),
+        copyable
+          ? h('button', {
+            type: 'button',
+            className: 'twb-studio-chip',
+            'data-three-workbench-deliverable-copy': '',
+            onClick: () => {
+              void copyText(deliverable.text).then(ok => {
+                if (ok !== true) return
+                setCopied(true)
+                setTimeout(() => setCopied(false), 1600)
+              })
+            },
+            style: { height: 20, padding: '0 7px', borderRadius: 6, cursor: 'pointer', fontSize: 9,
+              border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)', color: STUDIO_ACCENT },
+          }, copied ? t('studio.ai.deliverable.copied') : t('studio.ai.deliverable.copy'))
+          : null),
+      typeof deliverable.note === 'string' && deliverable.note !== ''
+        ? h('div', { style: { fontSize: 9, color: 'var(--twb-text-2)', lineHeight: 1.5 } }, deliverable.note)
+        : null,
+      h('div', { style: { fontSize: 8, color: STUDIO_MUTED, wordBreak: 'break-all' } },
+        `${t('studio.ai.deliverable.saved')} ~/.three-studio/${String(deliverable.path)}`))
+    }
+
+    /**
+     * Workspace file browser (file-browser plugin) with the document-preview
+     * viewer built in. All data comes from the plugin's own routes, which
+     * confine reads to the Studio home and never expose credentials.
+     */
+    function StudioFilesPanel(props) {
+      const t = props.t
+      const [dir, setDir] = React.useState('')
+      const [entries, setEntries] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const [preview, setPreview] = React.useState(null)
+      const [previewBusy, setPreviewBusy] = React.useState(false)
+      const load = React.useCallback(target => {
+        setError('')
+        fetch('/api/plugins/file-browser/list?dir=' + encodeURIComponent(target))
+          .then(response => response.ok ? response.json() : null)
+          .then(data => {
+            if (data === null || !Array.isArray(data.entries)) {
+              setEntries(null)
+              setError(t('studio.files.error'))
+              return
+            }
+            setEntries(data.entries)
+          })
+          .catch(() => setError(t('studio.files.error')))
+      }, [t])
+      React.useEffect(() => { load(dir) }, [load, dir])
+      const openEntry = entry => {
+        if (entry.kind === 'dir') {
+          setPreview(null)
+          setDir(dir === '' ? entry.name : `${dir}/${entry.name}`)
+          return
+        }
+        if (props.previewEnabled !== true) return
+        setPreview({ kind: 'notice', name: entry.name })
+        setPreviewBusy(true)
+        const path = dir === '' ? entry.name : `${dir}/${entry.name}`
+        fetch('/api/plugins/file-browser/content?path=' + encodeURIComponent(path))
+          .then(response => response.ok ? response.json() : null)
+          .then(data => {
+            setPreviewBusy(false)
+            if (data === null || typeof data.kind !== 'string') {
+              setPreview({ kind: 'unsupported', name: entry.name })
+              return
+            }
+            setPreview(data)
+          })
+          .catch(() => {
+            setPreviewBusy(false)
+            setPreview({ kind: 'unsupported', name: entry.name })
+          })
+      }
+      const bytesOf = value => value >= 1024 * 1024
+        ? `${(value / (1024 * 1024)).toFixed(1)} MB` : value >= 1024 ? `${(value / 1024).toFixed(1)} KB` : `${String(value)} B`
+      return h('div', {
+        'data-three-workbench-files-panel': '',
+        style: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 8px' },
+      },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 5, minWidth: 0 } },
+        dir === ''
+          ? h('span', { style: { flex: 1, fontSize: 10, color: STUDIO_MUTED } }, t('studio.files.root'))
+          : h('button', {
+            type: 'button', className: 'twb-studio-btn',
+            onClick: () => { setPreview(null); setDir(dir.includes('/') ? dir.slice(0, dir.lastIndexOf('/')) : '') },
+            style: { height: 22, padding: '0 8px', borderRadius: 6, cursor: 'pointer', fontSize: 9.5,
+              border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)', color: STUDIO_ACCENT },
+          }, '‹ ' + t('studio.files.back')),
+        h('span', { style: { flex: 1, minWidth: 0, fontSize: 9.5, color: STUDIO_MUTED,
+          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, dir),
+      ),
+      h('div', {
+        'data-three-workbench-files-list': '',
+        style: { flex: '1 1 44%', minHeight: 80, overflowY: 'auto', borderRadius: 7,
+          border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-sunken)' },
+      },
+      error !== '' ? h('div', { style: { padding: '10px 8px', fontSize: 10, color: 'var(--twb-danger)' } }, error)
+        : entries === null ? h('div', { style: { padding: '10px 8px', fontSize: 10, color: STUDIO_MUTED } }, '…')
+        : entries.length === 0 ? h('div', { style: { padding: '10px 8px', fontSize: 10, color: STUDIO_MUTED } }, t('studio.files.empty'))
+        : entries.map(entry => h('button', {
+          type: 'button', key: entry.name,
+          'data-three-workbench-files-entry': entry.kind,
+          onClick: () => openEntry(entry),
+          style: { display: 'flex', alignItems: 'center', gap: 6, width: '100%', textAlign: 'left',
+            padding: '5px 8px', border: 0, borderBottom: '1px solid ' + STUDIO_LINE,
+            background: 'transparent', color: STUDIO_TEXT, cursor: 'pointer',
+            font: '10.5px/1.4 system-ui, sans-serif' },
+        },
+          h(StudioGlyph, { name: entry.kind === 'dir' ? 'folder' : 'cube', size: 11 }),
+          h('span', { style: { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, entry.name),
+          entry.kind === 'file'
+            ? h('span', { style: { flex: '0 0 auto', fontSize: 8.5, color: STUDIO_MUTED, whiteSpace: 'nowrap' } }, bytesOf(entry.bytes))
+            : null))),
+      preview === null
+        ? h('div', { style: { flex: '1 1 56%', minHeight: 80, borderRadius: 7, border: '1px dashed ' + STUDIO_LINE,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '8px',
+          fontSize: 9.5, color: STUDIO_MUTED, textAlign: 'center', lineHeight: 1.6 } },
+          props.previewEnabled === true ? t('studio.files.pickHint') : t('studio.files.previewNone'))
+        : h('div', {
+          'data-three-workbench-document-preview': '',
+          style: { flex: '1 1 56%', minHeight: 80, borderRadius: 7, border: '1px solid ' + STUDIO_LINE,
+            background: 'var(--twb-sunken)', overflow: 'hidden', display: 'flex', flexDirection: 'column' },
+        },
+        h('div', { style: { flex: '0 0 auto', padding: '5px 8px', fontSize: 9.5, color: STUDIO_ACCENT,
+          borderBottom: '1px solid ' + STUDIO_LINE, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+        preview.name || ''),
+        h('div', { style: { flex: 1, minHeight: 0, overflow: 'auto', padding: '8px' } },
+          previewBusy ? h('div', { style: { fontSize: 10, color: STUDIO_MUTED } }, '…')
+          : preview.kind === 'image'
+            ? h('img', { src: preview.dataUrl, alt: preview.name,
+              style: { maxWidth: '100%', height: 'auto', display: 'block', margin: '0 auto' } })
+          : preview.kind === 'text'
+            ? h('pre', { style: { margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              font: '10px/1.55 ui-monospace, monospace', color: STUDIO_TEXT } },
+            (preview.truncated === true ? t('studio.files.previewTruncated') + '\n\n' : '') + String(preview.text))
+          : preview.kind === 'notice'
+            ? h('div', { style: { fontSize: 10, color: STUDIO_MUTED } }, '…')
+          : h('div', { style: { fontSize: 10, color: STUDIO_MUTED } }, t('studio.files.previewUnsupported')))))
+    }
+
+    /**
+     * User-driven sandboxed web pane (browser-pane plugin). Public http(s)
+     * only; the iframe keeps an opaque origin and shares no
+     * credentials with the Studio.
+     */
+    function StudioWebPanel(props) {
+      const t = props.t
+      const [draft, setDraft] = React.useState('')
+      const [url, setUrl] = React.useState(null)
+      const [error, setError] = React.useState('')
+      const open = () => {
+        let target = null
+        try { target = new URL(draft.trim().startsWith('http') ? draft.trim() : `https://${draft.trim()}`) } catch (issue) { void issue }
+        if (target === null || (target.protocol !== 'http:' && target.protocol !== 'https:')) {
+          setError(t('studio.web.refused'))
+          return
+        }
+        const host = target.hostname.toLowerCase()
+        const refused = host === '' || host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local')
+          || /^127\./.test(host) || /^10\./.test(host) || /^192\.168\./.test(host) || /^169\.254\./.test(host) || /^0\./.test(host)
+          || /^172\.(1[6-9]|2\d|3[01])\./.test(host) || host === '::1' || host === '[::1]'
+        if (refused) {
+          setError(t('studio.web.refused'))
+          return
+        }
+        setError('')
+        setUrl(target.href)
+      }
+      return h('div', {
+        'data-three-workbench-web-panel': '',
+        style: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '8px 8px' },
+      },
+      h('div', { style: { display: 'flex', gap: 5 } },
+        h('input', {
+          value: draft, placeholder: t('studio.web.placeholder'),
+          'aria-label': t('studio.web.title'),
+          onChange: event => setDraft(event.target.value),
+          onKeyDown: event => { if (event.key === 'Enter') open() },
+          style: { flex: 1, minWidth: 0, height: 26, padding: '0 8px', borderRadius: 6,
+            border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)', color: STUDIO_TEXT,
+            outline: 'none', font: '10.5px/1 system-ui, sans-serif' },
+        }),
+        h('button', {
+          type: 'button', className: 'twb-studio-btn', onClick: open,
+          'data-three-workbench-web-open': '',
+          style: { height: 26, padding: '0 10px', borderRadius: 6, cursor: 'pointer', fontSize: 10,
+            border: '1px solid ' + STUDIO_ACCENT_LINE, background: STUDIO_ACCENT_SOFT, color: STUDIO_ACCENT },
+        }, t('studio.web.open'))),
+      error === '' ? null : h('div', { style: { fontSize: 9, color: 'var(--twb-danger)' } }, error),
+      url === null
+        ? h('div', { style: { flex: 1, borderRadius: 7, border: '1px dashed ' + STUDIO_LINE,
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 10,
+          fontSize: 9.5, color: STUDIO_MUTED, textAlign: 'center', lineHeight: 1.6, whiteSpace: 'pre-line' } },
+          `${t('studio.web.empty')}\n${t('studio.web.hint')}`)
+        : h('iframe', {
+          key: url, src: url, title: t('studio.web.title'),
+          // Opaque origin: scripts may run, but the pane is granted no
+          // same-origin access to the Studio or to its own site storage.
+          sandbox: 'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox',
+          referrerPolicy: 'no-referrer',
+          style: { flex: 1, minHeight: 0, width: '100%', border: 0, borderRadius: 7,
+            background: 'var(--twb-sunken)' },
+        }))
+    }
+
+    /**
+     * Dictation button (voice-input plugin). One utterance per click; interim
+     * results are appended to the current draft so the user can edit before
+     * sending. Renders nothing when the browser lacks SpeechRecognition.
+     */
+    function StudioVoiceButton(props) {
+      const t = props.t
+      const [listening, setListening] = React.useState(false)
+      const [failed, setFailed] = React.useState(false)
+      const recognitionRef = React.useRef(null)
+      const start = () => {
+        const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition
+        if (typeof Recognition !== 'function') { setFailed(true); return }
+        const recognition = new Recognition()
+        recognition.lang = props.language === 'zh' ? 'zh-CN' : 'en-US'
+        recognition.interimResults = true
+        recognition.continuous = false
+        const base = typeof props.draft === 'string' && props.draft.trim() !== ''
+          ? props.draft.trim() + ' ' : ''
+        recognition.onresult = event => {
+          let text = ''
+          for (let index = 0; index < event.results.length; index += 1) text += event.results[index][0].transcript
+          const merged = (base + text.trim()).trim()
+          if (merged !== '') props.onDraft(merged)
+        }
+        recognition.onerror = () => { setListening(false); setFailed(true) }
+        recognition.onend = () => setListening(false)
+        recognitionRef.current = recognition
+        setFailed(false)
+        setListening(true)
+        try { recognition.start() } catch (error) { setListening(false); setFailed(true) }
+      }
+      const stop = () => {
+        try {
+          if (recognitionRef.current !== null) recognitionRef.current.stop()
+        } catch (error) { void error }
+        setListening(false)
+      }
+      return h('button', {
+        type: 'button',
+        className: 'twb-studio-btn',
+        'data-three-workbench-studio-action': 'ai-voice',
+        'aria-pressed': listening,
+        title: failed ? t('studio.ai.voice.error') : listening ? t('studio.ai.voice.stop') : t('studio.ai.voice.start'),
+        'aria-label': failed ? t('studio.ai.voice.error') : listening ? t('studio.ai.voice.stop') : t('studio.ai.voice.start'),
+        onClick: () => { if (listening) stop(); else start() },
+        style: { flex: '0 0 auto', width: 28, height: 28, display: 'inline-flex', alignItems: 'center',
+          justifyContent: 'center', padding: 0, borderRadius: 6, cursor: 'pointer',
+          color: failed ? 'var(--twb-danger)' : listening ? 'var(--twb-danger-strong)' : STUDIO_ACCENT,
+          border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)' },
+      }, h(StudioGlyph, { name: 'mic', size: 13 }))
     }
 
     /**
@@ -19313,6 +19724,26 @@ THE SOFTWARE.
             ? h('div', { style: { fontSize: 9, color: 'var(--twb-danger)', lineHeight: 1.45, wordBreak: 'break-word' } }, row.error)
             : null)
         }
+        if (row.name === 'propose_actions' && done && meta !== null && Array.isArray(meta.actions)) {
+          const card = h(StudioActionCard, { t, actions: meta.actions, onActionPrompt: props.onActionPrompt })
+          if (card !== null) {
+            return h('div', { key: row.id, 'data-three-workbench-studio-row': 'tool',
+              style: { display: 'flex', flexDirection: 'column', gap: 4 } },
+            card,
+            row.error !== null
+              ? h('div', { style: { fontSize: 9, color: 'var(--twb-danger)', lineHeight: 1.45, wordBreak: 'break-word' } }, row.error)
+              : null)
+          }
+        }
+        if (row.name === 'save_deliverable' && done && meta !== null && meta.deliverable !== null
+          && typeof meta.deliverable === 'object' && typeof meta.deliverable.name === 'string') {
+          return h('div', { key: row.id, 'data-three-workbench-studio-row': 'tool',
+            style: { display: 'flex', flexDirection: 'column', gap: 4 } },
+          h(StudioDeliverableCard, { t, deliverable: meta.deliverable }),
+          row.error !== null
+            ? h('div', { style: { fontSize: 9, color: 'var(--twb-danger)', lineHeight: 1.45, wordBreak: 'break-word' } }, row.error)
+            : null)
+        }
         return h('div', {
           key: row.id,
           'data-three-workbench-studio-row': 'tool',
@@ -19570,6 +20001,13 @@ THE SOFTWARE.
             style: { fontSize: 9, lineHeight: 1.45, color: 'var(--twb-danger)', wordBreak: 'break-word' },
           }, props.taskError),
         h('div', { style: { display: 'flex', alignItems: 'center', gap: 5 } },
+          props.voiceInput === true
+            && typeof window !== 'undefined'
+            && (typeof window.SpeechRecognition === 'function' || typeof window.webkitSpeechRecognition === 'function')
+            ? h(StudioVoiceButton, {
+              t, language: props.language, draft: props.draft, onDraft: props.onDraft,
+            })
+            : null,
           h('span', { style: { flex: 1, minWidth: 0, fontSize: 8, color: STUDIO_MUTED,
             overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, t('studio.ai.sendHint')),
           h('button', {
@@ -20303,6 +20741,9 @@ THE SOFTWARE.
           setState(current => Object.assign({}, current, {
             entries: current.entries.map(row => Object.assign({}, row, { installed: installed.has(row.id) })),
           }))
+          // Client-side capabilities (voice input) listen for this instead of
+          // polling the endpoint.
+          window.dispatchEvent(new CustomEvent('three-studio:plugins-changed'))
         }).catch(() => {
           setBusy('')
           setState(current => Object.assign({}, current, { error: t('studio.market.actionFailed') }))
@@ -20562,6 +21003,27 @@ THE SOFTWARE.
       const studioMetaRef = React.useRef(studioMeta)
       const [studioProposalStatus, setStudioProposalStatus] = React.useState({})
       const [studioDismissedSuggestions, setStudioDismissedSuggestions] = React.useState([])
+      // Installed plugin ids drive client-side capabilities (voice input).
+      // The market panel broadcasts after every install/uninstall, so this
+      // stays live without polling.
+      const [studioInstalledPlugins, setStudioInstalledPlugins] = React.useState([])
+      React.useEffect(() => {
+        if (standaloneMode !== true) return undefined
+        const read = () => {
+          fetch('/api/plugins').then(response => response.ok ? response.json() : null).then(data => {
+            if (data === null || !Array.isArray(data.catalog)) return
+            const ids = data.catalog.filter(entry => entry.installed === true).map(entry => entry.id)
+            setStudioInstalledPlugins(ids)
+            // Uninstalling a panel plugin must not strand the layout on a
+            // rail tab that no longer exists.
+            setStudioTab(current => (current === 'files' && !ids.includes('file-browser'))
+              || (current === 'web' && !ids.includes('browser-pane')) ? 'ai' : current)
+          }).catch(() => {})
+        }
+        read()
+        window.addEventListener('three-studio:plugins-changed', read)
+        return () => window.removeEventListener('three-studio:plugins-changed', read)
+      }, [standaloneMode])
       const [studioSuggestionPage, setStudioSuggestionPage] = React.useState(0)
       const [studioSessionQuery, setStudioSessionQuery] = React.useState('')
       const [studioSessionError, setStudioSessionError] = React.useState('')
@@ -23045,6 +23507,12 @@ THE SOFTWARE.
           }
           if (data.type === 'three-workbench:obj' && typeof data.text === 'string') {
             download(new Blob([data.text], { type: 'text/plain' }), `three-scene-${String(recordRef.current === null ? 0 : recordRef.current.revision)}.obj`)
+          }
+          if (data.type === 'three-workbench:usdz' && data.buffer instanceof ArrayBuffer) {
+            download(new Blob([data.buffer], { type: 'model/vnd.usdz+zip' }), `three-scene-${String(recordRef.current === null ? 0 : recordRef.current.revision)}.usdz`)
+          }
+          if (data.type === 'three-workbench:fbx' && data.buffer instanceof ArrayBuffer) {
+            download(new Blob([data.buffer], { type: 'application/octet-stream' }), `three-scene-${String(recordRef.current === null ? 0 : recordRef.current.revision)}.fbx`)
           }
         }
         window.addEventListener('message', onMessage)
@@ -27330,6 +27798,8 @@ THE SOFTWARE.
         : null,
       menuItem(t('action.exportStl'), () => { void commandAfterAssets('export-stl') }, !recordIsLatest),
       menuItem(t('action.exportObj'), () => { void commandAfterAssets('export-obj') }, !recordIsLatest),
+      menuItem(t('action.exportUsdz'), () => { void commandAfterAssets('export-usdz') }, !recordIsLatest),
+      menuItem(t('action.exportFbx'), () => { void commandAfterAssets('export-fbx') }, !recordIsLatest),
       h('div', { style: { height: 1, margin: '4px 0', background: 'color-mix(in srgb, currentColor 14%, transparent)' } }),
       menuItem(t('action.projectZip'), () => { void exportProject() }, !recordIsLatest),
       menuItem(t('action.standalone'), () => { void exportStandalone() }, !recordIsLatest),
@@ -27681,6 +28151,8 @@ THE SOFTWARE.
         paletteAdd(t('action.exportGlb'), '', () => { void commandAfterAssets('export-gltf') }, !recordIsLatest)
         paletteAdd(t('action.exportStl'), '', () => { void commandAfterAssets('export-stl') }, !recordIsLatest)
         paletteAdd(t('action.exportObj'), '', () => { void commandAfterAssets('export-obj') }, !recordIsLatest)
+        paletteAdd(t('action.exportUsdz'), '', () => { void commandAfterAssets('export-usdz') }, !recordIsLatest)
+        paletteAdd(t('action.exportFbx'), '', () => { void commandAfterAssets('export-fbx') }, !recordIsLatest)
         paletteAdd(t('action.projectZip'), '', () => { void exportProject() }, !recordIsLatest)
         paletteAdd(t('action.standalone'), '', () => { void exportStandalone() }, !recordIsLatest)
         paletteAdd(t('editor.shareMenu'), '', () => { openShareCreate() }, shareEntryDisabled)
@@ -29541,7 +30013,15 @@ THE SOFTWARE.
         ['scene', 'layers', t('studio.rail.scene')],
         ['assets', 'folder', t('studio.rail.assets')],
         ['params', 'sliders', t('studio.rail.params')],
-        ...(standaloneMode ? [['plugins', 'plug', t('studio.market.title')]] : []),
+        ...(standaloneMode
+          ? [
+            ['plugins', 'plug', t('studio.market.title')],
+            ...(studioInstalledPlugins.includes('file-browser')
+              ? [['files', 'folder', t('studio.files.title')]] : []),
+            ...(studioInstalledPlugins.includes('browser-pane')
+              ? [['web', 'link', t('studio.web.title')]] : []),
+          ]
+          : []),
         ['history', 'clock', t('studio.rail.history')],
       ]
       const studioRail = h('div', {
@@ -29591,6 +30071,8 @@ THE SOFTWARE.
               : studioTab === 'params' ? t('editor.params')
                 : studioTab === 'sessions' ? t('studio.sessions.title')
                   : studioTab === 'plugins' ? t('studio.market.title')
+                    : studioTab === 'files' ? t('studio.files.title')
+                      : studioTab === 'web' ? t('studio.web.title')
                     : studioTab === 'history' ? t('studio.historyTitle') : t('studio.tab.ai')
       const studioLeftAux = studioTab === 'ai' && studioAiSettings ? ''
         : studioTab === 'scene'
@@ -29601,6 +30083,8 @@ THE SOFTWARE.
               : studioTab === 'params' ? String(paramRuntime.schema.length)
                 : studioTab === 'sessions' ? String(studioSessionRows.length)
                   : studioTab === 'plugins' ? ''
+                  : studioTab === 'files' ? ''
+                    : studioTab === 'web' ? ''
                     : studioTab === 'history' ? String(revisions.length)
                   : (building ? t('studio.ai.busy') : 'AI')
 
@@ -29687,6 +30171,8 @@ THE SOFTWARE.
         : null)
 
       const studioAiPanel = h(StudioAgentPanel, {
+        language: activeLanguage,
+        voiceInput: studioInstalledPlugins.includes('voice-input'),
         t,
         agent,
         blank: record === null,
@@ -29724,6 +30210,7 @@ THE SOFTWARE.
         onProposalApply: studioApplyProposal,
         onProposalReject: studioRejectProposal,
         onProposalAsk: studioAskProposal,
+        onActionPrompt: studioPrefillPrompt,
         modelAvailable: studioModelAvailable,
         modelGroups: studioModelGroups,
         modelCurrent: studioModelCurrent,
@@ -29835,6 +30322,10 @@ THE SOFTWARE.
               }))
             : studioTab === 'plugins'
               ? h(StudioPluginMarketPanel, { t, language: activeLanguage })
+              : studioTab === 'files'
+              ? h(StudioFilesPanel, { t, previewEnabled: studioInstalledPlugins.includes('document-preview') })
+              : studioTab === 'web'
+              ? h(StudioWebPanel, { t })
               : studioTab === 'sessions'
               ? h(StudioSessionsPanel, {
                 t,

@@ -200,8 +200,102 @@ const providerForSelection = selection => {
   return modelSettings.providerOf(selection.provider)
 }
 
+/**
+ * Routes contributed by installed plugins (file-browser and friends). Each
+ * entry is { method, path, handler(request, url) -> Response }; plugin
+ * disposal removes its entries.
+ */
+const pluginRoutes = []
+
+/**
+ * Tiny event bus for installed plugins (hooks listens to turn-end). Handlers
+ * run best-effort and never block the caller.
+ */
+const pluginListeners = []
+const subscribe = (event, handler) => {
+  const entry = { event, handler }
+  pluginListeners.push(entry)
+  return () => {
+    const index = pluginListeners.indexOf(entry)
+    if (index >= 0) pluginListeners.splice(index, 1)
+  }
+}
+
+/**
+ * Start one agent turn for a session. Shared by the prompt route and
+ * plugin-driven submissions (scheduled tasks). Returns { ok, code?, message? }.
+ */
+const startAgentTurn = (sessionId, text) => {
+  const session = sessions.get(sessionId)
+  if (session === undefined) return { ok: false, code: 404, message: 'session-not-found' }
+  if (session.archived) return { ok: false, code: 409, message: 'Restore this archived session before sending a prompt.' }
+  if (session.running === true) return { ok: false, code: 409, message: 'Session is already running.' }
+  if (Buffer.byteLength(text) > SESSION_LIMITS.promptBytes) {
+    return { ok: false, code: 413, message: 'Prompt exceeds the 64 KiB limit. Shorten it and try again.' }
+  }
+  const controller = new AbortController()
+  controllers.set(sessionId, controller)
+  emitEvent(session, {
+    type: 'user/message',
+    data: { content: [{ type: 'text', text }], source: { kind: 'user' } },
+  })
+  session.history.push({ role: 'user', text })
+  const firstUser = !session.history.some(message => message.role === 'assistant')
+  if (firstUser && (session.title === 'New scene' || session.title === '')) {
+    session.title = text.replace(/\s+/g, ' ').trim().slice(0, 60) || 'New scene'
+  }
+  session.running = true
+  session.lastAgentError = ''
+  session.updatedAt = Date.now()
+  broadcast(sessionId, { kind: 'state', state: sessionSnapshot(session) })
+  const attemptId = `attempt-${randomUUID()}`
+  // A stale selection (its provider was deleted) must not fall back to a
+  // hardcoded provider: resolve the current default and persist it.
+  if (selectionOf(session) === null || session.selection === null
+    || modelSettings.providerOf(session.selection.provider) === undefined) {
+    session.selection = defaultSelection()
+  }
+  void runAgent({
+    session,
+    selection: selectionOf(session),
+    settings: modelSettings,
+    tools,
+    promptSections,
+    signal: controller.signal,
+    // A canceled attempt can finish after a replacement prompt starts.
+    // Its late events must not leak into the new attempt's transcript.
+    emit: event => {
+      if (controllers.get(sessionId) === controller) emitEvent(session, event)
+    },
+    emitChunk: textDelta => {
+      if (controllers.get(sessionId) === controller) emitChunk(session, attemptId, textDelta)
+    },
+  }).catch(error => {
+    if (controller.signal.aborted) return
+    if (controllers.get(sessionId) === controller) {
+      session.lastAgentError = error instanceof Error ? error.message : String(error)
+    }
+  }).finally(() => {
+    if (controllers.get(sessionId) !== controller) return
+    session.running = false
+    controllers.delete(sessionId)
+    session.updatedAt = Date.now()
+    saveInBackground()
+    broadcast(sessionId, { kind: 'state', state: sessionSnapshot(session) })
+    // Plugins (hooks) observe completed turns; never blocking, never throwing.
+    for (const entry of [...pluginListeners]) {
+      if (entry.event !== 'turn-end') continue
+      try { entry.handler({ sessionId }) } catch (error) { void error }
+    }
+  })
+  return { ok: true }
+}
+
 const pluginRuntime = await createPluginRuntime({
   dataDir: HOME,
+  pluginRoutes,
+  subscribe,
+  submitPrompt: (sessionId, text) => startAgentTurn(sessionId, text).ok === true,
   tools,
   promptSections,
   modelSettings,
@@ -362,6 +456,13 @@ const handleApi = async (request, pathname) => {
       return json(result, result.ok ? 200 : 400)
     }
   }
+  // Plugin-contributed routes (file-browser content access and similar).
+  // Only entries added by currently installed plugins are present.
+  for (const entry of pluginRoutes) {
+    if (entry.method === request.method && entry.path === pathname) {
+      return entry.handler(request, new URL(request.url, `http://127.0.0.1:${String(PORT)}`))
+    }
+  }
   const testMatch = /^\/api\/providers\/([^/]+)\/test$/.exec(pathname)
   if (request.method === 'POST' && testMatch !== null) {
     const providerId = decodeURIComponent(testMatch[1])
@@ -481,62 +582,13 @@ const handleApi = async (request, pathname) => {
       })
     }
     if (request.method === 'POST' && action === 'prompt') {
-      if (session.archived) return json({ ok: false, error: { message: 'Restore this archived session before sending a prompt.' } }, 409)
-      if (session.running === true) return json({ ok: false, error: { message: 'Session is already running.' } }, 409)
       const body = await request.json().catch(() => null)
       const text = textFromParts(body?.parts)
       if (text.trim() === '') return json({ ok: false, error: { message: 'Prompt is empty.' } }, 400)
-      if (Buffer.byteLength(text) > SESSION_LIMITS.promptBytes) return json({ ok: false, error: { message: 'Prompt exceeds the 64 KiB limit. Shorten it and try again.' } }, 413)
-      const controller = new AbortController()
-      controllers.set(sessionId, controller)
-      emitEvent(session, {
-        type: 'user/message',
-        data: { content: [{ type: 'text', text }], source: { kind: 'user' } },
-      })
-      session.history.push({ role: 'user', text })
-      const firstUser = !session.history.some(message => message.role === 'assistant')
-      if (firstUser && (session.title === 'New scene' || session.title === '')) {
-        session.title = text.replace(/\s+/g, ' ').trim().slice(0, 60) || 'New scene'
+      const started = startAgentTurn(sessionId, text)
+      if (started.ok !== true) {
+        return json({ ok: false, error: { message: started.message } }, started.code === undefined ? 400 : started.code)
       }
-      session.running = true
-      session.lastAgentError = ''
-      session.updatedAt = Date.now()
-      broadcast(sessionId, { kind: 'state', state: sessionSnapshot(session) })
-      const attemptId = `attempt-${randomUUID()}`
-      // A stale selection (its provider was deleted) must not fall back to a
-      // hardcoded provider: resolve the current default and persist it.
-      if (selectionOf(session) === null || session.selection === null
-        || modelSettings.providerOf(session.selection.provider) === undefined) {
-        session.selection = defaultSelection()
-      }
-      void runAgent({
-        session,
-        selection: selectionOf(session),
-        settings: modelSettings,
-        tools,
-        promptSections,
-        signal: controller.signal,
-        // A canceled attempt can finish after a replacement prompt starts.
-        // Its late events must not leak into the new attempt's transcript.
-        emit: event => {
-          if (controllers.get(sessionId) === controller) emitEvent(session, event)
-        },
-        emitChunk: textDelta => {
-          if (controllers.get(sessionId) === controller) emitChunk(session, attemptId, textDelta)
-        },
-      }).catch(error => {
-        if (controller.signal.aborted) return
-        if (controllers.get(sessionId) === controller) {
-          session.lastAgentError = error instanceof Error ? error.message : String(error)
-        }
-      }).finally(() => {
-        if (controllers.get(sessionId) !== controller) return
-        session.running = false
-        controllers.delete(sessionId)
-        session.updatedAt = Date.now()
-        saveInBackground()
-        broadcast(sessionId, { kind: 'state', state: sessionSnapshot(session) })
-      })
       return json({ ok: true, value: { accepted: true } }, 202)
     }
     if (request.method === 'POST' && action === 'cancel') {
@@ -658,7 +710,6 @@ const server = http.createServer(async (request, responseNode) => {
 
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`Three Studio standalone: http://127.0.0.1:${String(PORT)}/`)
-  console.log(`data: ${HOME}`)
 })
 
 const shutdown = async () => {

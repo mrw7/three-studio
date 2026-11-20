@@ -1844,8 +1844,13 @@ test('P1-6/P1-7 source guards: no parent eval, unchanged sandbox, bilingual keys
 
   assert.equal((clientSource.match(/allow-same-origin/g) || []).length, 0)
   const sandboxMatches = [...clientSource.matchAll(/sandbox:\s*'([^']+)'/g)]
-  assert.equal(sandboxMatches.length, 1)
-  assert.equal(sandboxMatches[0][1], 'allow-scripts allow-pointer-lock allow-downloads')
+  // Exactly two sandboxed iframes: the scene preview and the browser-pane
+  // web panel (P11-E). Neither ever grants same-origin access.
+  assert.equal(sandboxMatches.length, 2)
+  assert.deepEqual(sandboxMatches.map(match => match[1]).sort(), [
+    'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox',
+    'allow-scripts allow-pointer-lock allow-downloads',
+  ])
 
   assert.ok(clientSource.includes('previewDocument(effectiveRecord, initialCamera, payload, {'))
   assert.ok(clientSource.includes('previewToken(sessionId, effectiveRecord, reloadTick, contentFingerprint, codeIdentity)'))

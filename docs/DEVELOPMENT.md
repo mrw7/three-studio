@@ -41,15 +41,22 @@ Unit and protocol tests (Node 24; no external runner):
 ```sh
 ~/.local/node24/bin/node --test \
   tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs \
-  tests/history.test.mjs tests/share.test.mjs tests/smoke.test.mjs \
-  tests/studio-ai.test.mjs tests/tracks.test.mjs
+  tests/export-fbx.test.mjs tests/history.test.mjs tests/share.test.mjs \
+  tests/smoke.test.mjs tests/studio-ai.test.mjs tests/tracks.test.mjs
 ```
 
-Standalone runtime tests (plugins and model settings):
+Standalone runtime tests (plugins, sessions and model settings):
 
 ```sh
-~/.local/node24/bin/node --test standalone/plugins/runtime.test.mjs standalone/settings.test.mjs
+~/.local/node24/bin/node --test \
+  standalone/plugins/runtime.test.mjs standalone/settings.test.mjs \
+  standalone/sessions.test.mjs
 ```
+
+The plugin suite covers every installable id, including an in-process MCP echo
+server for `mcp-connectors`; tests that touch the network (web search) only
+validate argument and key handling. The scheduled-tasks test shortens the tick
+with `scheduleTickMs` so it finishes in under a second.
 
 Syntax checks:
 
@@ -64,16 +71,29 @@ Syntax checks:
 disk-lock probes hang in this WSL environment. Run it on a native filesystem or
 in CI when changing the durable store.
 
-The standalone browser smoke flow uses a temporary Three Studio home and a
-local mock OpenAI-compatible gateway:
+Three standalone browser probes use a temporary Three Studio home and a local
+mock OpenAI-compatible gateway. They never contact a real provider and each
+uses its own port:
 
 ```sh
-~/.local/node24/bin/node tests/e2e/standalone.mjs
+npm run test:e2e:standalone   # tests/e2e/standalone.mjs (port 3193)
+npm run test:e2e:exports      # tests/e2e/exports.mjs    (port 3195)
+npm run test:e2e:plugins      # tests/e2e/plugins.mjs    (port 3196)
 ```
 
-It covers mobile overlay entry, desktop session switching, provider connection
-testing, session archive/restore/delete, and cancel-then-send behavior. Keep
-its browser setup local and never point it at a real provider key.
+- `standalone` covers mobile overlay entry, desktop session switching, provider
+  connection testing, session archive/restore/delete, and cancel-then-send.
+- `exports` answers the first prompt with a `three_scene` tool call, then
+  downloads USDZ and FBX through the real export menu and validates the file
+  magic, stored-zip entries and the FBX 7.4 node stream.
+- `plugins` installs action-cards, deliverables, voice-input, file-browser,
+  document-preview and browser-pane, then drives the transcript cards, the
+  Files panel (traversal into the session deliverables and preview) and the
+  Web pane (private-host refusal and the sandbox attribute). A stub
+  `SpeechRecognition` is injected so the dictation button renders headlessly.
+
+Each probe prints one JSON summary line and exits non-zero on failure. Keep the
+browser setup local; never point these probes at a real provider key.
 
 ## Screenshots
 

@@ -26,13 +26,23 @@ not a hardened multi-tenant service.
 
 ## Network egress
 
-- The only outbound requests are the model calls to the provider you configure
-  and explicit `web_fetch` calls.
-- `web_fetch` accepts public `http(s)` URLs only. It refuses `localhost`,
-  loopback, link-local, private IPv4/IPv6 ranges and `.local` hostnames, resolves
-  DNS before the request, re-checks each redirect and caps response size.
-- There is no web search provider in the current build; adding one would add its
-  own key and network endpoint.
+- Outbound requests are limited to: model calls to the provider you configure,
+  explicit `web_fetch` calls, `web_search`/`deep_research` queries, MCP servers
+  you configure, and the browser-automation CDP endpoint you point at. Nothing
+  else leaves the machine, and there is no telemetry.
+- `web_fetch` and `deep_research` accept public `http(s)` URLs only. They refuse
+  `localhost`, loopback, link-local, CGNAT, private IPv4/IPv6 ranges and
+  `.local` hostnames, resolve DNS before the request, re-check every redirect
+  and cap response size.
+- `web_search` talks to the DuckDuckGo HTML endpoint by default; Tavily or Brave
+  only after you add their key to `~/.three-studio/search.json`. Search keys are
+  never returned by the API or written to logs.
+- `browser-automation` applies the same public-target guard to every navigation
+  and refuses private or local hosts. It never starts Chrome and cannot enable
+  itself.
+- `browser-pane` loads sites directly in an opaque-origin iframe; the server
+  never proxies that traffic. The pane sends no referrer and shares no cookies
+  or storage with the Studio.
 
 ## Agent and plugins
 
@@ -46,13 +56,30 @@ not a hardened multi-tenant service.
   one-shot call per invocation.
 - Destructive scene operations are exposed through the editing protocol with
   revision checks; proposals are inert until the user applies them.
+- Trust configuration is user-authored and read-only to the agent:
+  `mcp.json`, `browser-automation.json`, `hooks.json` and `search.json` have no
+  write tool. MCP and browser automation refuse to install until their config
+  exists, so there is no half-enabled state.
+- MCP servers run as child processes chosen by the user (equivalent to running
+  them yourself); stderr is discarded so secrets never reach the transcript.
+  MCP tool descriptions are untrusted prompt input.
+- `file-browser` tools and routes share one guard: relative paths only, no `..`,
+  no absolute paths, `credentials.json` always refused, binaries refused. Those
+  routes exist only while the plugin is installed.
+- Plugin contributed routes are dispatched only after the built-in API router
+  and only for exact method/path matches; unloading a plugin removes them.
+- `hooks` can observe completed turns but cannot inject executable content: its
+  notes are plain text in the next prompt section.
 
 ## Files, exports and sharing
 
 - Asset upload/delete routes are session-scoped and size-limited.
 - Export and share documents are generated from the current scene without
   embedding API keys, session tokens or local paths.
-- Treat generated HTML/GLB/PNG files as untrusted content when opened elsewhere.
+- Treat generated HTML/GLB/PNG/USDZ/FBX files as untrusted content when opened
+  elsewhere.
+- Deliverables and workspace reads are confined to the Studio home; paths that
+  escape it are rejected before touching disk.
 
 ## Known limitations
 
@@ -63,6 +90,13 @@ not a hardened multi-tenant service.
   this environment.
 - Model providers receive the prompts and tool context needed to answer; review
   their retention and data policies before sending sensitive content.
+- Web search's free DuckDuckGo endpoint may rate limit or change markup;
+  keyed providers are the reliable path.
+- MCP support is stdio + tools only (no HTTP/SSE, sampling or roots).
+- The web pane cannot display sites that refuse framing, and the safety of what
+  it renders is the site's responsibility; it has no access to Studio data.
+- Scheduled tasks and background jobs run only while the local server is
+  running; background results live in memory.
 
 ## Reporting a vulnerability
 

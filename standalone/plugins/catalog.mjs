@@ -82,7 +82,7 @@ export const CATALOG = [
     source: 'packages/schedule/schedule + packages/client/ui-schedule',
     tags: ['schedule', 'automation', 'cron'],
     recommended: true,
-    available: false,
+    available: true,
   },
   {
     id: 'mcp-connectors',
@@ -95,7 +95,7 @@ export const CATALOG = [
     source: 'packages/mcp/mcp-client + packages/mcp/mcp-resources',
     tags: ['mcp', 'connectors', 'tools'],
     recommended: true,
-    available: false,
+    available: true,
   },
   {
     id: 'web-search',
@@ -108,7 +108,7 @@ export const CATALOG = [
     source: 'packages/web/web-search-* + packages/web/tool-web',
     tags: ['web', 'search', 'research'],
     recommended: true,
-    available: false,
+    available: true,
   },
   {
     id: 'deliverables',
@@ -121,7 +121,7 @@ export const CATALOG = [
     source: 'packages/deliverables/* + packages/client/ui-deliverables',
     tags: ['deliverables', 'diff', 'files'],
     recommended: true,
-    available: false,
+    available: true,
   },
   {
     id: 'action-cards',
@@ -134,7 +134,7 @@ export const CATALOG = [
     source: 'packages/experimental/action-cards + client-ui-action-cards',
     tags: ['actions', 'approval', 'ai-native'],
     recommended: false,
-    available: false,
+    available: true,
   },
   {
     id: 'context-files',
@@ -147,7 +147,7 @@ export const CATALOG = [
     source: 'packages/context/agent-instructions + file-reference',
     tags: ['context', 'files', 'agents-md'],
     recommended: false,
-    available: false,
+    available: true,
   },
   {
     id: 'deep-research',
@@ -160,7 +160,7 @@ export const CATALOG = [
     source: 'packages/experimental/agent-team + packages/web/web-search-*',
     tags: ['research', 'agents', 'web'],
     recommended: false,
-    available: false,
+    available: true,
   },
   {
     id: 'file-browser',
@@ -173,7 +173,7 @@ export const CATALOG = [
     source: 'packages/client/ui-sidebar-files',
     tags: ['files', 'workspace', 'assets'],
     recommended: true,
-    available: false,
+    available: true,
   },
   {
     id: 'document-preview',
@@ -186,7 +186,7 @@ export const CATALOG = [
     source: 'packages/client/ui-sidebar-documentpreview',
     tags: ['docs', 'markdown', 'pdf'],
     recommended: true,
-    available: false,
+    available: true,
   },
   {
     id: 'browser-pane',
@@ -199,7 +199,7 @@ export const CATALOG = [
     source: 'packages/client/ui-sidebar-browser',
     tags: ['browser', 'reference', 'research'],
     recommended: false,
-    available: false,
+    available: true,
   },
   {
     id: 'background-jobs',
@@ -212,7 +212,7 @@ export const CATALOG = [
     source: 'packages/jobs/jobs + packages/client/ui-jobs',
     tags: ['jobs', 'background', 'long-running'],
     recommended: true,
-    available: false,
+    available: true,
   },
   {
     id: 'browser-automation',
@@ -225,7 +225,7 @@ export const CATALOG = [
     source: 'packages/experimental/browser-use-playwright-mcp + browser-use-chrome-devtools-mcp',
     tags: ['browser', 'playwright', 'debug'],
     recommended: false,
-    available: false,
+    available: true,
   },
   {
     id: 'memory',
@@ -238,7 +238,7 @@ export const CATALOG = [
     source: 'docs/user/guide/mcp-memory.md + packages/mcp/mcp-client',
     tags: ['memory', 'conventions', 'mcp'],
     recommended: false,
-    available: false,
+    available: true,
   },
   {
     id: 'hooks',
@@ -251,7 +251,7 @@ export const CATALOG = [
     source: 'packages/experimental/hooks-claude-code + hooks-codex',
     tags: ['hooks', 'automation', 'guardrails'],
     recommended: false,
-    available: false,
+    available: true,
   },
   {
     id: 'voice-input',
@@ -264,6 +264,6 @@ export const CATALOG = [
     source: 'packages/experimental/client-ui-voice-input',
     tags: ['voice', 'speech', 'input'],
     recommended: false,
-    available: false,
+    available: true,
   },
 ]
