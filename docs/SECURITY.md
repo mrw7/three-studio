@@ -9,7 +9,12 @@ not a hardened multi-tenant service.
 - Model-written scene code runs in a `srcDoc` iframe with
   `sandbox="allow-scripts allow-pointer-lock allow-downloads"`.
 - The iframe never receives `allow-same-origin`; it cannot read app storage,
-  cookies, the host API or the token.
+  cookies, the host API or the API token.
+- The loopback API checks `Host` and `Origin`/`Sec-Fetch-Site`, requires a
+  per-process API token on browser-like state-changing requests, enforces JSON
+  content type, and caps request bodies. The token is injected into
+  `index.html` and attached by `boot.js`; it is never exposed to the scene
+  iframe.
 - The scene is never served as a navigable URL. Exports and the share viewer use
   the same sandbox.
 - Parent↔iframe messages are validated by shape and never trusted as executable
@@ -62,7 +67,12 @@ not a hardened multi-tenant service.
   exists, so there is no half-enabled state.
 - MCP servers run as child processes chosen by the user (equivalent to running
   them yourself); stderr is discarded so secrets never reach the transcript.
-  MCP tool descriptions are untrusted prompt input.
+  Each child gets its own `~/.three-studio/mcp/<id>/` working directory and only
+  a minimal base environment plus the user-declared `env` map, so the Studio
+  home is not its working directory and provider-key environment variables are
+  not inherited by default. It still runs as the same OS user and can read
+  absolute paths; only install MCP servers you trust. MCP tool descriptions are
+  untrusted prompt input.
 - `file-browser` tools and routes share one guard: relative paths only, no `..`,
   no absolute paths, `credentials.json` always refused, binaries refused. Those
   routes exist only while the plugin is installed.

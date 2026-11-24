@@ -5,12 +5,16 @@ Harness model service is required.
 
 ## Built-in providers
 
-On first run `models.json` seeds two providers:
+On first run `models.json` seeds one provider:
 
 | Provider id | API | Default base URL | Models |
 | --- | --- | --- | --- |
 | `deepseek` | OpenAI-compatible chat completions | `https://api.deepseek.com/v1` | `deepseek-chat`, `deepseek-reasoner` |
-| `anthropic` | Anthropic Messages | `https://api.anthropic.com/v1` | `claude-opus-5-5`, `claude-sonnet-5-5`, `claude-haiku-5-5` |
+
+Anthropic-compatible endpoints are supported through **Add** as a custom
+provider; the Anthropic Messages adapter is still available. Old untouched
+built-in Anthropic seed entries are removed on startup, while a customized
+Anthropic provider is preserved.
 
 Add an API key in **AI Prompt → gear → Model providers**, or add a custom
 provider.

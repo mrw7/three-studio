@@ -36,21 +36,11 @@ The optional Harness plugin mode uses `./start.sh` and a Harness checkout; see
 
 ## Tests
 
-Unit and protocol tests (Node 24; no external runner):
+Unit, protocol, standalone runtime and loopback-API security tests (Node 24; no
+external runner):
 
 ```sh
-~/.local/node24/bin/node --test \
-  tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs \
-  tests/export-fbx.test.mjs tests/history.test.mjs tests/share.test.mjs \
-  tests/smoke.test.mjs tests/studio-ai.test.mjs tests/tracks.test.mjs
-```
-
-Standalone runtime tests (plugins, sessions and model settings):
-
-```sh
-~/.local/node24/bin/node --test \
-  standalone/plugins/runtime.test.mjs standalone/settings.test.mjs \
-  standalone/sessions.test.mjs
+npm test
 ```
 
 The plugin suite covers every installable id, including an in-process MCP echo
@@ -65,6 +55,8 @@ Syntax checks:
 ~/.local/node24/bin/node --check index.js
 ~/.local/node24/bin/node --check standalone/server.mjs
 ~/.local/node24/bin/node --check standalone/agent.mjs
+~/.local/node24/bin/node --check standalone/public/boot.js
+~/.local/node24/bin/node --check standalone/plugins/runtime.mjs
 ```
 
 `tests/disk.test.mjs` is excluded from the default local run because its
@@ -129,10 +121,12 @@ workbench data directory for migration experiments.
 
 ## Known limitations
 
-- The standalone build ships no Harness-only features: scheduled tasks, plugin
-  manager, skills/chat UI, MCP connectors, subagents UI, voice and account
-  services are roadmap entries or deliberately absent.
-- The scene engine persists scenes to disk; the browser's editor overrides are
-  localStorage-scoped and revision-checked.
+- The standalone build implements the plugin catalog natively; Harness account
+  sign-in and host-shell navigation are deliberately absent.
+- Linux uses the fd-anchored store for scenes, assets, shares, thumbnails and
+  revision history. macOS/Windows use the portable atomic-snapshot store for
+  the same records; it is simpler and less crash-fenced than the Linux store.
+  Set `THREE_STUDIO_PORTABLE_STORE=1` to test the portable backend on Linux.
+  The browser's editor overrides are localStorage-scoped and revision-checked.
 - The screenshot environment uses SwiftShader; heavy scenes may take 20–30 s to
   reach the first frame and report low FPS.

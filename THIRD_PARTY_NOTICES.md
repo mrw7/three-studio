@@ -2,15 +2,34 @@
 
 This repository includes or derives from the following third-party components.
 Their licenses apply to those components; the rest of the repository is
-published without a license (all rights reserved).
+licensed under the Apache License 2.0 (see `LICENSE` and `NOTICE`).
 
 ## Three.js
 
 - Version: r186 (0.186.1)
 - License: MIT
 - Files: `runtime/three.module.js`, `runtime/three.core.js`, loaders,
-  controls, exporters and related files under `runtime/`
-- License text: `runtime/THREE-LICENSE.txt`
+  controls, exporters and related files under `runtime/` and `site/runtime/`
+- License texts: `runtime/THREE-LICENSE.txt`, `site/runtime/THREE-LICENSE.txt`
+
+## Export helper libraries
+
+These pinned builds are used by deterministic MP4/GIF export and USDZ export.
+
+- `runtime/vendor/fflate.module.js` — fflate 0.8.2, MIT; license header in
+  the file.
+- `runtime/vendor/gifenc.js` — gifenc 1.0.3, MIT; license text in
+  `runtime/vendor/GIFENC-LICENSE.txt`.
+- `runtime/vendor/mp4-muxer.js` — mp4-muxer 5.2.2, MIT; license text in
+  `runtime/vendor/MP4-MUXER-LICENSE.txt`.
+- Provenance, versions and SHA-256 pins: `runtime/vendor/README.md`.
+
+## Electron and Chromium
+
+The optional `desktop/` app bundles Electron and Chromium at build time.
+`electron-builder` includes their license texts in the packaged application;
+they are development/runtime dependencies and are not committed to this
+repository.
 
 ## React and ReactDOM
 
@@ -35,7 +54,7 @@ Playwright is used by maintainers for screenshot capture and browser checks. It
 is not distributed with the Studio. See the Playwright license when installing it
 locally.
 
-## No license for this repository
+## Project license
 
-Nothing in this file grants a license to the project's own code. See the README
-license section.
+The project's own code is licensed under the Apache License 2.0. See `LICENSE`
+and the README license section.

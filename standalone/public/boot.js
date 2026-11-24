@@ -9,6 +9,83 @@
 (function () {
   'use strict'
 
+  // The standalone server injects a per-process API token into index.html.
+  // Attach it to same-origin state-changing requests so a cross-site page
+  // cannot drive the loopback API even if it bypasses Fetch metadata checks.
+  var apiToken = ''
+  try {
+    var tokenMeta = document.querySelector('meta[name="three-studio-api-token"]')
+    if (tokenMeta !== null) apiToken = tokenMeta.getAttribute('content') || ''
+  } catch (error) { void error }
+
+  // The Electron preload exposes a tiny, inert descriptor. The attribute is
+  // used only for window-chrome padding and CSS drag regions.
+  function syncDesktopTheme() {
+    try {
+      var desktop = window.ThreeStudioDesktop
+      if (desktop === null || desktop === undefined || typeof desktop.setTheme !== 'function') return
+      var theme = document.documentElement.dataset.studioTheme === 'light' ? 'light' : 'dark'
+      desktop.setTheme(theme)
+    } catch (error) { void error }
+  }
+
+  try {
+    var desktop = window.ThreeStudioDesktop
+    if (desktop !== null && desktop !== undefined && typeof desktop.platform === 'string') {
+      document.documentElement.dataset.threeStudioDesktop = desktop.platform
+    }
+  } catch (error) { void error }
+  syncDesktopTheme()
+  try {
+    new MutationObserver(syncDesktopTheme).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-studio-theme'],
+    })
+  } catch (error) { void error }
+
+  function isSameOrigin(url) {
+    try { return new URL(String(url), window.location.href).origin === window.location.origin } catch (error) { return false }
+  }
+
+  function needsToken(method) {
+    return !/^(GET|HEAD|OPTIONS)$/i.test(String(method || 'GET'))
+  }
+
+  if (apiToken !== '') {
+    var nativeFetch = window.fetch.bind(window)
+    window.fetch = function (input, init) {
+      var url = typeof input === 'string' ? input : (input && input.url) || ''
+      var method = (init && init.method) || (input && input.method) || 'GET'
+      if (isSameOrigin(url) && needsToken(method)) {
+        var next = init === undefined || init === null ? {} : Object.assign({}, init)
+        var headers = new Headers((input && input.headers) || {})
+        if (next.headers !== undefined && next.headers !== null) {
+          new Headers(next.headers).forEach(function (value, name) { headers.set(name, value) })
+        }
+        headers.set('x-three-studio-token', apiToken)
+        next.headers = headers
+        return nativeFetch(input, next)
+      }
+      return nativeFetch(input, init)
+    }
+
+    var nativeXhrOpen = XMLHttpRequest.prototype.open
+    var nativeXhrSend = XMLHttpRequest.prototype.send
+    XMLHttpRequest.prototype.open = function (method, url) {
+      this.__threeStudioMethod = method
+      this.__threeStudioUrl = url
+      return nativeXhrOpen.apply(this, arguments)
+    }
+    XMLHttpRequest.prototype.send = function () {
+      try {
+        if (isSameOrigin(this.__threeStudioUrl) && needsToken(this.__threeStudioMethod)) {
+          this.setRequestHeader('x-three-studio-token', apiToken)
+        }
+      } catch (error) { void error }
+      return nativeXhrSend.apply(this, arguments)
+    }
+  }
+
   var React = window.React
   var ReactDOM = window.ReactDOM
   if (React === undefined || ReactDOM === undefined) {

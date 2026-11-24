@@ -26,7 +26,7 @@ React 外壳。原 Harness 插件模式作为可选旧版保留。
 - **沙箱执行**：模型代码仅在 opaque-origin `srcDoc` iframe 中运行
   （`allow-scripts allow-pointer-lock allow-downloads`，绝不 `allow-same-origin`，
   不可作为 URL 导航）
-- **自带模型**：内置 DeepSeek / Anthropic；可添加、编辑或删除任意 OpenAI 兼容或
+- **自带模型**：内置 DeepSeek；可添加、编辑或删除任意 OpenAI 兼容或
   Anthropic 兼容供应商，填写 Base URL、模型列表和 API Key，并可在设置中先测试连接
 - **会话生命周期**：归档、恢复或删除旧会话；对话历史按完整轮次压缩并原子保存，长期使用不会无限增长
 - **插件市场**：二十个原生模块一键安装：技能库、计划、任务清单、子代理、网页阅读与搜索、
@@ -35,7 +35,8 @@ React 外壳。原 Harness 插件模式作为可选旧版保留。
   信任面（MCP、浏览器控制）一律由用户手写配置开启
 - **浅色 / 深色主题**：独立版顶部提供太阳/月亮一键切换，界面与默认视口背景同步切换，选择会本地持久化；场景代码显式设置的背景会保留作者效果
 - **本地数据**：会话、场景、设置和凭据保存在 `~/.three-studio`；只监听回环地址，
-  不上报遥测
+  不上报遥测。Linux 使用崩溃安全的 fd 存储；macOS/Windows 使用可移植的原子
+  快照存储保存场景、历史版本、资产、分享链接与缩略图，重启不再丢失作品。
 - **运行时不依赖 Harness**：只依赖 Node 24、仓库自身代码以及内置的 Three.js、React
 
 ## 截图
@@ -45,6 +46,10 @@ React 外壳。原 Harness 插件模式作为可选旧版保留。
 | ![模型设置](docs/screenshots/02-model-settings.png) | ![插件市场](docs/screenshots/03-plugin-market.png) |
 
 ![场景编辑器与时间轴](docs/screenshots/04-scene-editor.png)
+
+| 桌面窗口（Windows） |
+| --- |
+| ![桌面窗口](docs/screenshots/05-desktop-windows.png) |
 
 截图使用 Chrono Watch 示例场景（`examples/scene-watch.js`）。通过 **会话** tab
 切换会话，通过顶部时钟回放版本历史。
@@ -67,10 +72,60 @@ cd three-studio
 THREE_STUDIO_PORT=4000 THREE_STUDIO_HOME=/path/to/data ./standalone/start.sh
 ```
 
+### 桌面 alpha
+
+`desktop/` 用未签名的 Electron 窗口包装同一服务器，数据存放在系统应用数据
+目录；需要 `PATH` 上有 Node 24（或设置 `THREE_STUDIO_NODE`），见
+[`desktop/README.md`](desktop/README.md)。
+
+### 把 Linux 磁盘存储迁移到 portable 后端
+
+在 Linux 上运行，然后把生成的 `portable/` 目录复制到 macOS/Windows（或把
+`THREE_WORKBENCH_DATA_DIR` 指向目标目录）：
+
+```sh
+node standalone/migrate-portable.mjs --from ~/.three-studio/scenes --to /path/to/target
+```
+
+`--to` 默认与 `--from` 相同，源磁盘数据不会被删除。目标已有 portable
+manifest 时默认拒绝覆盖，除非传 `--force`。
+
+### 合并另一个 portable 存储
+
+把另一个 portable 存储中的场景、资产、分享与缩略图合并到当前存储（源只读，
+目标会被重写）：
+
+```sh
+node standalone/merge-portable.mjs --from /path/to/source --to /path/to/target
+node standalone/merge-portable.mjs --from /path/to/source --to /path/to/target --on-conflict replace
+```
+
+默认 `skip`：目标已有同 id 的场景/资产/分享/缩略图时保留目标；`replace` 则覆盖
+同 id 记录。同一 Session 下同名资产始终跳过。若场景 Session id 冲突，`skip`
+模式会同时跳过该 Session 的资产、缩略图和分享。执行 `replace` 前建议先复制
+目标的 `portable/` 目录。
+
+### 合并会话与供应商设置
+
+场景数据和 profile 的其他文件是分开的。先停止两个 Studio 服务器，再合并会话
+与非密钥型供应商设置：
+
+```sh
+node standalone/profile-merge.mjs --from /path/to/source-home --to /path/to/target-home
+node standalone/profile-merge.mjs --from /path/to/source-home --to /path/to/target-home --on-conflict replace
+```
+
+- 合并 `sessions.json` 与 `models.json`；同 id 的会话/供应商默认跳过，
+  `--on-conflict replace` 覆盖。
+- **绝不复制 `credentials.json`**，请在新机器上重新填写 API Key。
+- 写入前会在目标文件旁生成带时间戳的 `.bak-*` 备份。
+- `--dry-run` 只校验并报告，不写文件。
+- 源 home 可以来自 Linux/macOS/Windows，此工具与平台无关。
+
 ### 配置模型
 
 1. 打开 AI Prompt → 输入框右下角齿轮
-2. 填入 **DeepSeek** 或 **Anthropic** 的 API Key；或点 **添加** 创建自定义供应商
+2. 填入 **DeepSeek** 的 API Key；或点 **添加** 创建自定义供应商
    （供应商标识、Base URL、协议、模型 ID）
 3. 点击 **测试连接**，先验证 API Key 和第一个模型
 4. 在输入框右下角选择模型与推理强度
@@ -119,30 +174,33 @@ flowchart LR
 ## 文档
 
 - [架构](docs/ARCHITECTURE.md)
+- [开源核心边界](docs/OPEN-CORE.zh.md)（[English](docs/OPEN-CORE.md)）
 - [模型与供应商](docs/MODELS.md)
 - [导出](docs/EXPORTS.zh.md)（[English](docs/EXPORTS.md)）
 - [插件与市场](docs/PLUGINS.zh.md)（[English](docs/PLUGINS.md)）
-- [安全与信任边界](docs/SECURITY.zh.md)（[English](docs/SECURITY.md)）
+- [安全与信任边界](docs/SECURITY.zh.md)
+- [隐私说明](PRIVACY.md)（[English](docs/SECURITY.md)）
 - [插件信任边界](docs/TRUST-BOUNDARIES.zh.md)（[English](docs/TRUST-BOUNDARIES.md)）
 - [插件配置示例](examples/plugin-config/README.zh.md)
+- [桌面 alpha](desktop/README.md)
+- [Demo gallery](site/index.html)（[agency](site/agency-demo/README.md)、[配置器](site/configurator-demo/README.md)、[教育](site/education-demo/README.md)、[动效](site/README.md)、[数据/空间](site/README.md)）
 - [开发与测试](docs/DEVELOPMENT.md)
 - [场景/编辑器协议](docs/PROTOCOL.md)
 - [IP 来源审计](docs/IP-PROVENANCE-AUDIT.md)
 - [可选 Harness 插件模式](docs/HARNESS-PLUGIN.md)
-- [贡献指南](CONTRIBUTING.md)
+- [路线图](ROADMAP.md)
+- [贡献指南](CONTRIBUTING.md)（[DCO](DCO)）
+- [治理](GOVERNANCE.md)
+- [行为准则](CODE_OF_CONDUCT.md)
+- [隐私说明](PRIVACY.md)
+- [商标政策](TRADEMARK.md)
 - [更新日志](CHANGELOG.md)
 - [第三方声明](THIRD_PARTY_NOTICES.md)
 
 ## 开发
 
 ```sh
-~/.local/node24/bin/node --test \
-  tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs \
-  tests/export-fbx.test.mjs tests/history.test.mjs tests/share.test.mjs \
-  tests/smoke.test.mjs tests/studio-ai.test.mjs tests/tracks.test.mjs
-~/.local/node24/bin/node --test \
-  standalone/plugins/runtime.test.mjs standalone/settings.test.mjs \
-  standalone/sessions.test.mjs
+npm test        # 单元、协议与回环 API 安全回归
 ```
 
 浏览器探针（临时 home + 本地 mock 网关，各用独立端口）：
@@ -177,8 +235,15 @@ npm run test:e2e:plugins      # 操作卡/交付卡/语音按钮/Files 面板/�
   `~/.three-studio/browser-automation.json`；Agent 无法自行开启。
 - **插件信任配置**（`mcp.json`、`browser-automation.json`、`hooks.json`、
   `search.json`）刻意由用户手写：Agent 可读取状态，但没有任何写入这些文件的工具。
+- **持久化范围**：Linux 的 fd 存储与 macOS/Windows 的可移植快照存储都保存
+  场景、资产、分享、缩略图与历史版本。
+- **桌面 alpha**：`desktop/` 是未签名的 Electron 壳，启动独立服务器；
+  `npm start` 需要 `PATH` 上有 Node 24（或设置 `THREE_STUDIO_NODE`），
+  `npm run dist` 会通过 `desktop/scripts/prepare-node.mjs` 捆绑 Node 24。
+  代码签名、公证与自动更新尚未完成。
 - **本地单用户范围**：服务器只监听回环地址且没有认证，请勿把端口暴露到
-  不可信网络。
+  不可信网络。浏览器发起的 API 写请求需要每进程 token 与同源 Fetch 元数据，
+  但服务器不是多租户服务。
 
 ## 可选的 Harness 插件模式
 
@@ -188,5 +253,10 @@ DeepSeek Harness checkout 启动，见 [Harness 插件文档](docs/HARNESS-PLUGI
 
 ## 许可证
 
-本仓库**当前未开源**，不授予任何许可证，保留所有权利。代码公开仅供查看与评估。
+Three Studio 核心以 **Apache License 2.0** 开源，见 [`LICENSE`](LICENSE) 与
+[`NOTICE`](NOTICE)。你可以使用、修改、分发并商业化，包括用于专有托管服务，
+只需保留许可证与声明要求。
+
 第三方组件遵循各自许可证，见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。
+“Three Studio”与“Three Workbench”是项目名称/商标，见
+[`TRADEMARK.md`](TRADEMARK.md)。

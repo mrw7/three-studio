@@ -18,7 +18,7 @@ import { readFile } from 'node:fs/promises'
 import { isIPv6 } from 'node:net'
 import { homedir, tmpdir } from 'node:os'
 import {
-  dirname, isAbsolute, join, relative as relativePath, resolve as resolvePath, sep,
+  basename, dirname, isAbsolute, join, relative as relativePath, resolve as resolvePath, sep,
 } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import * as fs from 'node:fs'
@@ -1646,7 +1646,6 @@ function safeTokenEqual(left, right) {
 }
 
 function diskConfigFromEnv(env = process.env, platform = process.platform, cwd = process.cwd()) {
-  if (platform !== 'linux') return { mode: 'memory', status: 'disk-unsupported' }
   let explicit
   try {
     explicit = String(env.THREE_WORKBENCH_DATA_DIR ?? '').trim()
@@ -1683,6 +1682,15 @@ function diskConfigFromEnv(env = process.env, platform = process.platform, cwd =
   const runnerParent = diskParentCmdlineHasTest()
   const isolated = isIsolatedDiskTest(env, root, runnerParent)
   if (runnerParent && !isolated) return { mode: 'memory', status: 'test-memory' }
+  const forcePortable = String(env.THREE_STUDIO_PORTABLE_STORE ?? '') === '1'
+  if (platform !== 'linux' || forcePortable) {
+    // The fd-anchored store below depends on /proc and Linux directory-fd
+    // semantics. Desktop builds use a portable atomic-snapshot backend instead.
+    if (!forcePortable && typeof env.NODE_TEST_CONTEXT === 'string' && env.NODE_TEST_CONTEXT !== '') {
+      return { mode: 'memory', status: 'test-memory' }
+    }
+    return { mode: 'portable-candidate', root, homeRoot, usedDefault, isolatedTest: false, platform }
+  }
   return { mode: 'disk-candidate', root, homeRoot, usedDefault, isolatedTest: isolated }
 }
 
@@ -2241,6 +2249,774 @@ function createStorageState() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Portable desktop store (macOS/Windows). The Linux store below is
+// fd-anchored and crash-fenced; this backend instead snapshots the in-memory
+// product state to one manifest plus content-addressed asset files. It trades
+// some of the Linux store's guarantees for portability and simple recovery.
+// ---------------------------------------------------------------------------
+const PORTABLE_VERSION = 1
+const PORTABLE_DIR = 'portable'
+const PORTABLE_MANIFEST = 'portable-store.json'
+const PORTABLE_ASSETS = 'assets'
+let portableRoot = null
+let portableReady = false
+let portableDirty = false
+let portableTimer = null
+let portableWriting = false
+let portableQueued = false
+let portableImporting = false
+
+function portableMode() {
+  return storage !== null && storage.mode === 'portable'
+}
+
+function portablePaths() {
+  if (portableRoot === null) return null
+  const dir = join(portableRoot, PORTABLE_DIR)
+  return {
+    dir,
+    manifest: join(dir, PORTABLE_MANIFEST),
+    assets: join(dir, PORTABLE_ASSETS),
+    blobs: join(dir, 'blobs'),
+  }
+}
+
+function markPortableDirty() {
+  if (!portableMode() || !portableReady || portableImporting) return
+  portableDirty = true
+  if (portableTimer !== null || portableWriting) return
+  portableTimer = setTimeout(() => {
+    portableTimer = null
+    flushPortableStore()
+  }, 300)
+  if (typeof portableTimer.unref === 'function') portableTimer.unref()
+}
+
+function portableSceneRows() {
+  const rows = []
+  for (const [sessionId, entry] of scenes) {
+    if (!isSafeSceneId(sessionId) || entry === undefined || !Array.isArray(entry.history)) continue
+    const history = entry.history
+      .filter(record => record !== null && typeof record === 'object'
+        && record.sceneId === sessionId && Number.isInteger(record.revision)
+        && typeof record.code === 'string' && typeof record.title === 'string')
+      .map(record => ({
+        sceneId: sessionId,
+        revision: record.revision,
+        title: record.title,
+        code: record.code,
+        bytes: typeof record.bytes === 'number' ? record.bytes : bytesOfText(record.code),
+        updatedAt: Number.isFinite(record.updatedAt) ? record.updatedAt : Date.now(),
+      }))
+      .slice(-MAX_REVISIONS)
+    if (history.length > 0) rows.push({ sessionId, history })
+  }
+  return rows
+}
+
+function portableAssetRows() {
+  const rows = []
+  const files = new Map()
+  for (const [sessionId, list] of assets) {
+    if (!isSafeSceneId(sessionId)) continue
+    for (const asset of list.values()) {
+      if (asset === null || typeof asset !== 'object' || typeof asset.id !== 'string') continue
+      if (!ASSET_ID_RE.test(asset.id)) continue
+      const raw = asset.buffer
+      if (!Buffer.isBuffer(raw) && !(raw instanceof Uint8Array)) continue
+      const buffer = Buffer.isBuffer(raw) ? raw : Buffer.from(raw)
+      if (buffer.length === 0 || buffer.length > ASSET_LIMITS.maxUploadBytes) continue
+      const hash = createHash('sha256').update(buffer).digest('hex')
+      files.set(hash, buffer)
+      rows.push({
+        sessionId,
+        id: asset.id,
+        name: typeof asset.name === 'string' ? asset.name : asset.id,
+        nameFold: typeof asset.nameFold === 'string' ? asset.nameFold : String(asset.name ?? asset.id).toLowerCase(),
+        kind: typeof asset.kind === 'string' ? asset.kind : 'binary',
+        mime: typeof asset.mime === 'string' ? asset.mime : 'application/octet-stream',
+        ext: typeof asset.ext === 'string' ? asset.ext : '',
+        bytes: buffer.length,
+        createdAt: Number.isFinite(asset.createdAt) ? asset.createdAt : Date.now(),
+        hash,
+      })
+    }
+  }
+  return { rows, files }
+}
+
+function portableSha256(buffer) {
+  return createHash('sha256').update(buffer).digest('hex')
+}
+
+function portableShareRows() {
+  const rows = []
+  const blobs = new Map()
+  for (const record of shares.values()) {
+    if (record === null || typeof record !== 'object' || typeof record.id !== 'string'
+      || !SHARE_ID_RE.test(record.id) || typeof record.ownerSessionHash !== 'string'
+      || !HEX64_RE.test(record.ownerSessionHash)) continue
+    if (!Buffer.isBuffer(record.documentBuffer) || record.documentBuffer.length === 0
+      || record.documentBuffer.length > SHARE_LIMITS.maxDocumentBytes) continue
+    if (typeof record.title !== 'string' || Array.from(record.title).length > SHARE_LIMITS.titleCodePoints) continue
+    if (typeof record.code !== 'string' || bytesOfText(record.code) > MAX_CODE_BYTES) continue
+    if (record.editorState === null || typeof record.editorState !== 'object'
+      || Array.isArray(record.editorState)) continue
+    if (!Number.isInteger(record.stepFps) || record.stepFps < 1
+      || record.stepFps > SHARE_LIMITS.maxStepFps) continue
+    if (typeof record.metadataJson !== 'string' || bytesOfText(record.metadataJson) > 64 * 1024) continue
+    if (!isSafeCount(record.revision) || !isSafeCount(record.bytes)
+      || record.bytes > SHARE_LIMITS.maxShareBytes) continue
+    if (!isSafeCount(record.createdAt) || !isSafeCount(record.expiresAt)) continue
+    if (typeof record.deleteKeyHash !== 'string' || !HEX64_RE.test(record.deleteKeyHash)) continue
+    const document = record.documentBuffer
+    const hash = portableSha256(document)
+    blobs.set(hash, document)
+    rows.push({
+      id: record.id,
+      ownerSessionHash: record.ownerSessionHash,
+      revision: record.revision,
+      title: record.title,
+      code: record.code,
+      editorState: record.editorState,
+      stepFps: record.stepFps,
+      metadataJson: record.metadataJson,
+      bytes: record.bytes,
+      createdAt: record.createdAt,
+      expiresAt: record.expiresAt,
+      deleteKeyHash: record.deleteKeyHash,
+      documentHash: hash,
+      documentBytes: document.length,
+    })
+  }
+  return { rows, blobs }
+}
+
+function portableThumbRows() {
+  const rows = []
+  const blobs = new Map()
+  for (const [key, buffer] of thumbnails) {
+    if (typeof key !== 'string' || !Buffer.isBuffer(buffer) || buffer.length === 0
+      || buffer.length > MAX_THUMBNAIL_BYTES) continue
+    if (!buffer.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) continue
+    const split = key.lastIndexOf(':')
+    if (split <= 0) continue
+    const sessionId = key.slice(0, split)
+    const revision = Number(key.slice(split + 1))
+    if (!isSafeSceneId(sessionId) || !Number.isSafeInteger(revision) || revision < 0) continue
+    const hash = portableSha256(buffer)
+    blobs.set(hash, buffer)
+    rows.push({ key, sessionId, revision, hash, bytes: buffer.length })
+  }
+  return { rows, blobs }
+}
+
+async function readPortableBlob(paths, hash, bytes, maxBytes, directory = 'blobs') {
+  if (typeof hash !== 'string' || !HEX64_RE.test(hash)) return null
+  if (!Number.isSafeInteger(bytes) || bytes < 1 || bytes > maxBytes) return null
+  const blobPath = join(directory === 'assets' ? paths.assets : paths.blobs, hash)
+  let info
+  try {
+    info = await fsp.lstat(blobPath)
+  } catch (error) {
+    if (error?.code === 'ENOENT') return null
+    throw error
+  }
+  if (!info.isFile() || info.isSymbolicLink() || info.size !== bytes) return null
+  const buffer = await fsp.readFile(blobPath)
+  if (buffer.length !== bytes || portableSha256(buffer) !== hash) return null
+  return buffer
+}
+
+function writePortableFiles(dir, files) {
+  for (const [hash, buffer] of files) {
+    const target = join(dir, hash)
+    if (fs.existsSync(target)) continue
+    const temp = join(dir, `.${hash}.${String(process.pid)}.${diskRandomHex(4)}.tmp`)
+    fs.writeFileSync(temp, buffer, { mode: 0o600 })
+    try {
+      fs.renameSync(temp, target)
+    } catch (error) {
+      if (error?.code === 'EEXIST' || error?.code === 'EPERM') {
+        fs.rmSync(target, { force: true })
+        fs.renameSync(temp, target)
+      } else {
+        try { fs.rmSync(temp, { force: true }) } catch (cleanupError) { void cleanupError }
+        throw error
+      }
+    }
+  }
+}
+
+function cleanupPortableFiles(dir, keep) {
+  for (const name of fs.readdirSync(dir)) {
+    if (HEX64_RE.test(name) && !keep.has(name)) fs.rmSync(join(dir, name), { force: true })
+  }
+}
+
+function flushPortableStore() {
+  if (!portableMode() || !portableReady) return
+  const paths = portablePaths()
+  if (paths === null) return
+  if (portableWriting) { portableQueued = true; return }
+  portableWriting = true
+  try {
+    fs.mkdirSync(paths.dir, { recursive: true, mode: 0o700 })
+    fs.mkdirSync(paths.assets, { recursive: true, mode: 0o700 })
+    fs.mkdirSync(paths.blobs, { recursive: true, mode: 0o700 })
+    const { rows: assetRows, files: assetFiles } = portableAssetRows()
+    const { rows: shareRows, blobs: shareBlobs } = portableShareRows()
+    const { rows: thumbRows, blobs: thumbBlobs } = portableThumbRows()
+    const blobs = new Map([...shareBlobs, ...thumbBlobs])
+    writePortableFiles(paths.assets, assetFiles)
+    writePortableFiles(paths.blobs, blobs)
+    cleanupPortableFiles(paths.assets, new Set(assetFiles.keys()))
+    cleanupPortableFiles(paths.blobs, new Set(blobs.keys()))
+    const manifest = JSON.stringify({
+      v: PORTABLE_VERSION,
+      savedAt: Date.now(),
+      scenes: portableSceneRows(),
+      assets: assetRows,
+      shares: shareRows,
+      thumbnails: thumbRows,
+    })
+    const temp = join(paths.dir, `.${PORTABLE_MANIFEST}.${String(process.pid)}.${diskRandomHex(4)}.tmp`)
+    fs.writeFileSync(temp, manifest, { mode: 0o600 })
+    try {
+      fs.renameSync(temp, paths.manifest)
+    } catch (error) {
+      if (error?.code === 'EEXIST' || error?.code === 'EPERM') {
+        fs.rmSync(paths.manifest, { force: true })
+        fs.renameSync(temp, paths.manifest)
+      } else {
+        try { fs.rmSync(temp, { force: true }) } catch (cleanupError) { void cleanupError }
+        throw error
+      }
+    }
+    portableDirty = false
+  } catch (error) {
+    console.error('Portable scene store save failed:', error?.message ?? String(error))
+    if (portableTimer === null) {
+      portableTimer = setTimeout(() => {
+        portableTimer = null
+        flushPortableStore()
+      }, 5000)
+      if (typeof portableTimer.unref === 'function') portableTimer.unref()
+    }
+  } finally {
+    portableWriting = false
+    if (portableQueued) {
+      portableQueued = false
+      markPortableDirty()
+    }
+  }
+}
+
+async function quarantinePortableManifest(paths) {
+  try {
+    await fsp.rename(paths.manifest, `${paths.manifest}.invalid-${String(Date.now())}`)
+  } catch (error) { void error }
+}
+
+async function loadPortableStore(root) {
+  portableRoot = root
+  portableReady = false
+  const paths = portablePaths()
+  if (paths === null) return
+  let info
+  try {
+    info = await fsp.lstat(paths.manifest)
+  } catch (error) {
+    if (error?.code === 'ENOENT') {
+      portableReady = true
+      return
+    }
+    throw error
+  }
+  if (!info.isFile() || info.isSymbolicLink() || info.size > MAX_LOAD_BYTES) {
+    await quarantinePortableManifest(paths)
+    portableReady = true
+    return
+  }
+  let parsed
+  try {
+    parsed = JSON.parse(await fsp.readFile(paths.manifest, 'utf8'))
+  } catch (error) {
+    await quarantinePortableManifest(paths)
+    portableReady = true
+    return
+  }
+  if (parsed === null || typeof parsed !== 'object' || parsed.v !== PORTABLE_VERSION
+    || !Array.isArray(parsed.scenes) || !Array.isArray(parsed.assets)) {
+    await quarantinePortableManifest(paths)
+    portableReady = true
+    return
+  }
+  let loadedBytes = 0
+  const sessionUsage = new Map()
+  const seenAssetIds = new Set()
+  for (const row of parsed.assets.slice(0, ASSET_LIMITS.globalAssets * 2)) {
+    if (row === null || typeof row !== 'object') continue
+    if (!isSafeSceneId(row.sessionId) || typeof row.id !== 'string' || !ASSET_ID_RE.test(row.id)) continue
+    if (seenAssetIds.has(row.id) || assetIndex.has(row.id)) continue
+    if (typeof row.hash !== 'string' || !HEX64_RE.test(row.hash)) continue
+    if (typeof row.name !== 'string' || row.name === '' || typeof row.nameFold !== 'string') continue
+    if (!Number.isSafeInteger(row.bytes) || row.bytes < 1 || row.bytes > ASSET_LIMITS.maxUploadBytes) continue
+    const usage = sessionUsage.get(row.sessionId) ?? { count: 0, bytes: 0 }
+    if (usage.count >= ASSET_LIMITS.sessionAssets || usage.bytes + row.bytes > ASSET_LIMITS.sessionBytes) continue
+    if (globalUsage.count >= ASSET_LIMITS.globalAssets || globalUsage.bytes + row.bytes > ASSET_LIMITS.globalBytes) continue
+    if (loadedBytes + row.bytes > MAX_LOAD_BYTES) break
+    const assetPath = join(paths.assets, row.hash)
+    let assetInfo
+    try {
+      assetInfo = await fsp.lstat(assetPath)
+    } catch (error) {
+      if (error?.code === 'ENOENT') continue
+      throw error
+    }
+    if (!assetInfo.isFile() || assetInfo.isSymbolicLink() || assetInfo.size !== row.bytes) continue
+    let buffer
+    try {
+      buffer = await fsp.readFile(assetPath)
+    } catch (error) {
+      if (error?.code === 'ENOENT') continue
+      throw error
+    }
+    if (buffer.length !== row.bytes) continue
+    const asset = {
+      id: row.id,
+      name: row.name,
+      nameFold: row.nameFold,
+      kind: typeof row.kind === 'string' ? row.kind : 'binary',
+      mime: typeof row.mime === 'string' ? row.mime : 'application/octet-stream',
+      ext: typeof row.ext === 'string' ? row.ext : '',
+      bytes: buffer.length,
+      buffer,
+      createdAt: Number.isFinite(row.createdAt) ? row.createdAt : Date.now(),
+    }
+    const nameKey = assetNameKey(row.sessionId, asset.nameFold)
+    if (assetNames.has(nameKey)) continue
+    let list = assets.get(row.sessionId)
+    if (list === undefined) {
+      list = new Map()
+      assets.set(row.sessionId, list)
+    }
+    list.set(asset.id, asset)
+    assetIndex.set(asset.id, row.sessionId)
+    assetNames.set(nameKey, asset.id)
+    usage.count += 1
+    usage.bytes += asset.bytes
+    sessionUsage.set(row.sessionId, usage)
+    assetUsage.set(row.sessionId, usage)
+    globalUsage.count += 1
+    globalUsage.bytes += asset.bytes
+    seenAssetIds.add(row.id)
+    loadedBytes += buffer.length
+  }
+  const shareRows = Array.isArray(parsed.shares) ? parsed.shares : []
+  for (const row of shareRows.slice(0, SHARE_LIMITS.globalShares * 2)) {
+    if (row === null || typeof row !== 'object') continue
+    if (typeof row.id !== 'string' || !SHARE_ID_RE.test(row.id) || shares.has(row.id)) continue
+    if (typeof row.ownerSessionHash !== 'string' || !HEX64_RE.test(row.ownerSessionHash)) continue
+    if (!isSafeCount(row.revision) || !isSafeCount(row.bytes)
+      || row.bytes > SHARE_LIMITS.maxShareBytes) continue
+    if (typeof row.title !== 'string' || Array.from(row.title).length > SHARE_LIMITS.titleCodePoints) continue
+    if (typeof row.code !== 'string' || bytesOfText(row.code) > MAX_CODE_BYTES) continue
+    if (row.editorState === null || typeof row.editorState !== 'object'
+      || Array.isArray(row.editorState)) continue
+    if (!Number.isInteger(row.stepFps) || row.stepFps < 1
+      || row.stepFps > SHARE_LIMITS.maxStepFps) continue
+    if (typeof row.metadataJson !== 'string' || bytesOfText(row.metadataJson) > 64 * 1024) continue
+    if (!isSafeCount(row.createdAt) || !isSafeCount(row.expiresAt)) continue
+    if (typeof row.deleteKeyHash !== 'string' || !HEX64_RE.test(row.deleteKeyHash)) continue
+    if (shareGlobalUsage.count >= SHARE_LIMITS.globalShares
+      || shareGlobalUsage.bytes + row.bytes > SHARE_LIMITS.globalBytes) continue
+    const ownerUsage = shareUsageByOwner.get(row.ownerSessionHash) ?? { count: 0, bytes: 0 }
+    if (ownerUsage.count >= SHARE_LIMITS.sessionShares
+      || ownerUsage.bytes + row.bytes > SHARE_LIMITS.sessionBytes) continue
+    const document = await readPortableBlob(paths, row.documentHash, row.documentBytes, SHARE_LIMITS.maxDocumentBytes)
+    if (document === null) continue
+    insertShare({
+      id: row.id,
+      v: 1,
+      ownerSessionHash: row.ownerSessionHash,
+      revision: row.revision,
+      title: row.title,
+      code: row.code,
+      editorState: row.editorState,
+      stepFps: row.stepFps,
+      documentBuffer: document,
+      metadataJson: row.metadataJson,
+      bytes: row.bytes,
+      createdAt: row.createdAt,
+      expiresAt: row.expiresAt,
+      deleteKeyHash: row.deleteKeyHash,
+    })
+  }
+  const thumbRows = Array.isArray(parsed.thumbnails) ? parsed.thumbnails : []
+  const thumbCounts = new Map()
+  for (const row of thumbRows.slice(0, MAX_THUMBNAILS * 2)) {
+    if (row === null || typeof row !== 'object') continue
+    if (typeof row.key !== 'string' || !isSafeSceneId(row.sessionId)) continue
+    if (!Number.isSafeInteger(row.revision) || row.revision < 0) continue
+    if (row.key !== `${row.sessionId}:${String(row.revision)}`) continue
+    const count = thumbCounts.get(row.sessionId) ?? 0
+    if (count >= MAX_THUMBNAILS_PER_SESSION || thumbnails.size >= MAX_THUMBNAILS) continue
+    const buffer = await readPortableBlob(paths, row.hash, row.bytes, MAX_THUMBNAIL_BYTES)
+    if (buffer === null || !buffer.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) continue
+    thumbnails.set(row.key, buffer)
+    thumbCounts.set(row.sessionId, count + 1)
+  }
+  for (const row of parsed.scenes.slice(0, MAX_SCENES)) {
+    if (row === null || typeof row !== 'object' || !isSafeSceneId(row.sessionId)
+      || !Array.isArray(row.history)) continue
+    const history = row.history
+      .filter(record => record !== null && typeof record === 'object'
+        && record.sceneId === row.sessionId && Number.isInteger(record.revision) && record.revision >= 0
+        && typeof record.code === 'string' && bytesOfText(record.code) <= MAX_CODE_BYTES
+        && typeof record.title === 'string')
+      .map(record => ({
+        sceneId: row.sessionId,
+        revision: record.revision,
+        title: record.title,
+        code: record.code,
+        bytes: bytesOfText(record.code),
+        updatedAt: Number.isFinite(record.updatedAt) ? record.updatedAt : Date.now(),
+      }))
+      .slice(-MAX_REVISIONS)
+    if (history.length > 0) scenes.set(row.sessionId, { history })
+  }
+  portableReady = true
+  sweepShares(Date.now())
+}
+
+function portableSceneHistory(row) {
+  if (row === null || typeof row !== 'object' || !isSafeSceneId(row.sessionId)
+    || !Array.isArray(row.history)) return null
+  const seen = new Set()
+  const history = row.history
+    .filter(record => {
+      if (record === null || typeof record !== 'object'
+        || record.sceneId !== row.sessionId || !Number.isInteger(record.revision) || record.revision < 0
+        || typeof record.code !== 'string' || bytesOfText(record.code) > MAX_CODE_BYTES
+        || typeof record.title !== 'string' || seen.has(record.revision)) return false
+      seen.add(record.revision)
+      return true
+    })
+    .map(record => ({
+      sceneId: row.sessionId,
+      revision: record.revision,
+      title: record.title,
+      code: record.code,
+      bytes: bytesOfText(record.code),
+      updatedAt: Number.isFinite(record.updatedAt) ? record.updatedAt : Date.now(),
+    }))
+    .slice(-MAX_REVISIONS)
+  return history.length > 0 ? history : null
+}
+
+function portableAssetRowValid(row) {
+  return row !== null && typeof row === 'object'
+    && isSafeSceneId(row.sessionId)
+    && typeof row.id === 'string' && ASSET_ID_RE.test(row.id)
+    && typeof row.hash === 'string' && HEX64_RE.test(row.hash)
+    && typeof row.name === 'string' && row.name !== ''
+    && Array.from(row.name).length <= ASSET_LIMITS.nameCodePoints
+    && typeof row.nameFold === 'string' && row.nameFold !== ''
+    && typeof row.kind === 'string' && typeof row.mime === 'string'
+    && Number.isSafeInteger(row.bytes) && row.bytes > 0 && row.bytes <= ASSET_LIMITS.maxUploadBytes
+}
+
+function portableShareRowValid(row) {
+  return row !== null && typeof row === 'object'
+    && typeof row.id === 'string' && SHARE_ID_RE.test(row.id)
+    && typeof row.ownerSessionHash === 'string' && HEX64_RE.test(row.ownerSessionHash)
+    && isSafeCount(row.revision) && isSafeCount(row.bytes) && row.bytes > 0 && row.bytes <= SHARE_LIMITS.maxShareBytes
+    && typeof row.title === 'string' && Array.from(row.title).length <= SHARE_LIMITS.titleCodePoints
+    && typeof row.code === 'string' && bytesOfText(row.code) <= MAX_CODE_BYTES
+    && row.editorState !== null && typeof row.editorState === 'object' && !Array.isArray(row.editorState)
+    && Number.isInteger(row.stepFps) && row.stepFps >= 1 && row.stepFps <= SHARE_LIMITS.maxStepFps
+    && typeof row.metadataJson === 'string' && bytesOfText(row.metadataJson) <= 64 * 1024
+    && isSafeCount(row.createdAt) && isSafeCount(row.expiresAt)
+    && typeof row.deleteKeyHash === 'string' && HEX64_RE.test(row.deleteKeyHash)
+    && typeof row.documentHash === 'string' && HEX64_RE.test(row.documentHash)
+    && Number.isSafeInteger(row.documentBytes) && row.documentBytes > 0
+    && row.documentBytes <= SHARE_LIMITS.maxDocumentBytes
+}
+
+function portableThumbRowValid(row) {
+  return row !== null && typeof row === 'object'
+    && typeof row.key === 'string' && isSafeSceneId(row.sessionId)
+    && Number.isSafeInteger(row.revision) && row.revision >= 0
+    && row.key === `${row.sessionId}:${String(row.revision)}`
+    && typeof row.hash === 'string' && HEX64_RE.test(row.hash)
+    && Number.isSafeInteger(row.bytes) && row.bytes > 0 && row.bytes <= MAX_THUMBNAIL_BYTES
+}
+
+async function importPortableFrom(sourceRoot, options = {}) {
+  const state = storage
+  if (state === null || !portableMode() || !portableReady) {
+    throw new Error('target portable store is not ready')
+  }
+  let source = resolvePath(sourceRoot)
+  if (basename(source) === PORTABLE_DIR && fs.existsSync(join(source, PORTABLE_MANIFEST))) {
+    source = dirname(source)
+  }
+  if (source === portableRoot) throw new Error('source and target are the same portable store')
+  const paths = {
+    dir: join(source, PORTABLE_DIR),
+    manifest: join(source, PORTABLE_DIR, PORTABLE_MANIFEST),
+    assets: join(source, PORTABLE_DIR, PORTABLE_ASSETS),
+    blobs: join(source, PORTABLE_DIR, 'blobs'),
+  }
+  let info
+  try {
+    info = await fsp.lstat(paths.manifest)
+  } catch (error) {
+    if (error?.code === 'ENOENT') throw new Error(`source portable manifest not found: ${paths.manifest}`)
+    throw error
+  }
+  if (!info.isFile() || info.isSymbolicLink() || info.size > MAX_LOAD_BYTES) {
+    throw new Error('source portable manifest is not a readable file or is too large')
+  }
+  let parsed
+  try {
+    parsed = JSON.parse(await fsp.readFile(paths.manifest, 'utf8'))
+  } catch (error) {
+    throw new Error('source portable manifest is not valid JSON')
+  }
+  if (parsed === null || typeof parsed !== 'object' || parsed.v !== PORTABLE_VERSION
+    || !Array.isArray(parsed.scenes) || !Array.isArray(parsed.assets)) {
+    throw new Error('source portable manifest has an unsupported schema')
+  }
+  const shareRows = Array.isArray(parsed.shares) ? parsed.shares : []
+  const thumbRows = Array.isArray(parsed.thumbnails) ? parsed.thumbnails : []
+  const conflict = options.conflict === 'replace' ? 'replace' : 'skip'
+  const result = {
+    source,
+    target: portableRoot,
+    conflict,
+    scenes: { imported: 0, replaced: 0, skipped: 0 },
+    assets: { imported: 0, replaced: 0, skipped: 0 },
+    shares: { imported: 0, replaced: 0, skipped: 0 },
+    thumbnails: { imported: 0, replaced: 0, skipped: 0 },
+    conflicts: [],
+  }
+  const noteConflict = (kind, id) => {
+    if (result.conflicts.length < 100) result.conflicts.push({ kind, id })
+  }
+  const sourceSessions = new Map()
+  for (const row of parsed.scenes.slice(0, MAX_SCENES * 4)) {
+    const history = portableSceneHistory(row)
+    if (history !== null && !sourceSessions.has(row.sessionId)) sourceSessions.set(row.sessionId, history)
+  }
+  if (portableTimer !== null) {
+    clearTimeout(portableTimer)
+    portableTimer = null
+  }
+  const skippedSessions = new Set()
+  for (const [sessionId, history] of sourceSessions) {
+    if (scenes.has(sessionId)) {
+      if (conflict === 'skip') {
+        skippedSessions.add(sessionId)
+        result.scenes.skipped += 1
+        noteConflict('scene', sessionId)
+        continue
+      }
+      scenes.set(sessionId, { history })
+      result.scenes.replaced += 1
+      noteConflict('scene', sessionId)
+    } else {
+      scenes.set(sessionId, { history })
+      result.scenes.imported += 1
+    }
+  }
+  const skippedOwnerHashes = new Set([...skippedSessions].map(shareOwnerHash))
+  portableImporting = true
+  try {
+    for (const row of parsed.assets.slice(0, ASSET_LIMITS.globalAssets * 4)) {
+      if (!portableAssetRowValid(row)) continue
+      if (skippedSessions.has(row.sessionId)) { result.assets.skipped += 1; continue }
+      const nameKey = assetNameKey(row.sessionId, row.nameFold)
+      const nameOwner = assetNames.get(nameKey)
+      if (nameOwner !== undefined && nameOwner !== row.id) {
+        result.assets.skipped += 1
+        noteConflict('asset-name', row.nameFold)
+        continue
+      }
+      const buffer = await readPortableBlob(paths, row.hash, row.bytes, ASSET_LIMITS.maxUploadBytes, 'assets')
+      if (buffer === null) { result.assets.skipped += 1; continue }
+      const existingSession = assetIndex.get(row.id)
+      if (existingSession !== undefined) {
+        if (conflict === 'skip') {
+          result.assets.skipped += 1
+          noteConflict('asset', row.id)
+          continue
+        }
+        dropAsset(existingSession, row.id)
+        result.assets.replaced += 1
+        noteConflict('asset', row.id)
+      }
+      const usage = assetUsage.get(row.sessionId) ?? { count: 0, bytes: 0 }
+      if (usage.count >= ASSET_LIMITS.sessionAssets
+        || usage.bytes + row.bytes > ASSET_LIMITS.sessionBytes
+        || globalUsage.count >= ASSET_LIMITS.globalAssets
+        || globalUsage.bytes + row.bytes > ASSET_LIMITS.globalBytes) {
+        result.assets.skipped += 1
+        noteConflict('asset-quota', row.id)
+        continue
+      }
+      let list = assets.get(row.sessionId)
+      if (list === undefined) {
+        list = new Map()
+        assets.set(row.sessionId, list)
+      }
+      const asset = {
+        id: row.id,
+        name: row.name,
+        nameFold: row.nameFold,
+        kind: row.kind,
+        mime: row.mime,
+        ext: typeof row.ext === 'string' ? row.ext : '',
+        bytes: buffer.length,
+        buffer,
+        createdAt: Number.isFinite(row.createdAt) ? row.createdAt : Date.now(),
+      }
+      list.set(asset.id, asset)
+      assetIndex.set(asset.id, row.sessionId)
+      assetNames.set(nameKey, asset.id)
+      usage.count += 1
+      usage.bytes += asset.bytes
+      assetUsage.set(row.sessionId, usage)
+      globalUsage.count += 1
+      globalUsage.bytes += asset.bytes
+      result.assets.imported += 1
+    }
+    for (const row of shareRows.slice(0, SHARE_LIMITS.globalShares * 4)) {
+      if (!portableShareRowValid(row)) continue
+      if (skippedOwnerHashes.has(row.ownerSessionHash)) { result.shares.skipped += 1; continue }
+      const document = await readPortableBlob(paths, row.documentHash, row.documentBytes,
+        SHARE_LIMITS.maxDocumentBytes)
+      if (document === null) { result.shares.skipped += 1; continue }
+      if (shares.has(row.id)) {
+        if (conflict === 'skip') {
+          result.shares.skipped += 1
+          noteConflict('share', row.id)
+          continue
+        }
+        deleteShareRecord(row.id)
+        result.shares.replaced += 1
+        noteConflict('share', row.id)
+      }
+      if (shareGlobalUsage.count >= SHARE_LIMITS.globalShares
+        || shareGlobalUsage.bytes + row.bytes > SHARE_LIMITS.globalBytes) {
+        result.shares.skipped += 1
+        noteConflict('share-quota', row.id)
+        continue
+      }
+      const ownerUsage = shareUsageByOwner.get(row.ownerSessionHash) ?? { count: 0, bytes: 0 }
+      if (ownerUsage.count >= SHARE_LIMITS.sessionShares
+        || ownerUsage.bytes + row.bytes > SHARE_LIMITS.sessionBytes) {
+        result.shares.skipped += 1
+        noteConflict('share-quota', row.id)
+        continue
+      }
+      insertShare({
+        id: row.id,
+        v: 1,
+        ownerSessionHash: row.ownerSessionHash,
+        revision: row.revision,
+        title: row.title,
+        code: row.code,
+        editorState: row.editorState,
+        stepFps: row.stepFps,
+        documentBuffer: document,
+        metadataJson: row.metadataJson,
+        bytes: row.bytes,
+        createdAt: row.createdAt,
+        expiresAt: row.expiresAt,
+        deleteKeyHash: row.deleteKeyHash,
+      })
+      result.shares.imported += 1
+    }
+    const thumbCounts = new Map()
+    for (const [key] of thumbnails) {
+      const split = key.lastIndexOf(':')
+      if (split > 0) {
+        const sessionId = key.slice(0, split)
+        thumbCounts.set(sessionId, (thumbCounts.get(sessionId) ?? 0) + 1)
+      }
+    }
+    for (const row of thumbRows.slice(0, MAX_THUMBNAILS * 4)) {
+      if (!portableThumbRowValid(row)) continue
+      if (skippedSessions.has(row.sessionId)) { result.thumbnails.skipped += 1; continue }
+      const buffer = await readPortableBlob(paths, row.hash, row.bytes, MAX_THUMBNAIL_BYTES)
+      if (buffer === null || !buffer.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE)) {
+        result.thumbnails.skipped += 1
+        continue
+      }
+      if (thumbnails.has(row.key)) {
+        if (conflict === 'skip') {
+          result.thumbnails.skipped += 1
+          noteConflict('thumbnail', row.key)
+          continue
+        }
+        thumbnails.delete(row.key)
+        thumbCounts.set(row.sessionId, Math.max(0, (thumbCounts.get(row.sessionId) ?? 1) - 1))
+        result.thumbnails.replaced += 1
+        noteConflict('thumbnail', row.key)
+      }
+      const count = thumbCounts.get(row.sessionId) ?? 0
+      if (count >= MAX_THUMBNAILS_PER_SESSION || thumbnails.size >= MAX_THUMBNAILS) {
+        result.thumbnails.skipped += 1
+        continue
+      }
+      thumbnails.set(row.key, buffer)
+      thumbCounts.set(row.sessionId, count + 1)
+      result.thumbnails.imported += 1
+    }
+  } finally {
+    portableImporting = false
+  }
+  flushPortableStore()
+  result.saved = portableDirty === false
+  return result
+}
+
+async function migratePortableFromDisk(targetRoot) {
+  const state = storage
+  if (state === null || !state.started) throw new Error('storage has not started')
+  await storageReady()
+  if (state.mode !== 'disk') {
+    throw new Error(`migration needs the Linux disk store (current mode: ${state.mode})`)
+  }
+  const source = {
+    scenes: scenes.size,
+    assets: globalUsage.count,
+    shares: shares.size,
+    thumbnails: thumbnails.size,
+  }
+  await stopStorage()
+  if (state.lockHeld) throw new Error('disk lock is still held; stop the Studio server and retry')
+  portableRoot = resolvePath(targetRoot)
+  portableReady = true
+  state.mode = 'portable'
+  state.status = 'ready'
+  portableDirty = true
+  flushPortableStore()
+  return {
+    source,
+    target: portableRoot,
+    written: {
+      scenes: portableSceneRows().length,
+      assets: portableAssetRows().rows.length,
+      shares: portableShareRows().rows.length,
+      thumbnails: portableThumbRows().rows.length,
+    },
+  }
+}
+
 function ensureStorage() {
   if (storage === null) storage = createStorageState()
   return storage
@@ -2454,6 +3230,30 @@ async function startStorage() {
     state.readyDone = true
     return
   }
+  if (config.mode === 'portable-candidate') {
+    state.mode = 'portable'
+    state.status = 'starting'
+    state.root = config.root
+    state.homeRoot = config.homeRoot
+    state.startupStartedAt = Date.now()
+    state.starting = (async () => {
+      try {
+        await loadPortableStore(config.root)
+        state.status = 'ready'
+      } catch (error) {
+        // A corrupt manifest is quarantined and recovered empty; a read or
+        // permission failure falls back to memory rather than blocking the UI.
+        state.mode = 'memory'
+        state.status = 'portable-load-failed'
+        state.reason = error instanceof Error ? error.message : String(error)
+        console.error('Portable scene store load failed:', state.reason)
+      } finally {
+        state.startupComplete = true
+        resolveStorageReady()
+      }
+    })()
+    return
+  }
   state.mode = 'disk-candidate'
   state.status = 'starting'
   state.root = config.root
@@ -2502,6 +3302,15 @@ function stopStorage() {
   if (state.stopping !== null) return state.stopping
   state.closing = true
   for (const queue of Object.values(state.queues)) queue.close()
+  if (state.mode === 'portable') {
+    if (portableTimer !== null) {
+      clearTimeout(portableTimer)
+      portableTimer = null
+    }
+    flushPortableStore()
+    state.stopping = Promise.resolve()
+    return state.stopping
+  }
   state.stopping = (async () => {
     try {
       await Promise.race([
@@ -6076,6 +6885,7 @@ function commitSceneRevision(sessionId, input) {
     deleteAssetSession(oldest)
     clearRestoreSessionState(oldest)
   }
+  markPortableDirty()
   return record
 }
 
@@ -6126,6 +6936,7 @@ function storeThumbnail(payload) {
     if (oldest === undefined) break
     thumbnails.delete(oldest)
   }
+  markPortableDirty()
   return true
 }
 
@@ -6825,6 +7636,7 @@ function dropAsset(sessionId, assetId) {
   assetHashById.delete(assetId)
   assetDiskMetaById.delete(assetId)
   preservedStaleAssets.delete(assetId)
+  markPortableDirty()
   return true
 }
 
@@ -6892,6 +7704,7 @@ function putAsset(sessionId, data) {
   assetUsage.set(sessionId, usage)
   globalUsage.count += 1
   globalUsage.bytes += data.bytes
+  markPortableDirty()
   return { ok: true, asset }
 }
 
@@ -6937,6 +7750,7 @@ function deleteAssetSession(sessionId) {
   }
   assetUsage.delete(sessionId)
   assetRates.delete(sessionId)
+  markPortableDirty()
 }
 
 /**
@@ -7759,6 +8573,8 @@ export const __assetInternal = {
   uploadHandler: uploadAsset,
   deleteHandler: deleteAsset,
   thumbnailHandler: uploadThumbnail,
+  thumbnail: payload => storeThumbnail(payload),
+  thumbnailBytes: key => thumbnails.get(key) ?? null,
   store: assetStore,
   seedSession(sessionId) {
     scenes.set(String(sessionId), {
@@ -8292,6 +9108,7 @@ function insertShare(record) {
   usage.bytes += record.bytes
   shareGlobalUsage.count += 1
   shareGlobalUsage.bytes += record.bytes
+  markPortableDirty()
 }
 
 /**
@@ -8499,6 +9316,7 @@ function deleteShareRecord(id) {
   shareGlobalUsage.count -= 1
   shareGlobalUsage.bytes -= record.bytes
   deleteShareRateKeys(id)
+  markPortableDirty()
   return true
 }
 
@@ -10175,6 +10993,24 @@ export const __diskInternal = {
   mode: () => storageInspect().mode,
   status: () => storageInspect().status,
   ready: () => storage === null || !storage.started || storage.readyDone,
+  portable: {
+    mode: () => portableMode(),
+    migrateToPortable: targetRoot => migratePortableFromDisk(String(targetRoot)),
+    importFrom: (sourceRoot, options) => importPortableFrom(String(sourceRoot), options),
+    flush: () => {
+      if (portableTimer !== null) {
+        clearTimeout(portableTimer)
+        portableTimer = null
+      }
+      flushPortableStore()
+    },
+    snapshot: () => ({
+      scenes: portableSceneRows(),
+      assets: portableAssetRows().rows,
+      shares: portableShareRows().rows,
+      thumbnails: portableThumbRows().rows,
+    }),
+  },
   stats: () => {
     const view = storageInspect()
     return {

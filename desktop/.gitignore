@@ -1,0 +1,10 @@
+node_modules/
+vendor/
+dist/
+out/
+license/private-key.pem
+license/*.tslicense
+*.tslicense
+templates/pro/
+*.log
+.DS_Store

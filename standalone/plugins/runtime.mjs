@@ -1435,12 +1435,22 @@ class McpStdioClient {
     this.tools = []
   }
 
-  ensureChild() {
+  async ensureChild() {
     if (this.child !== null && this.child.exitCode === null) return this.ready
     if (this.child !== null) { this.dispose(); }
+    // Do not start third-party MCP servers inside the Studio home: it holds
+    // credentials.json, sessions.json, search.json and mcp.json. Give each
+    // server its own working directory and pass only a minimal base
+    // environment plus the env map the user explicitly declared.
+    const cwd = join(this.dataDir, 'mcp', this.server.id)
+    await mkdir(cwd, { recursive: true })
+    const inherited = {}
+    for (const name of ['PATH', 'HOME', 'USERPROFILE', 'TMPDIR', 'TMP', 'TEMP', 'LANG', 'LC_ALL', 'SystemRoot', 'ComSpec']) {
+      if (typeof process.env[name] === 'string') inherited[name] = process.env[name]
+    }
     this.child = spawn(this.server.command, this.server.args ?? [], {
-      cwd: this.dataDir,
-      env: { ...process.env, ...(this.server.env ?? {}) },
+      cwd,
+      env: { ...inherited, ...(this.server.env ?? {}) },
       stdio: ['pipe', 'pipe', 'pipe'],
     })
     this.buffer = ''

@@ -8,7 +8,10 @@ Three Studio 是单用户本地应用。服务器只监听 `127.0.0.1`，没有�
 - 模型编写的场景代码运行在 `srcDoc` iframe 中，sandbox 为
   `allow-scripts allow-pointer-lock allow-downloads`。
 - iframe 永不获得 `allow-same-origin`；无法读取应用存储、Cookie、宿主 API
-  或 token。
+  或 API token。
+- 回环 API 校验 `Host` 与 `Origin`/`Sec-Fetch-Site`，对浏览器发起的写请求
+  要求每进程随机 token，强制 JSON Content-Type，并按路由限制请求体大小。
+  token 注入 `index.html` 并由 `boot.js` 附加，永不暴露给场景 iframe。
 - 场景从不能作为可导航 URL 提供；导出与分享查看器沿用同一沙箱。
 - 父页面与 iframe 之间的消息按结构校验，绝不作为可执行输入。
 
@@ -48,7 +51,10 @@ Three Studio 是单用户本地应用。服务器只监听 `127.0.0.1`，没有�
   `hooks.json`、`search.json` 没有任何写入工具。MCP 与浏览器自动化在配置
   不存在时拒绝安装，不存在半启用状态。
 - MCP 服务器是用户选择的子进程（等价于用户自己运行）；stderr 一律丢弃，
-  密钥不会进入对话。MCP 工具描述属于不可信提示输入。
+  密钥不会进入对话。每个子进程使用独立的 `~/.three-studio/mcp/<id>/` 工作
+  目录，只继承最小基础环境加用户声明的 `env`，Studio 主目录不再是其工作目录，
+  也不会自动继承供应商密钥环境变量。但它仍以同一 OS 用户运行，可通过绝对路径
+  读取文件；只安装你信任的 MCP 服务器。MCP 工具描述属于不可信提示输入。
 - `file-browser` 的工具与路由共用一套守卫：仅相对路径、禁止 `..`、禁止绝对
   路径、永远拒绝 `credentials.json`、拒绝二进制；这些路由仅在插件安装期间存在。
 - 插件路由只在内置 API 路由之后、且方法与路径精确匹配时分发；卸载即移除。

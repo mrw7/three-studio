@@ -1,0 +1,11 @@
+# Security-sensitive paths require maintainer review.
+* @mrw7
+/client.js @mrw7
+/index.js @mrw7
+/standalone/server.mjs @mrw7
+/standalone/settings.mjs @mrw7
+/standalone/plugins/runtime.mjs @mrw7
+/standalone/public/boot.js @mrw7
+/.github/workflows/ @mrw7
+/SECURITY.md @mrw7
+/LICENSE @mrw7

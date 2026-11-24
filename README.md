@@ -34,10 +34,9 @@ remains available as an optional legacy mode.
 - **Sandboxed execution** — model-written code runs only inside an opaque-origin
   `srcDoc` iframe (`allow-scripts allow-pointer-lock allow-downloads`, never
   `allow-same-origin`, never navigable).
-- **Bring your own model** — DeepSeek and Anthropic are built in; add, edit or
-  delete any OpenAI-compatible or Anthropic-compatible provider with its own API
-  key, base URL and model list; test the connection from Settings before sending
-  a task.
+- **Bring your own model** — DeepSeek is built in; add, edit or delete any
+  OpenAI-compatible or Anthropic-compatible provider with its own API key, base
+  URL and model list; test the connection from Settings before sending a task.
 - **Session lifecycle** — archive and restore old sessions, permanently delete
   unused sessions, and keep conversation history bounded with whole-turn
   compaction and atomic persistence.
@@ -53,6 +52,9 @@ remains available as an optional legacy mode.
   background keeps that authored look.
 - **Local-first data** — sessions, scenes, settings and credentials live under
   `~/.three-studio`; the server binds loopback only and sends no telemetry.
+  Linux uses the crash-fenced fd store. macOS and Windows use a portable
+  atomic-snapshot store for scenes, revision history, assets, share links and
+  thumbnails, so a restart no longer loses the work.
 - **No Harness at runtime** — `standalone/server.mjs` depends only on Node 24 and
   the repository's own code plus vendored Three.js and React.
 
@@ -63,6 +65,10 @@ remains available as an optional legacy mode.
 | ![Model settings](docs/screenshots/02-model-settings.png) | ![Plugin market](docs/screenshots/03-plugin-market.png) |
 
 ![Scene editor and timeline](docs/screenshots/04-scene-editor.png)
+
+| Desktop window (Windows) |
+| --- |
+| ![Desktop window](docs/screenshots/05-desktop-windows.png) |
 
 Screenshots use the Chrono Watch example (`examples/scene-watch.js`). Use the
 **Sessions** tab to switch sessions and the header clock to browse revision
@@ -86,11 +92,64 @@ To use a different port or data directory:
 THREE_STUDIO_PORT=4000 THREE_STUDIO_HOME=/path/to/data ./standalone/start.sh
 ```
 
+### Desktop alpha
+
+`desktop/` wraps the same server in an unsigned Electron window and stores data
+under the OS application-data directory. It needs Node 24 on `PATH` (or
+`THREE_STUDIO_NODE`); see [`desktop/README.md`](desktop/README.md).
+
+### Migrate a Linux disk store to the portable backend
+
+Run this on Linux, then copy the resulting `portable/` directory (or point
+`THREE_WORKBENCH_DATA_DIR` at the target) to macOS/Windows:
+
+```sh
+node standalone/migrate-portable.mjs --from ~/.three-studio/scenes --to /path/to/target
+```
+
+`--to` defaults to `--from`, and the source disk data is never deleted. The
+command refuses to overwrite an existing portable manifest unless `--force` is
+passed.
+
+### Merge another portable store
+
+Merge scenes, assets, shares and thumbnails from another portable store into
+the current one (source is read-only; the target is rewritten):
+
+```sh
+node standalone/merge-portable.mjs --from /path/to/source --to /path/to/target
+node standalone/merge-portable.mjs --from /path/to/source --to /path/to/target --on-conflict replace
+```
+
+The default `skip` policy keeps an existing target scene/asset/share/thumbnail
+when the same id exists; `replace` overwrites same-id records. Assets with the
+same session/name are always skipped. If a scene session id conflicts, its
+assets, thumbnails and shares are skipped in `skip` mode. Make a copy of the
+target `portable/` directory before a `replace` merge if it matters.
+
+### Merge sessions and provider settings
+
+Scene data and the rest of the profile are separate files. Stop both Studio
+servers, then merge conversation sessions and non-secret provider settings:
+
+```sh
+node standalone/profile-merge.mjs --from /path/to/source-home --to /path/to/target-home
+node standalone/profile-merge.mjs --from /path/to/source-home --to /path/to/target-home --on-conflict replace
+```
+
+- Merges `sessions.json` and `models.json`; same-id sessions/providers are
+  skipped by default or replaced with `--on-conflict replace`.
+- **Never copies `credentials.json`.** Enter API keys on the target machine.
+- Writes a timestamped `.bak-*` copy next to each target file.
+- `--dry-run` validates and reports without writing.
+- The source home can be a Linux/macOS/Windows profile; this tool is
+  platform-independent.
+
 ### Configure a model
 
 1. Open the AI Prompt → gear at the bottom-right of the composer.
-2. Enter an API key for **DeepSeek** or **Anthropic**, or choose **Add** to
-   create a custom provider (provider id, base URL, protocol and model ids).
+2. Enter a **DeepSeek** API key, or choose **Add** to create a custom provider
+   (provider id, base URL, protocol and model ids).
 3. Click **Test connection** to verify the saved key and first model.
 4. Pick the provider/model and reasoning effort from the composer.
 
@@ -147,31 +206,40 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the component contracts,
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md)
+- [Open-core boundary](docs/OPEN-CORE.md) ([中文](docs/OPEN-CORE.zh.md))
 - [Models and providers](docs/MODELS.md)
 - [Exports](docs/EXPORTS.md) ([中文](docs/EXPORTS.zh.md))
 - [Plugins and marketplace](docs/PLUGINS.md) ([中文](docs/PLUGINS.zh.md))
 - [Security and trust boundaries](docs/SECURITY.md) ([中文](docs/SECURITY.zh.md))
+- [Privacy](PRIVACY.md)
 - [Plugin trust boundaries](docs/TRUST-BOUNDARIES.md) ([中文](docs/TRUST-BOUNDARIES.zh.md))
 - [Plugin configuration examples](examples/plugin-config/README.md)
+- [Desktop alpha](desktop/README.md)
+- [Demo gallery](site/index.html) ([agency](site/agency-demo/README.md), [configurator](site/configurator-demo/README.md), [education](site/education-demo/README.md), [motion](site/README.md), [data/space](site/README.md))
 - [Development and testing](docs/DEVELOPMENT.md)
 - [Scene/editor protocol](docs/PROTOCOL.md)
 - [IP provenance audit](docs/IP-PROVENANCE-AUDIT.md)
 - [Optional Harness plugin mode](docs/HARNESS-PLUGIN.md)
-- [Contributing](CONTRIBUTING.md)
+- [Roadmap](ROADMAP.md)
+- [Contributing](CONTRIBUTING.md) ([DCO](DCO))
+- [Governance](GOVERNANCE.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Privacy](PRIVACY.md)
+- [Trademark policy](TRADEMARK.md)
 - [Changelog](CHANGELOG.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)
 
 ## Development
 
-The unit suite runs on Node 24 and uses no external test framework:
+The unit, protocol and security suites run on Node 24 and use no external test
+framework:
 
 ```sh
-~/.local/node24/bin/node --test \
-  tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs \
-  tests/export-fbx.test.mjs tests/history.test.mjs tests/share.test.mjs \
-  tests/smoke.test.mjs tests/studio-ai.test.mjs tests/tracks.test.mjs
-~/.local/node24/bin/node --test standalone/plugins/runtime.test.mjs
+npm test
 ```
+
+Browser probes live in `tests/e2e/` and need Playwright with Chromium. They
+SKIP with exit 0 when the browser or `WORKBENCH_URL` is missing.
 
 `tests/disk.test.mjs` is excluded from local runs because its disk-lock probes
 hang in this WSL environment; CI/owners should run it on a native filesystem.
@@ -206,14 +274,33 @@ and troubleshooting.
 - **Plugin trust config** (`mcp.json`, `browser-automation.json`, `hooks.json`,
   `search.json`) is deliberately user-authored: the agent can read state but
   has no tool that writes these files.
+- **Persistence scope.** Linux stores scenes, assets, shares, thumbnails and
+  revision history in the fd-anchored store. macOS/Windows store the same
+  records in the portable snapshot store.
+- **Desktop alpha.** `desktop/` is an unsigned Electron shell that spawns the
+  standalone server. `npm start` needs Node 24 on `PATH` (or
+  `THREE_STUDIO_NODE`); `npm run dist` bundles Node 24 via
+  `desktop/scripts/prepare-node.mjs`. Code signing, notarization and
+  auto-update are not done yet.
 - **Local single-user scope.** The server binds loopback only and has no
-  authentication; do not expose the port to an untrusted network.
+  authentication; do not expose the port to an untrusted network. API writes
+  from browser pages require a per-process token and same-origin Fetch
+  metadata, but the server is not a multi-tenant service.
 
 ## Optional Harness plugin mode
 
+The legacy host-integrated mode is `index.js` + `client.js` started through
+`./start.sh` against a DeepSeek Harness checkout. It is documented in
+[`docs/HARNESS-PLUGIN.md`](docs/HARNESS-PLUGIN.md) and is not required by the
+standalone Studio.
+
 ## License
 
-This repository is **not open source at this time**. No license is granted; all
-rights are reserved. The source is published for viewing and evaluation only.
+The Three Studio core is open source under the **Apache License 2.0**. See
+[`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). You may use, modify, distribute and
+commercialize it, including in a proprietary hosted service, provided you keep
+the license and notice requirements.
+
 Third-party components keep their own licenses; see
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). The names "Three Studio"
+and "Three Workbench" are project marks; see [`TRADEMARK.md`](TRADEMARK.md).

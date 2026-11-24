@@ -1,0 +1,67 @@
+{
+  "name": "three-studio-desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Desktop alpha shell for Three Studio (Electron).",
+  "license": "Apache-2.0",
+  "main": "main.mjs",
+  "scripts": {
+    "start": "electron .",
+    "prepare-node": "node scripts/prepare-node.mjs",
+    "render-icon": "node scripts/render-icon.mjs",
+    "license": "node scripts/license.mjs",
+    "templates": "node scripts/assemble-templates.mjs",
+    "release-check": "node scripts/release-check.mjs",
+    "predist": "node scripts/prepare-node.mjs && node scripts/assemble-templates.mjs",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "studio.three.workbench",
+    "productName": "Three Studio",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.mjs",
+      "preload.cjs",
+      "package.json",
+      "build/icon.png",
+      "license/core.mjs",
+      "license/public-key.pem"
+    ],
+    "extraResources": [
+      { "from": "../standalone", "to": "app/standalone" },
+      { "from": "../index.js", "to": "app/index.js" },
+      { "from": "../client.js", "to": "app/client.js" },
+      { "from": "../runtime", "to": "app/runtime" },
+      { "from": "../package.json", "to": "app/package.json" },
+      { "from": "../LICENSE", "to": "app/LICENSE" },
+      { "from": "../NOTICE", "to": "app/NOTICE" },
+      { "from": "../THIRD_PARTY_NOTICES.md", "to": "app/THIRD_PARTY_NOTICES.md" },
+      { "from": "vendor", "to": "app/vendor" },
+      { "from": "templates", "to": "app/templates" }
+    ],
+    "mac": {
+      "category": "public.app-category.developer-tools",
+      "icon": "build/icon.png",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "icon": "build/icon.ico",
+      "target": ["nsis", "zip"]
+    },
+    "linux": {
+      "category": "Development",
+      "icon": "build/icon.png",
+      "target": ["AppImage", "deb"]
+    }
+  }
+}

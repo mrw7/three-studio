@@ -8,7 +8,7 @@ import { readFile, writeFile, rename } from 'node:fs/promises'
 import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
 
-const SEED_PROVIDERS = [
+export const SEED_PROVIDERS = [
   {
     id: 'deepseek',
     name: 'DeepSeek',
@@ -19,18 +19,21 @@ const SEED_PROVIDERS = [
       { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner' },
     ],
   },
-  {
-    id: 'anthropic',
-    name: 'Anthropic',
-    api: 'anthropic-messages',
-    baseURL: 'https://api.anthropic.com/v1',
-    models: [
-      { id: 'claude-opus-5-5', name: 'Claude Opus 5.5' },
-      { id: 'claude-sonnet-5-5', name: 'Claude Sonnet 5.5' },
-      { id: 'claude-haiku-5-5', name: 'Claude Haiku 5.5' },
-    ],
-  },
 ]
+
+// The previous release seeded Anthropic by default. Remove only the untouched
+// built-in entry; a user-customized Anthropic provider is preserved.
+const LEGACY_ANTHROPIC_MODELS = ['claude-opus-5-5', 'claude-sonnet-5-5', 'claude-haiku-5-5']
+function isLegacyAnthropicSeed(provider) {
+  if (provider === null || typeof provider !== 'object') return false
+  if (provider.id !== 'anthropic' || provider.name !== 'Anthropic') return false
+  if (provider.api !== 'anthropic-messages' || provider.baseURL !== 'https://api.anthropic.com/v1') return false
+  const ids = Array.isArray(provider.models)
+    ? provider.models.map(model => model !== null && typeof model === 'object' ? model.id : undefined)
+    : []
+  return ids.length === LEGACY_ANTHROPIC_MODELS.length
+    && ids.every((id, index) => id === LEGACY_ANTHROPIC_MODELS[index])
+}
 
 const keyRef = providerId => `${String(providerId).toUpperCase().replace(/[^A-Z0-9]+/g, '_')}_API_KEY`
 const providerFromRef = ref => {
@@ -60,7 +63,11 @@ export async function createModelSettings(home) {
   try {
     const parsed = JSON.parse(await readFile(settingsPath, 'utf8'))
     if (parsed !== null && typeof parsed === 'object' && Array.isArray(parsed.providers)) {
-      document = { providers: parsed.providers }
+      const providers = parsed.providers.filter(provider => !isLegacyAnthropicSeed(provider))
+      document = { providers }
+      if (providers.length !== parsed.providers.length) {
+        await atomicWrite(settingsPath, JSON.stringify(document, null, 2))
+      }
     }
   } catch (error) {
     if (error?.code !== 'ENOENT') throw error

@@ -18,8 +18,8 @@ never include editor chrome, console logs, HUD text or API keys.
 | Export OBJ | `export-obj` | `.obj` | Text geometry, no materials |
 | Export USDZ | `export-usdz` | `.usdz` | AR Quick Look; stored (uncompressed) zip with `model.usda` |
 | Export FBX | `export-fbx` | `.fbx` | Binary FBX 7.4 (version 7400), static meshes |
-| Project ZIP | — | `.zip` | Scene, assets and editor state for re-import |
-| Standalone HTML | — | `.html` | Offline scene page with the same sandbox |
+| Project ZIP | — | `.zip` | Scene, assets and editor-state archive; re-import is not implemented yet |
+| Standalone HTML | — | `.html` | Single-file scene page with the same sandbox; loads Three.js from jsDelivr and needs network access |
 
 ## USDZ
 

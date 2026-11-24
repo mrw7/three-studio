@@ -83,7 +83,8 @@ Host sidebar or host shell behind it; Studio is the application.
 - the `three_scene` tool (complete scene script → durable revision)
 - the `workbench_proposal` tool (inert, reviewable proposals)
 - scene state/restore/thumbnail/asset/share routes
-- a durable disk store and an in-memory fallback
+- a Linux fd-anchored durable store, a portable macOS/Windows snapshot store
+  (scenes, history and assets), and an in-memory fallback
 
 The standalone server runs it through a tiny Cordis-compatible context that
 implements only the surfaces `index.js` uses: `effect`, `tools.register`,

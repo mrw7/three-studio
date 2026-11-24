@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   unit:
     runs-on: ubuntu-latest
@@ -18,12 +21,38 @@ jobs:
           node --check index.js
           node --check standalone/server.mjs
           node --check standalone/agent.mjs
+          node --check standalone/public/boot.js
           node --check standalone/plugins/runtime.mjs
-      - name: Unit and protocol tests
-        run: |
-          node --test \
-            tests/assets.test.mjs tests/behavior.test.mjs tests/export.test.mjs \
-            tests/history.test.mjs tests/share.test.mjs tests/smoke.test.mjs \
-            tests/studio-ai.test.mjs tests/tracks.test.mjs
-      - name: Standalone plugin and settings tests
-        run: node --test standalone/plugins/runtime.test.mjs standalone/settings.test.mjs
+          node --check standalone/migrate-portable.mjs
+          node --check standalone/merge-portable.mjs
+          node --check standalone/profile-merge.mjs
+          node --check desktop/main.mjs
+          node --check desktop/preload.cjs
+          node --check desktop/license/core.mjs
+          node --check desktop/scripts/prepare-node.mjs
+          node --check desktop/scripts/license.mjs
+          node --check desktop/scripts/release-check.mjs
+          node --check desktop/scripts/template-pack.mjs
+          node --check desktop/scripts/assemble-templates.mjs
+          node --check site/agency-demo/main.js
+          node --check site/agency-demo/scene-watch.js
+          node --check site/configurator-demo/main.js
+          node --check site/education-demo/main.js
+          node --check site/nebula-demo/main.js
+          node --check site/kinetic-demo/main.js
+          node --check site/audio-demo/main.js
+          node --check site/data-demo/main.js
+          node --check site/atrium-demo/main.js
+      - name: Unit, protocol and security tests
+        run: npm test
+
+  disk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Durable store tests on a native filesystem
+        run: node --test tests/disk.test.mjs

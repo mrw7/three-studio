@@ -1,5 +1,7 @@
 # Documentation
 
+- [Open-core boundary](OPEN-CORE.md) — what is Apache-2.0, what stays private,
+  and how the Pro template pack is assembled ([中文](OPEN-CORE.zh.md))
 - [Architecture](ARCHITECTURE.md) — standalone components, data flow, scene
   engine and agent loop
 - [Models and providers](MODELS.md) — built-in providers, custom providers,
@@ -26,8 +28,9 @@
   copy-ready `mcp.json`, `browser-automation.json`, `search.json`,
   `hooks.json` and `AGENTS.md` samples ([中文](../examples/plugin-config/README.zh.md))
 
-Chinese versions exist for the reader-facing docs: [PLUGINS.zh.md](PLUGINS.zh.md),
-[EXPORTS.zh.md](EXPORTS.zh.md) and [SECURITY.zh.md](SECURITY.zh.md).
+Chinese versions exist for the reader-facing docs: [OPEN-CORE.zh.md](OPEN-CORE.zh.md),
+[PLUGINS.zh.md](PLUGINS.zh.md), [EXPORTS.zh.md](EXPORTS.zh.md) and
+[SECURITY.zh.md](SECURITY.zh.md).
 
 Screenshots live in [`screenshots/`](screenshots/). The standalone deployment
 guide is [`standalone/README.md`](../standalone/README.md).

@@ -1,9 +1,10 @@
 /**
  * Curated Studio plugin catalog.
  *
- * Entries are capabilities selected from the MIT-licensed Harness ecosystem
- * and adapted as native Studio modules. `available` means the standalone
- * runtime has an implementation; the rest are roadmap entries.
+ * Entries are native Studio modules inspired by capabilities in the
+ * MIT-licensed Harness ecosystem; no Harness runtime code is bundled, and
+ * package paths here are provenance references. `available` means the
+ * standalone runtime has an implementation.
  */
 export const CATALOG = [
   {

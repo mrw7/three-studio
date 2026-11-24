@@ -24,14 +24,18 @@ the contract behind the code; change it deliberately, not incidentally.
 ## MCP connectors
 
 - Transport: stdio with newline-delimited JSON-RPC (the MCP base protocol), one
-  lazily started child process per server, `cwd` = the Studio home.
+  lazily started child process per server, `cwd` = `~/.three-studio/mcp/<id>/`
+  (never the Studio home, which holds credentials and session files).
 - Limits: 8 servers, 64 tools, 30 s per call, 8 s initialization.
-- Isolation: server stderr is discarded (it may contain secrets); only the
-  declared `env` map is merged into the environment; server ids are constrained
-  to `[a-z0-9][a-z0-9_-]` and tool descriptions are truncated before they enter
-  the prompt.
+- Isolation: server stderr is discarded (it may contain secrets); only a
+  minimal base environment (`PATH`, `HOME`/`USERPROFILE`, temp and locale
+  variables) plus the declared `env` map is passed to the child; server ids are
+  constrained to `[a-z0-9][a-z0-9_-]` and tool descriptions are truncated
+  before they enter the prompt.
 - Accepted residual risk: a local MCP server is a program the user chose to run;
-  the agent calling its tools is the capability the user opted into.
+  the agent calling its tools is the capability the user opted into. It runs as
+  the same OS user, so it can still read absolute paths (including the Studio
+  home) if it tries; only install MCP servers you trust.
 
 ## Browser automation
 

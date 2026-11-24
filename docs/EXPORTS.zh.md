@@ -17,8 +17,8 @@
 | 导出 OBJ | `export-obj` | `.obj` | 文本几何，不含材质 |
 | 导出 USDZ | `export-usdz` | `.usdz` | AR Quick Look；STORE（不压缩）zip，含 `model.usda` |
 | 导出 FBX | `export-fbx` | `.fbx` | 二进制 FBX 7.4（version 7400），静态网格 |
-| 项目 ZIP | — | `.zip` | 场景、资产与编辑器状态，可重新导入 |
-| 独立 HTML | — | `.html` | 离线场景页，沿用同一沙箱 |
+| 项目 ZIP | — | `.zip` | 场景、资产与编辑器状态归档；尚未实现重新导入 |
+| 独立 HTML | — | `.html` | 单文件场景页，沿用同一沙箱；从 jsDelivr 加载 Three.js，需要联网 |
 
 ## USDZ
 

@@ -190,6 +190,8 @@ window.__ModuleLoader__.load({
       'editor.assets': '资产',
       'studio.title': 'Three Studio',
       'studio.subtitle': 'AI 3D WORKBENCH',
+      'studio.license.pro': 'PRO',
+      'studio.license.active': 'Three Studio Pro · {customer}',
       'studio.language': '语言',
       'studio.language.zh': '中文',
       'studio.language.en': '英文',
@@ -695,7 +697,7 @@ window.__ModuleLoader__.load({
       'assets.upload': '上传资产',
       'assets.drop': '拖放 PNG、JPEG、WebP、GLB、GLTF 或 HDR',
       'assets.empty': '还没有资产',
-      'assets.memoryOnly': '资产保存在 Host 存储中；支持磁盘持久化的平台（Linux）重启后保留，其他平台重启后清除；清理场景会话会删除对应资产。',
+      'assets.memoryOnly': '资产保存在 Host 存储中；Linux 与使用可移植桌面存储的环境重启后保留，其他运行方式重启后清除；清理场景会话会删除对应资产。',
       'assets.name': '名称',
       'assets.size': '大小',
       'assets.preview': '预览',
@@ -1138,6 +1140,8 @@ window.__ModuleLoader__.load({
       'editor.assets': 'Assets',
       'studio.title': 'Three Studio',
       'studio.subtitle': 'AI 3D WORKBENCH',
+      'studio.license.pro': 'PRO',
+      'studio.license.active': 'Three Studio Pro · {customer}',
       'studio.language': 'Language',
       'studio.language.zh': 'Chinese',
       'studio.language.en': 'English',
@@ -1643,7 +1647,7 @@ window.__ModuleLoader__.load({
       'assets.upload': 'Upload asset',
       'assets.drop': 'Drop PNG, JPEG, WebP, GLB, GLTF or HDR',
       'assets.empty': 'No assets yet',
-      'assets.memoryOnly': 'Assets are kept in Host storage; they survive restart where disk persistence is supported (Linux) and are cleared on restart otherwise. Clearing the Scene Session deletes them.',
+      'assets.memoryOnly': 'Assets are kept in Host storage; they survive restart on Linux and on hosts using the portable desktop store, and are cleared on restart in other environments. Clearing the Scene Session deletes them.',
       'assets.name': 'Name',
       'assets.size': 'Size',
       'assets.preview': 'Preview',
@@ -13399,9 +13403,30 @@ try {
 
     const THREE_VERSION = '0.186.1'
     const CDN_BASE = `https://cdn.jsdelivr.net/npm/three@${THREE_VERSION}`
+    const THREE_MIT_LICENSE = `The MIT License
+
+Copyright © 2010-2026 three.js authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.`
 
     /**
-     * The same scene as a self-contained page that loads three.js from a CDN.
+     * The same scene as a single-file page that loads three.js from a CDN.
      * The embedded runtime wrapper (`onFrame`, `setCamera`, controls) is shared
      * with the sandboxed preview, so the model's code runs unchanged. Both
      * `three` and `three/addons/` resolve to the pinned release, matching the
@@ -13420,7 +13445,7 @@ try {
         .replace(/<script type="importmap">[\s\S]*?<\/script>/, importMap)
         .replace("from 'three/addons/OrbitControls.js'", `from '${CDN_BASE}/examples/jsm/controls/OrbitControls.js'`)
         .replace("from 'three/addons/TransformControls.js'", `from '${CDN_BASE}/examples/jsm/controls/TransformControls.js'`)
-      return licensed.replace('<head>', `<head>\n<!-- three.js ${THREE_VERSION}, MIT license (see runtime/THREE-LICENSE.txt in a project export). -->`)
+      return licensed.replace('<head>', `<head>\n<!-- three.js ${THREE_VERSION}\n${THREE_MIT_LICENSE}\n-->`)
     }
 
     const CRC_TABLE = (() => {
@@ -16888,83 +16913,93 @@ THE SOFTWARE.
     const STUDIO_TEXT = 'var(--twb-text)'
     const STUDIO_MUTED = 'var(--twb-muted)'
     const STUDIO_THEME_DARK = {
-      '--twb-bg': '#0b0e13',
-      '--twb-panel': '#10151c',
-      '--twb-panel-2': '#141a22',
-      '--twb-panel-3': '#0d1219',
-      '--twb-line': 'rgba(255,255,255,.085)',
-      '--twb-text': '#e3eaf2',
-      '--twb-text-2': '#d7e0ea',
-      '--twb-text-3': '#a7b4c3',
-      '--twb-muted': '#8794a5',
-      '--twb-fill': 'rgba(255,255,255,.025)',
-      '--twb-fill-soft': 'rgba(255,255,255,.018)',
-      '--twb-fill-strong': 'rgba(255,255,255,.035)',
-      '--twb-hover': 'rgba(255,255,255,.065)',
-      '--twb-sunken': '#0a0e14',
-      '--twb-code-bg': '#0b0d10',
-      '--twb-hud-bg': 'rgba(10,14,19,.86)',
-      '--twb-hud-text': 'rgba(227,234,242,.78)',
-      '--twb-accent': '#4f7cff',
-      '--twb-accent-soft': 'rgba(79,124,255,.14)',
-      '--twb-accent-line': 'rgba(79,124,255,.40)',
-      '--twb-on-accent': '#f7f9ff',
-      '--twb-warn': '#f0b35b',
-      '--twb-warn-text': '#ffcf7a',
-      '--twb-warn-ink': '#d9c7a6',
+      '--twb-bg': '#080b10',
+      '--twb-panel': '#0e131a',
+      '--twb-panel-2': '#121922',
+      '--twb-panel-3': '#0a0f16',
+      '--twb-line': 'rgba(148,163,184,.12)',
+      '--twb-text': '#e8eef7',
+      '--twb-text-2': '#cbd5e1',
+      '--twb-text-3': '#94a3b8',
+      '--twb-muted': '#7f8ea3',
+      '--twb-fill': 'rgba(148,163,184,.055)',
+      '--twb-fill-soft': 'rgba(148,163,184,.038)',
+      '--twb-fill-strong': 'rgba(148,163,184,.075)',
+      '--twb-hover': 'rgba(148,163,184,.11)',
+      '--twb-sunken': '#06090e',
+      '--twb-code-bg': '#070a0f',
+      '--twb-hud-bg': 'rgba(9,14,21,.88)',
+      '--twb-hud-text': 'rgba(232,238,247,.82)',
+      '--twb-accent': '#6f8dff',
+      '--twb-accent-soft': 'rgba(111,141,255,.16)',
+      '--twb-accent-line': 'rgba(111,141,255,.42)',
+      '--twb-on-accent': '#f8faff',
+      '--twb-warn': '#e8b45f',
+      '--twb-warn-text': '#ffd28a',
+      '--twb-warn-ink': '#d8c3a1',
       '--twb-danger': '#ffb4ad',
       '--twb-danger-strong': '#ff9b93',
-      '--twb-danger-line': 'rgba(255,123,114,.30)',
-      '--twb-danger-fill': 'rgba(255,123,114,.08)',
-      '--twb-shadow': 'rgba(0,0,0,.35)',
-      '--twb-shadow-soft': 'rgba(0,0,0,.20)',
-      '--twb-scrollbar': 'rgba(255,255,255,.15)',
-      '--twb-scrollbar-soft': 'rgba(255,255,255,.16)',
-      '--twb-focus': 'rgba(79,124,255,.72)',
+      '--twb-danger-line': 'rgba(255,123,114,.32)',
+      '--twb-danger-fill': 'rgba(255,123,114,.09)',
+      '--twb-shadow': 'rgba(0,0,0,.45)',
+      '--twb-shadow-soft': 'rgba(0,0,0,.26)',
+      '--twb-scrollbar': 'rgba(148,163,184,.22)',
+      '--twb-scrollbar-soft': 'rgba(148,163,184,.16)',
+      '--twb-focus': 'rgba(111,141,255,.78)',
+      '--twb-radius-sm': '6px',
+      '--twb-radius-md': '8px',
+      '--twb-radius-lg': '12px',
+      '--twb-font-ui': 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--twb-font-mono': 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
     }
     const STUDIO_THEME_LIGHT = {
-      '--twb-bg': '#f3f5f9',
+      '--twb-bg': '#eef2f8',
       '--twb-panel': '#ffffff',
-      '--twb-panel-2': '#f8fafc',
-      '--twb-panel-3': '#eef2f7',
-      '--twb-line': 'rgba(15,23,42,.12)',
-      '--twb-text': '#1a2433',
+      '--twb-panel-2': '#f7f9fc',
+      '--twb-panel-3': '#ebf0f7',
+      '--twb-line': 'rgba(15,23,42,.11)',
+      '--twb-text': '#111827',
       '--twb-text-2': '#334155',
       '--twb-text-3': '#64748b',
-      '--twb-muted': '#64748b',
+      '--twb-muted': '#6b7a90',
       '--twb-fill': 'rgba(15,23,42,.035)',
       '--twb-fill-soft': 'rgba(15,23,42,.022)',
-      '--twb-fill-strong': 'rgba(15,23,42,.055)',
-      '--twb-hover': 'rgba(15,23,42,.06)',
-      '--twb-sunken': '#e9eef5',
-      '--twb-code-bg': '#f7f9fc',
+      '--twb-fill-strong': 'rgba(15,23,42,.058)',
+      '--twb-hover': 'rgba(15,23,42,.07)',
+      '--twb-sunken': '#e7edf5',
+      '--twb-code-bg': '#f6f8fb',
       '--twb-hud-bg': 'rgba(255,255,255,.92)',
       '--twb-hud-text': '#334155',
-      '--twb-accent': '#2450d8',
-      '--twb-accent-soft': 'rgba(36,80,216,.10)',
-      '--twb-accent-line': 'rgba(36,80,216,.34)',
+      '--twb-accent': '#2f5fe0',
+      '--twb-accent-soft': 'rgba(47,95,224,.10)',
+      '--twb-accent-line': 'rgba(47,95,224,.32)',
       '--twb-on-accent': '#ffffff',
-      '--twb-warn': '#b26a00',
+      '--twb-warn': '#a15c00',
       '--twb-warn-text': '#8a5a00',
       '--twb-warn-ink': '#7a5a2a',
       '--twb-danger': '#b42318',
       '--twb-danger-strong': '#c0392b',
       '--twb-danger-line': 'rgba(180,35,24,.32)',
       '--twb-danger-fill': 'rgba(180,35,24,.07)',
-      '--twb-shadow': 'rgba(15,23,42,.18)',
-      '--twb-shadow-soft': 'rgba(15,23,42,.10)',
-      '--twb-scrollbar': 'rgba(15,23,42,.20)',
-      '--twb-scrollbar-soft': 'rgba(15,23,42,.24)',
-      '--twb-focus': 'rgba(36,80,216,.64)',
+      '--twb-shadow': 'rgba(15,23,42,.16)',
+      '--twb-shadow-soft': 'rgba(15,23,42,.09)',
+      '--twb-scrollbar': 'rgba(15,23,42,.22)',
+      '--twb-scrollbar-soft': 'rgba(15,23,42,.16)',
+      '--twb-focus': 'rgba(47,95,224,.70)',
+      '--twb-radius-sm': '6px',
+      '--twb-radius-md': '8px',
+      '--twb-radius-lg': '12px',
+      '--twb-font-ui': 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
+      '--twb-font-mono': 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace',
     }
-    const STUDIO_HEADER_H = 54
-    const STUDIO_LEFT_W = 288
-    const STUDIO_RIGHT_W = 312
-    const STUDIO_RAIL_W = 46
-    const STUDIO_CONSOLE_H = 220
+    const STUDIO_HEADER_H = 56
+    const STUDIO_LEFT_W = 300
+    const STUDIO_RIGHT_W = 320
+    const STUDIO_RAIL_W = 52
+    const STUDIO_CONSOLE_H = 240
     const STUDIO_LAYOUT_KEY = 'three-workbench:studio-layout'
     const STUDIO_LAYOUT_VERSION = 3
-    const STUDIO_WIDTH_RANGE = { left: [208, 460], right: [240, 460], console: [140, 420] }
+    const STUDIO_WIDTH_RANGE = { left: [220, 480], right: [260, 480], console: [150, 440] }
     const clampStudioWidth = (kind, value) => {
       const range = STUDIO_WIDTH_RANGE[kind]
       const numeric = typeof value === 'number' && Number.isFinite(value) ? value : (kind === 'left' ? STUDIO_LEFT_W : kind === 'right' ? STUDIO_RIGHT_W : STUDIO_CONSOLE_H)
@@ -20926,6 +20961,26 @@ THE SOFTWARE.
       const { record, failed, missing: sceneMissing, revisions, latestRevision, viewingHistory, retryRecord } = useSceneFeed(sessionId, viewRevision)
       const [reloadTick, setReloadTick] = React.useState(0)
       const [status, setStatus] = React.useState('loading')
+      const [desktopLicense, setDesktopLicense] = React.useState(null)
+      React.useEffect(() => {
+        const desktop = typeof window === 'undefined' ? undefined : window.ThreeStudioDesktop
+        if (desktop === null || desktop === undefined || typeof desktop.getLicense !== 'function') {
+          return undefined
+        }
+        let cancelled = false
+        desktop.getLicense().then(state => {
+          if (!cancelled) setDesktopLicense(state)
+        }).catch(() => {})
+        const unsubscribe = typeof desktop.onLicenseChanged === 'function'
+          ? desktop.onLicenseChanged(state => {
+            if (!cancelled) setDesktopLicense(state)
+          })
+          : undefined
+        return () => {
+          cancelled = true
+          if (typeof unsubscribe === 'function') unsubscribe()
+        }
+      }, [])
       const [copied, setCopied] = React.useState(false)
       const [mode, setMode] = React.useState('preview')
       const [errorText, setErrorText] = React.useState('')
@@ -29845,27 +29900,27 @@ THE SOFTWARE.
           className: 'twb-studio-btn',
           onClick,
           style: {
-            width: options.size === undefined ? 30 : options.size,
-            height: options.size === undefined ? 30 : options.size,
+            width: options.size === undefined ? 32 : options.size,
+            height: options.size === undefined ? 32 : options.size,
             display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            padding: 0, flex: '0 0 auto', borderRadius: 7, cursor: options.disabled === true ? 'not-allowed' : 'pointer',
+            padding: 0, flex: '0 0 auto', borderRadius: 8, cursor: options.disabled === true ? 'not-allowed' : 'pointer',
             border: '1px solid ' + (active ? STUDIO_ACCENT_LINE : 'transparent'),
             background: active ? STUDIO_ACCENT_SOFT : 'transparent',
             color: options.tone === 'danger' ? 'var(--twb-danger-strong)' : active ? STUDIO_ACCENT : STUDIO_MUTED,
             opacity: options.disabled === true ? .38 : 1,
           },
-        }, h(StudioGlyph, { name, size: options.iconSize === undefined ? 16 : options.iconSize }))
+        }, h(StudioGlyph, { name, size: options.iconSize === undefined ? 17 : options.iconSize }))
       }
       const studioDivider = h('span', {
         'aria-hidden': 'true',
-        style: { width: 1, height: 20, flex: '0 0 auto', background: STUDIO_LINE, margin: '0 2px' },
+        style: { width: 1, height: 18, flex: '0 0 auto', background: STUDIO_LINE, margin: '0 3px' },
       })
       const studioLanguageSwitch = h('div', {
         role: 'group',
         'aria-label': t('studio.language'),
         'data-three-workbench-locale-switch': '',
-        style: { display: 'inline-flex', alignItems: 'center', gap: 1, height: 24, padding: 2,
-          boxSizing: 'border-box', flex: '0 0 auto', borderRadius: 7,
+        style: { display: 'inline-flex', alignItems: 'center', gap: 1, height: 26, padding: 2,
+          boxSizing: 'border-box', flex: '0 0 auto', borderRadius: 8,
           background: 'var(--twb-fill-strong)', border: '1px solid ' + STUDIO_LINE },
       }, ['zh', 'en'].map(id => {
         const selected = activeLanguage === id
@@ -29880,11 +29935,11 @@ THE SOFTWARE.
           title: name,
           'data-three-workbench-locale': id,
           onClick: () => chooseLanguage(id),
-          style: { minWidth: 22, height: 18, padding: '0 5px', display: 'inline-flex',
-            alignItems: 'center', justifyContent: 'center', borderRadius: 5,
+          style: { minWidth: 24, height: 20, padding: '0 6px', display: 'inline-flex',
+            alignItems: 'center', justifyContent: 'center', borderRadius: 6,
             border: '1px solid transparent', background: selected ? STUDIO_ACCENT_SOFT : 'transparent',
             color: selected ? STUDIO_ACCENT : STUDIO_MUTED,
-            font: '600 9.5px/1 system-ui, -apple-system, Segoe UI, sans-serif',
+            font: '600 10px/1 var(--twb-font-ui)',
             cursor: selected ? 'default' : 'pointer' },
         }, label)
       }))
@@ -29894,11 +29949,11 @@ THE SOFTWARE.
         className: 'twb-studio-btn',
         onClick: () => setMode(value),
         style: {
-          height: 24, display: 'inline-flex', alignItems: 'center', gap: 5, padding: '0 8px',
-          borderRadius: 6, border: '1px solid ' + (mode === value ? STUDIO_ACCENT_LINE : 'transparent'),
+          height: 26, display: 'inline-flex', alignItems: 'center', gap: 6, padding: '0 9px',
+          borderRadius: 7, border: '1px solid ' + (mode === value ? STUDIO_ACCENT_LINE : 'transparent'),
           background: mode === value ? STUDIO_ACCENT_SOFT : 'transparent',
           color: mode === value ? STUDIO_ACCENT : STUDIO_MUTED,
-          font: '10px/1 system-ui, -apple-system, Segoe UI, sans-serif',
+          font: '500 10.5px/1 var(--twb-font-ui)',
           cursor: 'pointer', whiteSpace: 'nowrap',
         },
       }, h(StudioGlyph, { name: icon, size: 12 }), label)
@@ -29906,38 +29961,57 @@ THE SOFTWARE.
         'data-three-workbench-studio': 'header',
         style: {
           flex: '0 0 auto', height: STUDIO_HEADER_H, minHeight: STUDIO_HEADER_H, display: 'flex',
-          alignItems: 'center', gap: 9, padding: '0 12px', boxSizing: 'border-box',
+          alignItems: 'center', gap: 10, padding: '0 14px', boxSizing: 'border-box',
           overflow: 'visible',
           background: 'linear-gradient(180deg, var(--twb-panel-2) 0%, var(--twb-panel-3) 100%)',
           borderBottom: '1px solid ' + STUDIO_LINE, color: STUDIO_TEXT,
-          fontFamily: 'system-ui, -apple-system, Segoe UI, sans-serif',
+          fontFamily: 'var(--twb-font-ui)',
+          boxShadow: '0 1px 0 rgba(255,255,255,.025) inset',
         },
       },
       h('div', { style: { display: 'flex', alignItems: 'center', gap: 9, minWidth: 0, flex: '0 0 auto' } },
         h('div', {
-          style: { width: 32, height: 32, borderRadius: 9, display: 'grid', placeItems: 'center',
+          style: { width: 30, height: 30, borderRadius: 8, display: 'grid', placeItems: 'center',
             color: STUDIO_ACCENT, background: STUDIO_ACCENT_SOFT,
-            border: '1px solid ' + STUDIO_ACCENT_LINE, boxShadow: '0 0 22px ' + STUDIO_ACCENT_SOFT },
-        }, h(StudioGlyph, { name: 'prism', size: 18 })),
+            border: '1px solid ' + STUDIO_ACCENT_LINE, boxShadow: '0 0 20px ' + STUDIO_ACCENT_SOFT },
+        }, h(StudioGlyph, { name: 'prism', size: 17 })),
         h('div', { style: { minWidth: 0 } },
-          h('div', { style: { fontSize: 12, fontWeight: 700, letterSpacing: '.055em', whiteSpace: 'nowrap' } },
+          h('div', { style: { fontSize: 12.5, fontWeight: 700, letterSpacing: '.045em', whiteSpace: 'nowrap' } },
             t('studio.title')),
-          h('div', { style: { fontSize: 8, letterSpacing: '.16em', color: STUDIO_MUTED, whiteSpace: 'nowrap' } },
+          h('div', { style: { marginTop: 1, fontSize: 8.5, letterSpacing: '.14em', color: STUDIO_MUTED, whiteSpace: 'nowrap' } },
             t('studio.subtitle')))),
       studioDivider,
       h('div', { style: { flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 8 } },
         h('span', {
-          style: { fontSize: 12, fontWeight: 600, color: STUDIO_TEXT, overflow: 'hidden',
-            textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 },
+          style: { fontSize: 13, fontWeight: 600, color: STUDIO_TEXT, overflow: 'hidden',
+            textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0, letterSpacing: '-.01em' },
         }, record === null ? t('tab.title') : (record.title || t('tab.title'))),
         h('span', {
           style: { display: 'inline-flex', alignItems: 'center', gap: 5, flex: '0 0 auto',
-            padding: '3px 8px', borderRadius: 10, background: 'var(--twb-fill-strong)',
-            border: '1px solid ' + STUDIO_LINE, color: STUDIO_MUTED, fontSize: 9, fontFamily: mono },
+            padding: '4px 9px', borderRadius: 999, background: 'var(--twb-fill-strong)',
+            border: '1px solid ' + STUDIO_LINE, color: STUDIO_MUTED, fontSize: 10, fontFamily: mono },
         },
         h('span', { style: { width: 5, height: 5, borderRadius: '50%', background: studioTone,
           boxShadow: '0 0 7px ' + studioTone } }),
         record === null ? statusLabel : `rev ${record.revision} · ${statusLabel}`),
+        desktopLicense !== null && desktopLicense.active === true
+          ? h('button', {
+            type: 'button',
+            'data-three-workbench-license': 'pro',
+            title: t('studio.license.active', { customer: desktopLicense.customer || '' }),
+            onClick: () => {
+              const desktop = window.ThreeStudioDesktop
+              if (desktop !== undefined && desktop !== null && typeof desktop.manageLicense === 'function') {
+                void desktop.manageLicense()
+              }
+            },
+            style: { display: 'inline-flex', alignItems: 'center', height: 22, padding: '0 8px',
+              flex: '0 0 auto', borderRadius: 999, cursor: 'pointer',
+              color: STUDIO_ACCENT, background: STUDIO_ACCENT_SOFT,
+              border: '1px solid ' + STUDIO_ACCENT_LINE,
+              font: '700 9px/1 var(--twb-font-ui)', letterSpacing: '.10em' },
+          }, t('studio.license.pro'))
+          : null,
         building
           ? h('span', {
             style: { display: 'inline-flex', alignItems: 'center', gap: 5, flex: '0 0 auto',
@@ -29988,12 +30062,6 @@ THE SOFTWARE.
           ? studioIconButton('plug', t('studio.market.title'), openStudioPlugins,
             { active: studioLeftShown && studioTab === 'plugins', pressed: studioLeftShown && studioTab === 'plugins', data: 'plugins' })
           : null,
-        studioIconButton('windows', t('studio.sessions.title'), openStudioSessions,
-          { active: studioLeftShown && studioTab === 'sessions', pressed: studioLeftShown && studioTab === 'sessions', data: 'sessions' }),
-        studioIconButton('sparkles', t('studio.rail.ai'), openStudioAi,
-          { active: studioLeftShown && studioTab === 'ai', pressed: studioLeftShown && studioTab === 'ai', data: 'ai' }),
-        studioIconButton('clock', t('studio.rail.history'), openStudioHistory,
-          { active: studioLeftShown && studioTab === 'history', pressed: studioLeftShown && studioTab === 'history', data: 'history' }),
         standaloneMode
           ? studioIconButton(studioLight ? 'moon' : 'sun',
             studioLight ? t('studio.theme.dark') : t('studio.theme.light'),
@@ -30027,7 +30095,7 @@ THE SOFTWARE.
       const studioRail = h('div', {
         'data-three-workbench-studio': 'rail',
         style: { width: STUDIO_RAIL_W, flex: '0 0 auto', display: 'flex', flexDirection: 'column',
-          alignItems: 'center', gap: 4, padding: '9px 0', boxSizing: 'border-box',
+          alignItems: 'center', gap: 6, padding: '10px 0', boxSizing: 'border-box',
           background: 'var(--twb-panel-3)', borderRight: '1px solid ' + STUDIO_LINE },
       },
       ...studioRailItems.map(item => {
@@ -30047,12 +30115,13 @@ THE SOFTWARE.
               if (studioTextareaRef.current !== null) studioTextareaRef.current.focus()
             }, 0)
           },
-          style: { position: 'relative', width: 34, height: 34, padding: 0, borderRadius: 8,
+          style: { position: 'relative', width: 36, height: 36, padding: 0, borderRadius: 9,
             display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
             border: '1px solid ' + (active ? STUDIO_ACCENT_LINE : 'transparent'),
             background: active ? STUDIO_ACCENT_SOFT : 'transparent',
+            boxShadow: active ? 'inset 2px 0 0 ' + STUDIO_ACCENT : 'none',
             color: active ? STUDIO_ACCENT : STUDIO_MUTED },
-        }, h(StudioGlyph, { name: item[1], size: 18 }),
+        }, h(StudioGlyph, { name: item[1], size: 19 }),
         item[0] === 'ai' && building
           ? h('span', {
             className: 'three-wb-pulse',
@@ -30351,13 +30420,14 @@ THE SOFTWARE.
           background: STUDIO_PANEL, borderRight: '1px solid ' + STUDIO_LINE },
       },
       h('div', {
-        style: { flex: '0 0 auto', height: 34, display: 'flex', alignItems: 'center', gap: 6,
-          padding: '0 10px', borderBottom: '1px solid ' + STUDIO_LINE },
+        style: { flex: '0 0 auto', height: 38, display: 'flex', alignItems: 'center', gap: 6,
+          padding: '0 12px', borderBottom: '1px solid ' + STUDIO_LINE,
+          background: 'var(--twb-panel-3)' },
       },
-      h('span', { style: { flex: 1, minWidth: 0, fontSize: 9.5, fontWeight: 700,
-        letterSpacing: '.10em', textTransform: 'uppercase', color: 'var(--twb-text-3)',
+      h('span', { style: { flex: 1, minWidth: 0, fontSize: 10, fontWeight: 700,
+        letterSpacing: '.12em', textTransform: 'uppercase', color: 'var(--twb-text-3)',
         overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, studioLeftTitle),
-      h('span', { style: { fontSize: 9, fontFamily: mono, color: STUDIO_MUTED, whiteSpace: 'nowrap' } },
+      h('span', { style: { fontSize: 9.5, fontFamily: mono, color: STUDIO_MUTED, whiteSpace: 'nowrap' } },
         studioLeftAux)),
       h('div', { style: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' } },
         studioLeftBody))
@@ -30478,10 +30548,11 @@ THE SOFTWARE.
           borderLeft: '1px solid ' + STUDIO_LINE },
       },
       h('div', {
-        style: { flex: '0 0 auto', height: 34, display: 'flex', alignItems: 'center', gap: 6,
-          padding: '0 10px', borderBottom: '1px solid ' + STUDIO_LINE },
+        style: { flex: '0 0 auto', height: 38, display: 'flex', alignItems: 'center', gap: 6,
+          padding: '0 12px', borderBottom: '1px solid ' + STUDIO_LINE,
+          background: 'var(--twb-panel-3)' },
       },
-      h('span', { style: { flex: 1, fontSize: 9.5, fontWeight: 700, letterSpacing: '.10em',
+      h('span', { style: { flex: 1, fontSize: 10, fontWeight: 700, letterSpacing: '.12em',
         textTransform: 'uppercase', color: 'var(--twb-text-3)' } }, t('editor.inspector')),
       studioOverrideCount > 0
         ? h('span', { style: { fontSize: 9, padding: '1px 6px', borderRadius: 8, color: STUDIO_ACCENT,
@@ -33205,6 +33276,23 @@ THE SOFTWARE.
             + '[data-three-workbench-studio="root"] ::-webkit-scrollbar{width:8px;height:8px}'
             + '[data-three-workbench-studio="root"] ::-webkit-scrollbar-thumb{background:var(--twb-scrollbar);border-radius:4px}'
             + '[data-three-workbench-studio="root"] ::-webkit-scrollbar-track{background:transparent}'
+            + '[data-three-workbench-studio="root"]{font-family:var(--twb-font-ui);font-feature-settings:"tnum" 1,"cv11" 1;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}'
+            + '[data-three-workbench-studio="root"] button,[data-three-workbench-studio="root"] input,[data-three-workbench-studio="root"] textarea,[data-three-workbench-studio="root"] select{font-family:inherit}'
+            + '[data-three-workbench-studio="root"] .twb-studio-btn,[data-three-workbench-studio="root"] .twb-studio-rail{transition:background .14s ease,border-color .14s ease,color .14s ease,opacity .14s ease}'
+            + '[data-three-workbench-studio="root"] .twb-studio-btn:active:not(:disabled){transform:translateY(1px)}'
+            + '[data-three-workbench-studio="root"] input,[data-three-workbench-studio="root"] textarea{caret-color:var(--twb-accent)}'
+            + '[data-three-workbench-studio="root"] ::selection{background:var(--twb-accent-soft);color:var(--twb-text)}'
+            + '[data-three-workbench-studio="left"]>div:first-child,[data-three-workbench-studio="right"]>div:first-child{box-shadow:0 1px 0 rgba(255,255,255,.02) inset}'
+            + 'html[data-three-studio-desktop] [data-three-workbench-studio="header"]{-webkit-app-region:drag;user-select:none}'
+            + 'html[data-three-studio-desktop] [data-three-workbench-studio="header"] button,'
+            + '[data-three-workbench-studio="header"] input,[data-three-workbench-studio="header"] textarea,'
+            + '[data-three-workbench-studio="header"] select,[data-three-workbench-studio="header"] a,'
+            + '[data-three-workbench-studio="header"] [role="button"]{-webkit-app-region:no-drag}'
+            + 'html[data-three-studio-desktop="win32"] [data-three-workbench-studio="header"]{padding-right:152px!important}'
+            + 'html[data-three-studio-desktop="darwin"] [data-three-workbench-studio="header"]{padding-left:84px!important}'
+            + '@media (max-width:1280px){[data-three-workbench-studio="header"]{gap:6px!important;padding-left:8px!important;padding-right:8px!important}'
+            + '[data-three-workbench-locale-switch]{display:none!important}}'
+            + '@media (prefers-reduced-motion:reduce){[data-three-workbench-studio="root"] *{animation-duration:.001ms!important;transition-duration:.001ms!important}}'
           document.head.append(element)
           return () => element.remove()
         }, 'three-workbench: studio styles')

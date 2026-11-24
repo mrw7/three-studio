@@ -47,9 +47,11 @@ migrated automatically.
 
 ## Plugin market
 
-The **Plugin market** tab (`standalone/plugins/catalog.mjs`) lists capabilities
-selected from the MIT-licensed Harness ecosystem and adapted as native Studio
-modules. Installing one activates its tools and prompt guidance immediately:
+The **Plugin market** tab (`standalone/plugins/catalog.mjs`) lists native Studio
+modules. Capability ideas were drawn from the MIT-licensed Harness ecosystem,
+but the standalone build bundles no Harness runtime code; each entry is a native
+implementation. All twenty catalog entries are installable. Installing one
+activates its tools and prompt guidance immediately:
 
 - **Skills library** — flat `<name>.md` files in `skills/`, exposed through the
   `read_skill` tool. Seeded with a Three.js scene skill.
@@ -60,9 +62,11 @@ modules. Installing one activates its tools and prompt guidance immediately:
 - **Web reader** — a `web_fetch` tool with private/loopback address refusal and
   bounded output.
 
-The catalog also lists roadmap entries (scheduled tasks, MCP connectors,
-deliverables, file/document/browser panes, background jobs, voice input and
-more). They are visible but disabled until a native implementation lands.
+The catalog also includes scheduled tasks, MCP connectors, deliverables,
+file/document/browser panes, background jobs, voice input, memory, context
+files, action cards, automation hooks and deep research. Trust-sensitive
+surfaces (MCP, browser automation, hooks) require user-authored configuration
+and never enable themselves.
 
 ## Supported
 
@@ -76,6 +80,12 @@ more). They are visible but disabled until a native implementation lands.
 
 ## Not supported
 
-Harness-only features are deliberately absent: scheduled tasks, plugin
-management, skills, MCP connectors, subagents and Harness account sign-in.
-There is no navigation back to a host shell; Studio is the whole page.
+- Harness account sign-in and navigation back to a host shell; Studio is the
+  whole page.
+- Full durability parity with the Linux store outside Linux. macOS and Windows
+  use the portable snapshot backend, which persists scenes, revision history,
+  assets, share links and thumbnails. It is a simpler snapshot model than the
+  Linux fd store, not a crash-fenced transaction log. Set
+  `THREE_STUDIO_PORTABLE_STORE=1` to exercise the portable backend on Linux.
+- Public sharing or multi-user access. The server binds `127.0.0.1`, has no
+  account system and must not be exposed to an untrusted network.

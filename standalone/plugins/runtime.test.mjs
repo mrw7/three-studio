@@ -459,6 +459,69 @@ test('mcp connectors refuse without config and drive a stdio echo server', async
   }
 })
 
+const MCP_INSPECT_SERVER = `
+const readLines = (stream, onLine) => {
+  let buffer = ''
+  stream.setEncoding('utf8')
+  stream.on('data', chunk => {
+    buffer += chunk
+    let newline = buffer.indexOf('\\n')
+    while (newline >= 0) {
+      const line = buffer.slice(0, newline).trim()
+      buffer = buffer.slice(newline + 1)
+      if (line !== '') onLine(line)
+      newline = buffer.indexOf('\\n')
+    }
+  })
+}
+readLines(process.stdin, line => {
+  const message = JSON.parse(line)
+  if (message.id === undefined) return
+  if (message.method === 'initialize') {
+    process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: message.id, result: { protocolVersion: '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'inspect', version: '0' } } }) + '\\n')
+  } else if (message.method === 'tools/list') {
+    process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: message.id, result: { tools: [{ name: 'inspect', description: 'Inspect the child environment.' }] } }) + '\\n')
+  } else if (message.method === 'tools/call') {
+    const payload = {
+      cwd: process.cwd(),
+      declared: process.env.DECLARED ?? null,
+      leaked: process.env.THREE_STUDIO_TEST_SECRET ?? null,
+      hasPath: typeof process.env.PATH === 'string',
+    }
+    process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: message.id, result: { content: [{ type: 'text', text: JSON.stringify(payload) }] } }) + '\\n')
+  }
+})
+`
+
+test('mcp children get a dedicated cwd and a minimal environment', async () => {
+  const { dataDir, tools, runtime } = await createHarness()
+  const previous = process.env.THREE_STUDIO_TEST_SECRET
+  process.env.THREE_STUDIO_TEST_SECRET = 'must-not-leak'
+  try {
+    await writeFile(join(dataDir, 'mcp.json'), JSON.stringify({
+      servers: [{
+        id: 'inspect',
+        command: process.execPath,
+        args: ['-e', MCP_INSPECT_SERVER],
+        env: { DECLARED: 'yes' },
+      }],
+    }), 'utf8')
+    assert.equal((await runtime.install('mcp-connectors')).ok, true)
+    const called = await tools.get('mcp_call_tool').execute(
+      { server: 'inspect', tool: 'inspect', arguments: {} }, {})
+    const payload = JSON.parse(called.content)
+    assert.equal(payload.cwd, join(dataDir, 'mcp', 'inspect'))
+    assert.equal(payload.declared, 'yes')
+    assert.equal(payload.leaked, null)
+    assert.equal(payload.hasPath, true)
+    await runtime.uninstall('mcp-connectors')
+  } finally {
+    if (previous === undefined) delete process.env.THREE_STUDIO_TEST_SECRET
+    else process.env.THREE_STUDIO_TEST_SECRET = previous
+    await rm(dataDir, { recursive: true, force: true })
+  }
+})
+
 test('browser automation refuses without opt-in config; guarded when configured', async () => {
   const bare = await createHarness()
   try {

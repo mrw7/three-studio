@@ -35,6 +35,11 @@ node --test tests/behavior.test.mjs                          # one file
 node --test --test-name-pattern="frame-step" tests/behavior.test.mjs
 node --test standalone/plugins/runtime.test.mjs standalone/settings.test.mjs
 node --check client.js                                       # syntax check every file you touch
+node standalone/migrate-portable.mjs --from DIR --to DIR      # Linux fd store -> portable
+node standalone/merge-portable.mjs --from DIR --to DIR        # portable -> portable merge
+node standalone/profile-merge.mjs --from HOME --to HOME        # sessions/models merge (no credentials)
+cd desktop && npm run license -- issue --key KEY --customer NAME --days 365 --out FILE
+cd desktop && npm run release-check                            # desktop signing/license/template gate
 ```
 
 `tests/disk.test.mjs` (`npm run test:disk`) is excluded locally because its
@@ -55,6 +60,7 @@ server:  static + /api/*  -> agent.mjs (provider adapters, 8-round tool loop)
                           -> plugins/runtime.mjs + settings.mjs
                           -> fake Cordis ctx -> index.js (scene engine tools/routes)
 storage: ~/.three-studio (models, credentials, sessions, plugins, skills, scenes)
+desktop: desktop/main.mjs (Electron shell) -> spawns standalone/server.mjs with Node 24
 ```
 
 - **`client.js`** (~33k lines, no build): the entire Studio UI, registered via
@@ -80,10 +86,22 @@ storage: ~/.three-studio (models, credentials, sessions, plugins, skills, scenes
   model directories) and mounts the Studio as the whole page.
 - **`runtime/`** is vendored Three.js r186 plus the loaders/exporters the
   preview and exports need.
+- **`desktop/`** is the unsigned Electron alpha. It spawns the standalone
+  server with an external Node 24 (`THREE_STUDIO_NODE` overrides), stores data
+  under Electron's `userData`, and keeps `contextIsolation`/`sandbox` on. It is
+  not part of `npm test` and needs `npm install` inside `desktop/`.
+- **Disk persistence is split.** Linux uses the fd-anchored store in
+  `index.js`; macOS/Windows use the portable snapshot backend (scenes, history,
+  assets, shares and thumbnails under `scenes/portable/`).
+  `THREE_STUDIO_PORTABLE_STORE=1` forces the portable backend on Linux for
+  tests. Portable mode is a snapshot model, not a crash-fenced transaction log.
 
 `docs/ARCHITECTURE.md` is the component map; `docs/PROTOCOL.md` is the
 authoritative parent↔iframe command contract (its line anchors drift — re-grep
-the named symbol before relying on one).
+the named symbol before relying on one). `docs/OPEN-CORE.md` is the
+public/private boundary: the local core is Apache-2.0, while signing keys,
+customer data, private services and the paid Pro template pack stay outside the
+repo (`desktop/templates/pro/` is gitignored and assembled at build time).
 
 ## Security invariants
 
@@ -96,6 +114,10 @@ the named symbol before relying on one).
 - The server binds loopback only. Credentials live in
   `~/.three-studio/credentials.json` (mode `0600`) and API keys are never
   returned by the API.
+- `/api/*` and `/three-workbench/*` enforce loopback `Host`, same-origin
+  `Origin`/`Sec-Fetch-Site`, a per-process token on browser-like writes,
+  JSON content type and route body limits. Do not weaken these checks; add a
+  regression test in `tests/standalone-server.test.mjs`.
 - The marketplace installs native in-repo modules only; it must not execute
   downloaded code.
 
@@ -111,10 +133,14 @@ the named symbol before relying on one).
   live in `examples/plugin-config/`.
 - **Docs stay in sync**: update `README.md`/`README.zh.md` and the relevant
   `docs/*.md` in the same change, including the Chinese counterparts
-  (`docs/PLUGINS.zh.md`, `docs/EXPORTS.zh.md`, `docs/SECURITY.zh.md`). The
+  (`docs/PLUGINS.zh.md`, `docs/EXPORTS.zh.md`, `docs/SECURITY.zh.md`,
+  `docs/OPEN-CORE.zh.md`). The
   screenshots in `docs/screenshots/` are committed; replace them when a surface
   changes materially. Browser probes live in `tests/e2e/{standalone,exports,plugins}.mjs`.
 - `AUDIT.md`, `TODO.md`, `docs/BATCH-*.md`, `docs/P*-*.md`, `docs/DESIGN-*.md`
   and `docs/DECISIONS.md` are gitignored internal notes, not published docs.
-- The repository is not open source; do not add license or contribution
-  scaffolding, and follow `CONTRIBUTING.md` only if asked to contribute.
+- The core is open source under Apache-2.0 (`LICENSE`, `NOTICE`). Keep
+  `package.json`, `README.md`/`README.zh.md` and `THIRD_PARTY_NOTICES.md`
+  consistent with that license. Hosted/team/enterprise services may remain
+  proprietary and must live outside this repository; do not add paywalls to the
+  local core. Follow `CONTRIBUTING.md` for DCO sign-off and review rules.

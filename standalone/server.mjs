@@ -7,7 +7,7 @@
  * Studio client shell and its session/model APIs.
  */
 import http from 'node:http'
-import { randomUUID } from 'node:crypto'
+import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
 import { readFile, stat, writeFile, mkdir } from 'node:fs/promises'
 import { homedir } from 'node:os'
 import { dirname, extname, join, normalize, sep } from 'node:path'
@@ -25,6 +25,18 @@ const HOME = process.env.THREE_STUDIO_HOME || join(homedir(), '.three-studio')
 const SCENES = process.env.THREE_WORKBENCH_DATA_DIR || join(HOME, 'scenes')
 const SESSIONS_FILE = join(HOME, 'sessions.json')
 const PORT = Number(process.env.THREE_STUDIO_PORT || 3090)
+const API_TOKEN = randomBytes(32).toString('base64url')
+const LOOPBACK_HOSTS = new Set([
+  `127.0.0.1:${String(PORT)}`,
+  `localhost:${String(PORT)}`,
+  `[::1]:${String(PORT)}`,
+])
+const ALLOWED_ORIGINS = new Set([
+  `http://127.0.0.1:${String(PORT)}`,
+  `http://localhost:${String(PORT)}`,
+  `http://[::1]:${String(PORT)}`,
+])
+const MIB = 1024 * 1024
 
 process.env.THREE_WORKBENCH_DATA_DIR = SCENES
 await mkdir(HOME, { recursive: true })
@@ -306,17 +318,59 @@ const pluginRuntime = await createPluginRuntime({
   },
 })
 
-const readBody = async request => {
+class BodyTooLargeError extends Error {
+  constructor() {
+    super('Request body too large.')
+    this.code = 'BODY_TOO_LARGE'
+  }
+}
+
+const bodyLimitFor = pathname => {
+  if (pathname === '/three-workbench/assets/upload') return 34 * MIB
+  if (pathname === '/three-workbench/thumbnail') return 2 * MIB
+  if (pathname.startsWith('/three-workbench/')) return 10 * MIB
+  if (pathname.startsWith('/api/')) return 1 * MIB
+  return 1 * MIB
+}
+
+const readBody = async (request, limit) => {
+  const declared = Number(request.headers['content-length'])
+  if (Number.isFinite(declared) && declared > limit) throw new BodyTooLargeError()
   const chunks = []
-  for await (const chunk of request) chunks.push(chunk)
+  let total = 0
+  for await (const chunk of request) {
+    total += chunk.length
+    if (total > limit) throw new BodyTooLargeError()
+    chunks.push(chunk)
+  }
   return Buffer.concat(chunks)
 }
 
+const isLoopbackHost = host => typeof host === 'string' && LOOPBACK_HOSTS.has(host.toLowerCase())
+const isAllowedOrigin = origin => typeof origin === 'string' && ALLOWED_ORIGINS.has(origin)
+const isStateChanging = method => !['GET', 'HEAD', 'OPTIONS'].includes(String(method).toUpperCase())
+const isBrowserLikeRequest = headers => headers.origin !== undefined || headers['sec-fetch-site'] !== undefined
+const tokenMatches = value => {
+  if (typeof value !== 'string') return false
+  const expected = Buffer.from(API_TOKEN)
+  const received = Buffer.from(value)
+  return expected.length === received.length && timingSafeEqual(expected, received)
+}
+const hasRequestBody = headers => {
+  const declared = Number(headers['content-length'])
+  return (Number.isFinite(declared) && declared > 0) || headers['transfer-encoding'] !== undefined
+}
+const isJsonContentType = value => typeof value === 'string'
+  && /^application\/(?:[\w.+-]+\+)?json(?:\s*;|$)/i.test(value)
+
 const toWebRequest = async request => {
-  const host = request.headers.host || `127.0.0.1:${String(PORT)}`
+  const pathname = new URL(request.url || '/', 'http://127.0.0.1').pathname
+  const host = isLoopbackHost(request.headers.host) ? request.headers.host : `127.0.0.1:${String(PORT)}`
   const url = `http://${host}${request.url || '/'}`
   const method = request.method || 'GET'
-  const body = method === 'GET' || method === 'HEAD' ? undefined : await readBody(request)
+  const body = method === 'GET' || method === 'HEAD'
+    ? undefined
+    : await readBody(request, bodyLimitFor(pathname))
   const headers = new Headers()
   for (const [name, value] of Object.entries(request.headers)) {
     if (value === undefined) continue
@@ -325,9 +379,59 @@ const toWebRequest = async request => {
   return new Request(url, { method, headers, ...(body === undefined || body.length === 0 ? {} : { body }) })
 }
 
+const applyResponseHardening = responseNode => {
+  if (!responseNode.hasHeader('x-content-type-options')) {
+    responseNode.setHeader('x-content-type-options', 'nosniff')
+  }
+  if (!responseNode.hasHeader('referrer-policy')) {
+    responseNode.setHeader('referrer-policy', 'no-referrer')
+  }
+}
+
+const applyDocumentHardening = responseNode => {
+  applyResponseHardening(responseNode)
+  responseNode.setHeader('permissions-policy', 'camera=(), microphone=(), geolocation=()')
+  responseNode.setHeader('cross-origin-opener-policy', 'same-origin')
+  // Deliberately narrow: do not restrict script/connect here because the
+  // sandboxed preview inherits this policy and needs its own runtime imports.
+  responseNode.setHeader('content-security-policy',
+    "frame-ancestors 'none'; object-src 'none'; base-uri 'none'; form-action 'none'")
+}
+
+const sendError = (responseNode, status, message) => {
+  responseNode.statusCode = status
+  responseNode.setHeader('content-type', 'application/json; charset=utf-8')
+  responseNode.setHeader('cache-control', 'no-store')
+  applyResponseHardening(responseNode)
+  responseNode.end(JSON.stringify({ ok: false, message }))
+}
+
+const rejectRequest = (request, responseNode, status, message) => {
+  // Drain a request body before answering so the client can read the error
+  // response instead of seeing a socket reset when we reject early.
+  let settled = false
+  let timer = null
+  const respond = () => {
+    if (settled) return
+    settled = true
+    if (timer !== null) clearTimeout(timer)
+    try { sendError(responseNode, status, message) } catch (error) { void error }
+  }
+  if (request.complete === true || request.readableEnded === true) {
+    respond()
+    return
+  }
+  request.once('end', respond)
+  request.once('error', respond)
+  timer = setTimeout(respond, 1000)
+  timer.unref()
+  request.resume()
+}
+
 const writeWebResponse = async (response, responseNode, head) => {
   responseNode.statusCode = response.status
   for (const [name, value] of response.headers) responseNode.setHeader(name, value)
+  applyResponseHardening(responseNode)
   if (head) {
     responseNode.end()
     return
@@ -360,12 +464,27 @@ const serveFile = async (responseNode, path, head) => {
     responseNode.statusCode = 200
     responseNode.setHeader('content-type', MIME[extname(path)] || 'application/octet-stream')
     responseNode.setHeader('cache-control', 'no-store')
+    applyResponseHardening(responseNode)
     responseNode.end(head ? undefined : bytes)
     return true
   } catch (error) {
     if (error?.code === 'ENOENT' || error?.code === 'ENOTDIR') return false
     throw error
   }
+}
+
+const serveIndex = async (responseNode, head) => {
+  const template = await readFile(join(PUBLIC, 'index.html'), 'utf8')
+  const meta = `<meta name="three-studio-api-token" content="${API_TOKEN}" />`
+  const html = template.includes('</head>')
+    ? template.replace('</head>', `    ${meta}\n  </head>`)
+    : `${meta}\n${template}`
+  responseNode.statusCode = 200
+  responseNode.setHeader('content-type', 'text/html; charset=utf-8')
+  responseNode.setHeader('cache-control', 'no-store')
+  applyDocumentHardening(responseNode)
+  responseNode.end(head ? undefined : html)
+  return true
 }
 
 const dispatchWorkbench = async request => {
@@ -629,7 +748,45 @@ const handleApi = async (request, pathname) => {
 const server = http.createServer(async (request, responseNode) => {
   try {
     const pathname = new URL(request.url || '/', `http://127.0.0.1:${String(PORT)}`).pathname
-    const head = request.method === 'HEAD'
+    const method = request.method || 'GET'
+    const head = method === 'HEAD'
+    if (pathname.startsWith('/api/') || pathname.startsWith('/three-workbench/')) {
+      if (!isLoopbackHost(request.headers.host)) {
+        rejectRequest(request, responseNode, 421, 'Misdirected request.')
+        return
+      }
+      const origin = request.headers.origin
+      const fetchSite = request.headers['sec-fetch-site']
+      if (pathname.startsWith('/api/')) {
+        if (origin !== undefined && !isAllowedOrigin(origin)) {
+          rejectRequest(request, responseNode, 403, 'Origin not allowed.')
+          return
+        }
+        if (fetchSite !== undefined && fetchSite !== 'same-origin' && fetchSite !== 'none') {
+          rejectRequest(request, responseNode, 403, 'Cross-site request blocked.')
+          return
+        }
+      } else if (isStateChanging(method)) {
+        if (origin !== undefined && !isAllowedOrigin(origin)) {
+          rejectRequest(request, responseNode, 403, 'Origin not allowed.')
+          return
+        }
+        if (fetchSite !== undefined && fetchSite !== 'same-origin') {
+          rejectRequest(request, responseNode, 403, 'Cross-site request blocked.')
+          return
+        }
+      }
+      if (isStateChanging(method) && isBrowserLikeRequest(request.headers)
+        && !tokenMatches(request.headers['x-three-studio-token'])) {
+        rejectRequest(request, responseNode, 403, 'Missing or invalid API token.')
+        return
+      }
+      if (pathname.startsWith('/api/') && isStateChanging(method)
+        && hasRequestBody(request.headers) && !isJsonContentType(request.headers['content-type'])) {
+        rejectRequest(request, responseNode, 415, 'Expected application/json.')
+        return
+      }
+    }
     if (pathname.startsWith('/three-workbench/')) {
       const exactHandler = routes.find(row => row.kind === 'exact' && row.path === pathname
         && typeof row.handler === 'function')
@@ -655,6 +812,8 @@ const server = http.createServer(async (request, responseNode) => {
         'cache-control': 'no-store',
         connection: 'keep-alive',
         'x-accel-buffering': 'no',
+        'x-content-type-options': 'nosniff',
+        'referrer-policy': 'no-referrer',
       })
       responseNode.write(': connected\n\n')
       responseNode.write(`data: ${JSON.stringify({
@@ -691,17 +850,23 @@ const server = http.createServer(async (request, responseNode) => {
       responseNode.statusCode = 200
       responseNode.setHeader('content-type', 'text/javascript; charset=utf-8')
       responseNode.setHeader('cache-control', 'no-store')
+      applyResponseHardening(responseNode)
       responseNode.end(head ? undefined : await readFile(CLIENT))
       return
     }
-    const target = pathname === '/' || pathname === '/index.html'
-      ? join(PUBLIC, 'index.html')
-      : safePublicPath(pathname)
+    if (pathname === '/' || pathname === '/index.html') {
+      if (await serveIndex(responseNode, head)) return
+    }
+    const target = pathname === '/' || pathname === '/index.html' ? null : safePublicPath(pathname)
     if (target !== null && await serveFile(responseNode, target, head)) return
     responseNode.statusCode = 404
     responseNode.setHeader('content-type', 'text/plain; charset=utf-8')
     responseNode.end('not found')
   } catch (error) {
+    if (error?.code === 'BODY_TOO_LARGE') {
+      sendError(responseNode, 413, 'Request body too large.')
+      return
+    }
     responseNode.statusCode = 500
     responseNode.setHeader('content-type', 'text/plain; charset=utf-8')
     responseNode.end(error instanceof Error ? error.stack || error.message : String(error))

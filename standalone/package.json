@@ -4,7 +4,7 @@
   "type": "module",
   "version": "0.1.0",
   "description": "Standalone Three Studio AI 3D workbench; no DeepSeek Harness runtime.",
-  "license": "UNLICENSED",
+  "license": "Apache-2.0",
   "engines": { "node": ">=24" },
   "scripts": {
     "start": "./start.sh"
