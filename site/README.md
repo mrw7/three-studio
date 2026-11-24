@@ -34,8 +34,10 @@ All demos are procedural, responsive, and free of external fonts/CDNs/assets.
 
 The gallery and every demo default to English. The header toggle switches to
 Chinese, reloads the page so dynamic labels rebuild through `t()` in
-[`i18n.js`](i18n.js), and remembers the choice in `localStorage`. Contact
-buttons use `three.studio.2026@outlook.com`; change them if you deploy your own copy.
+[`i18n.js`](i18n.js), and remembers the choice in `localStorage`. Append
+`?lang=en` or `?lang=zh` to a URL to force a language for a shared link.
+Contact buttons use `three.studio.2026@outlook.com`; change them if you deploy
+your own copy.
 
 ## Deploy
 

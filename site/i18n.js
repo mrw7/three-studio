@@ -1,7 +1,8 @@
 /**
  * Tiny bilingual layer for the static demo gallery.
- * Default language is English; the toggle in the header switches to Chinese
- * and reloads so page-specific dynamic labels are rebuilt from `t()`.
+ * Default language is English; the header toggle switches to Chinese and
+ * reloads so page-specific dynamic labels are rebuilt from `t()`.
+ * Append `?lang=en` or `?lang=zh` to force a language and remember it.
  */
 const EN = {
   // Shared
@@ -315,10 +316,22 @@ const EN = {
 
 const normalize = value => String(value).replace(/\s+/g, ' ').trim()
 const ZH = Object.fromEntries(Object.entries(EN).map(([zh, en]) => [en, zh]))
+const LANG_KEY = 'three-studio-demo-lang-v2'
+const LEGACY_LANG_KEY = 'three-studio-demo-lang'
+
+const requestedLanguage = (() => {
+  try {
+    const value = new URLSearchParams(window.location.search).get('lang')
+    return value === 'zh' || value === 'en' ? value : null
+  } catch (error) {
+    return null
+  }
+})()
 
 function language() {
+  if (requestedLanguage !== null) return requestedLanguage
   try {
-    const stored = localStorage.getItem('three-studio-demo-lang')
+    const stored = localStorage.getItem(LANG_KEY)
     return stored === 'zh' ? 'zh' : 'en'
   } catch (error) {
     return 'en'
@@ -383,7 +396,7 @@ function ensureToggle() {
   button.textContent = language() === 'zh' ? 'EN' : '中文'
   button.addEventListener('click', () => {
     const next = language() === 'zh' ? 'en' : 'zh'
-    try { localStorage.setItem('three-studio-demo-lang', next) } catch (error) { void error }
+    try { localStorage.setItem(LANG_KEY, next) } catch (error) { void error }
     window.location.reload()
   })
   header.append(button)
@@ -396,6 +409,10 @@ function ensureToggle() {
 }
 
 function init() {
+  try {
+    localStorage.removeItem(LEGACY_LANG_KEY)
+    if (requestedLanguage !== null) localStorage.setItem(LANG_KEY, requestedLanguage)
+  } catch (error) { void error }
   apply()
   ensureToggle()
 }
