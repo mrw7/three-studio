@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 const repo = join(dirname(fileURLToPath(import.meta.url)), '..')
 const site = join(repo, 'site')
 const demos = [
+  'one-minute-demo',
   'agency-demo',
   'configurator-demo',
   'education-demo',
@@ -17,7 +18,7 @@ const demos = [
   'atrium-demo',
 ]
 
-test('demo gallery links eight runnable, offline demos', async () => {
+test('demo gallery links nine runnable, offline demos', async () => {
   const gallery = await readFile(join(site, 'index.html'), 'utf8')
   for (const id of demos) {
     assert.match(gallery, new RegExp(`href="\\./${id}/"`), `gallery links ${id}`)
@@ -42,6 +43,21 @@ test('configurator demo exposes live options and GLB export', async () => {
   assert.match(main, /new GLTFExporter/)
   assert.match(main, /lumen-config\.glb/)
   assert.match(main, /BASE_PRICE/)
+})
+
+test('one-minute film has a 60-second timeline and playback controls', async () => {
+  const html = await readFile(join(site, 'one-minute-demo', 'index.html'), 'utf8')
+  const main = await readFile(join(site, 'one-minute-demo', 'main.js'), 'utf8')
+  assert.match(main, /const DURATION = 60/)
+  assert.match(main, /const CHAPTERS = \[/)
+  assert.match(main, /requestAnimationFrame/)
+  assert.match(main, /prefers-reduced-motion/)
+  assert.match(main, /applyTimeline/)
+  for (const id of ['play', 'progress', 'replay', 'fullscreen']) {
+    assert.match(html, new RegExp(`id="${id}"`), `film control ${id}`)
+  }
+  assert.match(html, /id="chapter-name"/)
+  assert.match(html, /id="end-card"/)
 })
 
 test('English demo prices are localized and tiered', async () => {

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#03050a">
+  <meta name="description" content="ONE MINUTE — a 60-second procedural Three.js film: seed, tree, swarm and stars.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2303050a'/%3E%3Ccircle cx='32' cy='31' r='8' fill='%23ffd49a'/%3E%3Cpath d='M32 23v-8M32 39v8M24 31h-8M40 31h8M26 25l-5-5M38 37l5 5M38 25l5-5M26 37l-5 5' stroke='%235fe1ff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <title>ONE MINUTE — a 60-second procedural film</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../runtime/three.module.js",
+        "three/addons/": "../runtime/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="fade" id="fade" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark">1</span>
+      <span><strong>ONE MINUTE</strong><small>A THREE STUDIO FILM</small></span>
+    </a>
+    <nav class="topnav" aria-label="导航">
+      <a href="../index.html">Demo gallery</a>
+      <a href="../agency-demo/">Next: AUREL</a>
+    </nav>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20film">预约同款短片 <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="overlay">
+    <section class="title-card" id="title-card">
+      <p class="eyebrow">ONE MINUTE / A PROCEDURAL FILM</p>
+      <h1>一分钟，<br><em>从种子到星海。</em></h1>
+      <p class="lede">六个章节，60 秒。没有视频与贴图，全部由 Three.js 实时生成。</p>
+      <div class="hero-meta">
+        <span>60 秒</span>
+        <span>六个章节</span>
+        <span>纯代码生成</span>
+      </div>
+    </section>
+
+    <div class="chapter-hud" aria-live="polite">
+      <span id="chapter-index">CHAPTER 01 / 06</span>
+      <strong id="chapter-name">种子</strong>
+    </div>
+
+    <section class="end-card" id="end-card" hidden>
+      <p class="eyebrow">ONE MINUTE</p>
+      <h2>从种子，<br>到星海。</h2>
+      <p>一部 60 秒的程序化短片。</p>
+      <button type="button" id="replay-end">重播</button>
+    </section>
+
+    <div class="player" role="group" aria-label="播放器">
+      <button type="button" id="play">暂停</button>
+      <div class="progress" id="progress" role="slider" tabindex="0" aria-label="播放进度" aria-valuemin="0" aria-valuemax="60" aria-valuenow="0">
+        <div class="progress-fill" id="progress-fill"></div>
+        <div class="ticks" id="ticks" aria-hidden="true"></div>
+      </div>
+      <span class="time" id="time">0:00 / 1:00</span>
+      <button type="button" id="replay">重播</button>
+      <button type="button" id="fullscreen">全屏</button>
+    </div>
+
+    <p class="hint" id="hint">空格暂停 · R 重播 · 拖动进度条</p>
+  </main>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

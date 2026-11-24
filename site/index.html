@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080b10">
-  <meta name="description" content="Three Studio demo gallery: agency interactive pages, product configurators and Three.js workshops.">
+  <meta name="description" content="Three Studio demo gallery: a one-minute procedural film, agency interactive pages, product configurators and Three.js workshops.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23080b10'/%3E%3Cpath d='M32 12 50 46H14Z' fill='none' stroke='%236f8dff' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M20 38c6-8 18 8 24 0' fill='none' stroke='%23e8c98a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
   <title>Three Studio — Demo Gallery</title>
   <link rel="stylesheet" href="./gallery.css">
@@ -16,6 +16,7 @@
       <span><strong>THREE STUDIO</strong><small>DEMO GALLERY</small></span>
     </a>
     <nav class="topnav" aria-label="Demo 导航">
+      <a href="#film">短片</a>
       <a href="#demos">Work demos</a>
       <a href="#motion">Motion</a>
       <a href="#data-space">Data & space</a>
@@ -29,7 +30,7 @@
     <section class="hero">
       <p class="eyebrow">THREE STUDIO / DEMO LAB</p>
       <h1>把 Three.js 做成<br><em>可交付的产品页。</em></h1>
-      <p class="lede">八个可运行的 demo：agency 互动页、产品配置器、教育工作坊、粒子星云、金属雕塑、音频可视化、全球数据网络和空间漫游。
+      <p class="lede">九个可运行的 demo：一分钟动画短片、agency 互动页、产品配置器、教育工作坊、粒子星云、金属雕塑、音频可视化、全球数据网络和空间漫游。
         每个都能在浏览器里实时运行，代码归客户，本地优先。</p>
       <div class="hero-meta">
         <span>AI-native workflow</span>
@@ -37,6 +38,31 @@
         <span>BYOK / 本地优先</span>
         <span>2 周 – 6 周交付</span>
       </div>
+    </section>
+
+    <section id="film" class="film" aria-labelledby="film-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">ONE-MINUTE FILM</p>
+          <h2 id="film-title">一分钟，<br>从种子到星海。</h2>
+        </div>
+        <p>一段 60 秒的程序化 Three.js 短片：没有视频、没有贴图，全部由代码实时生成。适合品牌开场、发布会和展厅循环。</p>
+      </div>
+      <article class="demo-card film-card">
+        <a class="demo-media" href="./one-minute-demo/" aria-label="播放 ONE MINUTE 动画短片">
+          <img src="./one-minute-demo/preview.png" alt="ONE MINUTE 动画短片预览" loading="lazy">
+          <span class="demo-index">FILM · 60s</span>
+        </a>
+        <div class="demo-body">
+          <p class="demo-tag">FILM / PROCEDURAL</p>
+          <h2>ONE MINUTE — 种子、树与星海</h2>
+          <p>六个章节、60 秒时间轴、程序化生长与粒子。静音自动播放，可暂停、重播和全屏观看。</p>
+          <div class="demo-foot">
+            <span>60 秒 · 纯代码生成 · 可循环</span>
+            <a href="./one-minute-demo/">播放短片 <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </article>
     </section>
 
     <section id="demos" class="demos" aria-label="Demo 列表">

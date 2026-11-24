@@ -15,6 +15,8 @@ in `runtime/`.
 
 ## Demos
 
+- [`one-minute-demo/`](one-minute-demo/README.md) — ONE MINUTE, a 60-second
+  procedural film with a six-chapter timeline and playback controls
 - [`agency-demo/`](agency-demo/README.md) — AUREL scroll-driven 3D product page
   for the agency/marketing offer
 - [`configurator-demo/`](configurator-demo/README.md) — LUMEN real-time product

@@ -15,9 +15,10 @@ remains available as an optional legacy mode.
 
 [English](README.md) · [简体中文](README.zh.md)
 
-**Live demos:** <https://mrw7.github.io/three-studio/> — eight runnable Three.js
-demos: agency page, product configurator, education workshop, motion studies,
-audio/data visualizations and a spatial walkthrough.
+**Live demos:** <https://mrw7.github.io/three-studio/> — nine runnable Three.js
+demos: a one-minute procedural film, agency page, product configurator,
+education workshop, motion studies, audio/data visualizations and a spatial
+walkthrough.
 
 ![Three Studio overview](docs/screenshots/01-studio-overview.png)
 
@@ -219,7 +220,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the component contracts,
 - [Plugin trust boundaries](docs/TRUST-BOUNDARIES.md) ([中文](docs/TRUST-BOUNDARIES.zh.md))
 - [Plugin configuration examples](examples/plugin-config/README.md)
 - [Desktop alpha](desktop/README.md)
-- [Demo gallery](https://mrw7.github.io/three-studio/) ([source](site/index.html); [agency](site/agency-demo/README.md), [configurator](site/configurator-demo/README.md), [education](site/education-demo/README.md), [motion](site/README.md), [data/space](site/README.md))
+- [Demo gallery](https://mrw7.github.io/three-studio/) ([source](site/index.html); [film](site/one-minute-demo/README.md), [agency](site/agency-demo/README.md), [configurator](site/configurator-demo/README.md), [education](site/education-demo/README.md), [motion](site/README.md), [data/space](site/README.md))
 - [Development and testing](docs/DEVELOPMENT.md)
 - [Scene/editor protocol](docs/PROTOCOL.md)
 - [IP provenance audit](docs/IP-PROVENANCE-AUDIT.md)

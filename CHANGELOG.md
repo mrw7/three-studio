@@ -144,6 +144,9 @@
 - Model providers can be edited and deleted inline, including model-list
   changes; deleting a provider also removes its credential and resets stale
   session selections
+- **Demo gallery:** added ONE MINUTE, a 60-second procedural Three.js film,
+  plus localized English pricing and tiered sprint/configurator/workshop
+  offers; README, docs and package metadata link the live gallery.
 
 ## 0.1.0 — 2026-11-13
 
