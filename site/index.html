@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b10">
+  <meta name="description" content="Three Studio demo gallery: agency interactive pages, product configurators and Three.js workshops.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23080b10'/%3E%3Cpath d='M32 12 50 46H14Z' fill='none' stroke='%236f8dff' stroke-width='3' stroke-linejoin='round'/%3E%3Cpath d='M20 38c6-8 18 8 24 0' fill='none' stroke='%23e8c98a' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <title>Three Studio — Demo Gallery</title>
+  <link rel="stylesheet" href="./gallery.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html">
+      <span class="brand-mark">T</span>
+      <span><strong>THREE STUDIO</strong><small>DEMO GALLERY</small></span>
+    </a>
+    <nav class="topnav" aria-label="Demo 导航">
+      <a href="#demos">Work demos</a>
+      <a href="#motion">Motion</a>
+      <a href="#data-space">Data & space</a>
+      <a href="#offers">交付</a>
+      <a href="#contact">联系</a>
+    </nav>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20project">聊聊你的项目 <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <p class="eyebrow">THREE STUDIO / DEMO LAB</p>
+      <h1>把 Three.js 做成<br><em>可交付的产品页。</em></h1>
+      <p class="lede">八个可运行的 demo：agency 互动页、产品配置器、教育工作坊、粒子星云、金属雕塑、音频可视化、全球数据网络和空间漫游。
+        每个都能在浏览器里实时运行，代码归客户，本地优先。</p>
+      <div class="hero-meta">
+        <span>AI-native workflow</span>
+        <span>代码归客户</span>
+        <span>BYOK / 本地优先</span>
+        <span>2 周 – 6 周交付</span>
+      </div>
+    </section>
+
+    <section id="demos" class="demos" aria-label="Demo 列表">
+      <article class="demo-card">
+        <a class="demo-media" href="./agency-demo/" aria-label="打开 AUREL agency 互动页 demo">
+          <img src="./agency-demo/preview.png" alt="AUREL Chrono Watch 互动产品页预览" loading="lazy">
+          <span class="demo-index">01</span>
+        </a>
+        <div class="demo-body">
+          <p class="demo-tag">AGENCY / MARKETING</p>
+          <h2>AUREL — 可滚动叙事的 3D 产品页</h2>
+          <p>滚动驱动相机、四套实时材质、响应式长文叙事。适合品牌发布、营销互动页和 agency 白标交付。</p>
+          <div class="demo-foot">
+            <span>2 周冲刺 · ¥25k–50k</span>
+            <a href="./agency-demo/">打开 demo <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </article>
+
+      <article class="demo-card">
+        <a class="demo-media" href="./configurator-demo/" aria-label="打开 LUMEN 产品配置器 demo">
+          <img src="./configurator-demo/preview.png" alt="LUMEN 灯具产品配置器预览" loading="lazy">
+          <span class="demo-index">02</span>
+        </a>
+        <div class="demo-body">
+          <p class="demo-tag">CONFIGURATOR / COMMERCE</p>
+          <h2>LUMEN — 实时材质、灯光与价格联动</h2>
+          <p>材质、灯罩、色温和价格实时联动，支持 GLB 导出与配置 JSON。可接商品目录、Shopify/CPQ 和 AR。</p>
+          <div class="demo-foot">
+            <span>4–6 周 · ¥60k–150k</span>
+            <a href="./configurator-demo/">打开 demo <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </article>
+
+      <article class="demo-card">
+        <a class="demo-media" href="./education-demo/" aria-label="打开 ORBIT LAB 教育工作坊 demo">
+          <img src="./education-demo/preview.png" alt="ORBIT LAB 太阳系课程预览" loading="lazy">
+          <span class="demo-index">03</span>
+        </a>
+        <div class="demo-body">
+          <p class="demo-tag">EDUCATION / WORKSHOP</p>
+          <h2>ORBIT LAB — 分步骤搭建太阳系</h2>
+          <p>四步课程、实时场景、对应代码与提示。适合企业内训、设计/前端团队入门和高校工作坊。</p>
+          <div class="demo-foot">
+            <span>90 分钟 – 2 天 · ¥3k–8k/天</span>
+            <a href="./education-demo/">打开 demo <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section id="motion" class="motion" aria-labelledby="motion-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">MOTION STUDIES</p>
+          <h2 id="motion-title">让页面先动起来。</h2>
+        </div>
+        <p>两个纯程序化的动效 demo：粒子星云与实时金属雕塑。适合 hero 背景、发布页、品牌 ident 和 keynote 开场。</p>
+      </div>
+      <div class="motion-grid">
+        <article class="demo-card">
+          <a class="demo-media" href="./nebula-demo/" aria-label="打开 NEBULA 粒子星云 demo">
+            <img src="./nebula-demo/preview.png" alt="NEBULA 粒子星云预览" loading="lazy">
+            <span class="demo-index">04</span>
+          </a>
+          <div class="demo-body">
+            <p class="demo-tag">MOTION / GPU PARTICLES</p>
+            <h2>NEBULA — 120,000 个点的星云</h2>
+            <p>自定义 GLSL、逐粒子旋转、三套配色和实时 FPS。没有视频和贴图，只有可交互的粒子系统。</p>
+            <div class="demo-foot">
+              <span>Hero / 背景 / 发布页</span>
+              <a href="./nebula-demo/">打开 demo <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </article>
+        <article class="demo-card">
+          <a class="demo-media" href="./kinetic-demo/" aria-label="打开 KINETIC 金属雕塑 demo">
+            <img src="./kinetic-demo/preview.png" alt="KINETIC 动态金属雕塑预览" loading="lazy">
+            <span class="demo-index">05</span>
+          </a>
+          <div class="demo-body">
+            <p class="demo-tag">MOTION / REAL-TIME MATERIAL</p>
+            <h2>KINETIC — 不会停下的金属雕塑</h2>
+            <p>Chrome / Gold / Iridescent 实时材质，程序化环境反射、速度控制和 pause。适合产品 hero 与品牌动效。</p>
+            <div class="demo-foot">
+              <span>Hero / 产品 / 品牌</span>
+              <a href="./kinetic-demo/">打开 demo <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="data-space" class="motion" aria-labelledby="data-space-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">DATA / AUDIO / SPACE</p>
+          <h2 id="data-space-title">让声音、数据与空间都有表情。</h2>
+        </div>
+        <p>三个沉浸式 demo：音频频谱、全球网络和建筑空间。适合发布会、品牌空间、数据叙事和互动装置。</p>
+      </div>
+      <div class="space-grid">
+        <article class="demo-card">
+          <a class="demo-media" href="./audio-demo/" aria-label="打开 SONAR 音频可视化 demo">
+            <img src="./audio-demo/preview.png" alt="SONAR 音频可视化预览" loading="lazy">
+            <span class="demo-index">06</span>
+          </a>
+          <div class="demo-body">
+            <p class="demo-tag">AUDIO / WEB AUDIO API</p>
+            <h2>SONAR — 让声音被看见</h2>
+            <p>麦克风或内置合成音轨驱动 96 根频谱柱、波形环和粒子。本地处理，不上传音频。</p>
+            <div class="demo-foot">
+              <span>发布会 / 品牌空间</span>
+              <a href="./audio-demo/">打开 demo <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </article>
+        <article class="demo-card">
+          <a class="demo-media" href="./data-demo/" aria-label="打开 SIGNAL 数据网络 demo">
+            <img src="./data-demo/preview.png" alt="SIGNAL 全球网络数据可视化预览" loading="lazy">
+            <span class="demo-index">07</span>
+          </a>
+          <div class="demo-body">
+            <p class="demo-tag">DATA / 3D GLOBE</p>
+            <h2>SIGNAL — 一张会呼吸的数据网络</h2>
+            <p>3D 全球网络、12 条跨洋链路、实时脉冲与数据集切换。适合数据叙事、基础设施和金融科技。</p>
+            <div class="demo-foot">
+              <span>数据叙事 / 发布会</span>
+              <a href="./data-demo/">打开 demo <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </article>
+        <article class="demo-card">
+          <a class="demo-media" href="./atrium-demo/" aria-label="打开 ATRIUM 空间漫游 demo">
+            <img src="./atrium-demo/preview.png" alt="ATRIUM 程序化美术馆空间漫游预览" loading="lazy">
+            <span class="demo-index">08</span>
+          </a>
+          <div class="demo-body">
+            <p class="demo-tag">SPACE / WALKTHROUGH</p>
+            <h2>ATRIUM — 走进一个不存在的美术馆</h2>
+            <p>程序化柱廊、天窗、画框、灯光和中央雕塑。滚轮或拖动前进，适合地产、文旅、展览和品牌空间。</p>
+            <div class="demo-foot">
+              <span>地产 / 文旅 / 展览</span>
+              <a href="./atrium-demo/">打开 demo <span aria-hidden="true">↗</span></a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="offers" class="offers">
+      <div>
+        <p class="eyebrow">DELIVERY</p>
+        <h2>从 demo 到上线，<br>只差一次交付。</h2>
+      </div>
+      <ul>
+        <li><span>01</span><strong>3D 互动落地页冲刺</strong><small>2 周 · 1 个可编辑场景 · 响应式 · 性能优化 · 代码交付</small></li>
+        <li><span>02</span><strong>产品配置器 MVP</strong><small>4–6 周 · 材质/灯光/价格/AR · Shopify/CPQ 接入</small></li>
+        <li><span>03</span><strong>AI Three.js 工作坊</strong><small>90 分钟 – 2 天 · 团队内训 · 从 prompt 到可上线页面</small></li>
+      </ul>
+    </section>
+
+    <section id="contact" class="contact">
+      <p class="eyebrow">START A PROJECT</p>
+      <h2>想让你的产品<br>也这样被看见？</h2>
+      <p>把 demo 链接发我，或者直接说你的场景、时间和预算。我会在 48 小时内回复一个可执行的方案。</p>
+      <a class="contact-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20project">three.studio.2026@outlook.com <span aria-hidden="true">↗</span></a>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>Three Studio demo gallery · 所有品牌与产品均为 demo 虚构。</span>
+    <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
+  </footer>
+  <script type="module" src="./i18n.js"></script>
+</body>
+</html>

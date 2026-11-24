@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070b">
+  <meta name="description" content="KINETIC × Three Studio: an animated metal sculpture with live material switching.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2305070b'/%3E%3Cellipse cx='32' cy='32' rx='22' ry='10' fill='none' stroke='%236f8dff' transform='rotate(-28 32 32)'/%3E%3Cellipse cx='32' cy='32' rx='22' ry='10' fill='none' stroke='%23e8c98a' transform='rotate(62 32 32)'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23e8c98a'/%3E%3C/svg%3E">
+  <title>KINETIC — a metal sculpture that never stops</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../runtime/three.module.js",
+        "three/addons/": "../runtime/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark">K</span>
+      <span><strong>KINETIC</strong><small>MOTION STUDY · THREE STUDIO</small></span>
+    </a>
+    <nav class="topnav" aria-label="导航">
+      <a href="../index.html">Demo gallery</a>
+      <a href="../nebula-demo/">Next: NEBULA</a>
+    </nav>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20motion%20demo">做同款动效 <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="overlay">
+    <section class="hero-copy">
+      <p class="eyebrow">MOTION STUDY 02 / REAL-TIME MATERIAL</p>
+      <h1>一件不会停下的<br><em>金属雕塑。</em></h1>
+      <p class="lede">几何、环境反射和材质都在浏览器里实时计算。
+        切换金属、金色或虹彩表面，观察光在曲面上流动。</p>
+      <div class="hero-meta">
+        <span>Physical material</span>
+        <span>Procedural env</span>
+        <span>60 FPS target</span>
+      </div>
+    </section>
+
+    <div class="hud" aria-live="polite">
+      <div><span>OBJECT</span><strong id="object-name">Torus Knot</strong></div>
+      <div><span>FPS</span><strong id="fps">—</strong></div>
+      <div><span>MATERIAL</span><strong id="material-name">Iridescent</strong></div>
+    </div>
+
+    <div class="controls" role="group" aria-label="雕塑控制">
+      <div class="material-row" role="group" aria-label="选择材质">
+        <button type="button" data-material="chrome" aria-pressed="false">Chrome</button>
+        <button type="button" data-material="gold" aria-pressed="false">Gold</button>
+        <button type="button" data-material="iridescent" aria-pressed="true">Iridescent</button>
+      </div>
+      <label class="speed">
+        <span>速度</span>
+        <input id="speed" type="range" min="0" max="2" step="0.05" value="1" aria-label="动画速度">
+      </label>
+      <button type="button" id="pause">暂停</button>
+      <button type="button" id="reset">重置视角</button>
+    </div>
+
+    <p class="hint">拖动旋转 · 滚轮缩放</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>KINETIC 是 Three Studio 的程序化动效 demo。</span>
+    <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
+  </footer>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

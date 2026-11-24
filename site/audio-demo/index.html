@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070b">
+  <meta name="description" content="SONAR × Three Studio: 3D audio visualization driven by a microphone or a synthetic track.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2305070b'/%3E%3Ccircle cx='32' cy='32' r='6' fill='%237ce7ff'/%3E%3Ccircle cx='32' cy='32' r='16' fill='none' stroke='%236f8dff'/%3E%3Ccircle cx='32' cy='32' r='25' fill='none' stroke='%23b86bff' opacity='.6'/%3E%3C/svg%3E">
+  <title>SONAR — make sound visible</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../runtime/three.module.js",
+        "three/addons/": "../runtime/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark">S</span>
+      <span><strong>SONAR</strong><small>MOTION STUDY · THREE STUDIO</small></span>
+    </a>
+    <nav class="topnav" aria-label="导航">
+      <a href="../index.html">Demo gallery</a>
+      <a href="../data-demo/">Next: SIGNAL</a>
+    </nav>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20audio%20visualizer">做同款可视化 <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="overlay">
+    <section class="hero-copy">
+      <p class="eyebrow">MOTION STUDY 03 / AUDIO REACTIVE</p>
+      <h1>让声音<br><em>被看见。</em></h1>
+      <p class="lede">麦克风或内置合成音轨，实时驱动 96 根频谱柱、波形环和粒子。
+        所有反应都来自 Web Audio API 的 AnalyserNode。</p>
+    </section>
+
+    <div class="hud" aria-live="polite">
+      <div><span>SOURCE</span><strong id="source-label">IDLE</strong></div>
+      <div><span>LEVEL</span><strong id="level">—</strong></div>
+      <div><span>FPS</span><strong id="fps">—</strong></div>
+    </div>
+
+    <div class="controls" role="group" aria-label="音频控制">
+      <button type="button" id="mic">启用麦克风</button>
+      <button type="button" id="demo">播放 Demo 音轨</button>
+      <button type="button" id="pause" disabled>暂停</button>
+      <button type="button" id="reset">重置视角</button>
+    </div>
+
+    <p class="hint">拖动旋转 · 滚轮缩放</p>
+  </main>
+
+  <div class="gate" id="gate">
+    <div class="gate-card">
+      <p class="eyebrow">SONAR / AUDIO INPUT</p>
+      <h2>选择声音来源</h2>
+      <p>麦克风只在本地处理，不上传。Demo 音轨是一段静音驱动的合成信号，点击后开始。</p>
+      <div class="gate-actions">
+        <button type="button" id="gate-mic">启用麦克风</button>
+        <button type="button" id="gate-demo">播放 Demo 音轨</button>
+      </div>
+      <small>需要浏览器允许音频/麦克风权限。</small>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>SONAR 是 Three Studio 的程序化音频可视化 demo。</span>
+    <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

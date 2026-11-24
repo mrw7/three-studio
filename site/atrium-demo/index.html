@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#070605">
+  <meta name="description" content="ATRIUM × Three Studio: a procedural museum walkthrough demo.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23070605'/%3E%3Cpath d='M14 50V22l18-10 18 10v28' fill='none' stroke='%23e8c98a' stroke-width='2'/%3E%3Cpath d='M24 50V32h16v18' fill='none' stroke='%236f8dff' stroke-width='2'/%3E%3C/svg%3E">
+  <title>ATRIUM — step into a museum that does not exist</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../runtime/three.module.js",
+        "three/addons/": "../runtime/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="../index.html">
+      <span class="brand-mark">A</span>
+      <span><strong>ATRIUM</strong><small>SPATIAL STUDY · THREE STUDIO</small></span>
+    </a>
+    <nav class="topnav" aria-label="导航">
+      <a href="../index.html">Demo gallery</a>
+      <a href="../audio-demo/">Next: SONAR</a>
+    </nav>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20spatial%20walkthrough">做同款空间 <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="overlay">
+    <section class="hero-copy">
+      <p class="eyebrow">MOTION STUDY 05 / SPATIAL WALKTHROUGH</p>
+      <h1>走进一个<br><em>不存在的美术馆。</em></h1>
+      <p class="lede">整座建筑由 Three.js 程序化生成：柱廊、天窗、画框、灯光和一件中央雕塑。
+        滚轮或拖动前进，观察光在空间里移动。</p>
+      <div class="hero-meta">
+        <span>Procedural architecture</span>
+        <span>Warm lighting</span>
+        <span>Scroll / drag</span>
+      </div>
+    </section>
+
+    <div class="hud" aria-live="polite">
+      <div><span>ROOM</span><strong>01 / ATRIUM</strong></div>
+      <div><span>POSITION</span><strong id="position">00%</strong></div>
+      <div><span>FPS</span><strong id="fps">—</strong></div>
+    </div>
+
+    <div class="walkbar">
+      <div class="track" aria-hidden="true"><span id="track-fill"></span></div>
+      <div class="walk-controls" role="group" aria-label="空间漫游控制">
+        <button type="button" id="back" aria-label="后退">←</button>
+        <button type="button" id="pause">暂停漫游</button>
+        <button type="button" id="forward" aria-label="前进">→</button>
+        <button type="button" id="reset">回到入口</button>
+      </div>
+    </div>
+
+    <p class="hint">滚轮 / 拖动前进 · 移动鼠标观察</p>
+  </main>
+
+  <footer class="site-footer">
+    <span>ATRIUM 是 Three Studio 的程序化空间漫游 demo。</span>
+    <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
+  </footer>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

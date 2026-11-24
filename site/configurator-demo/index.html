@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f3eee5">
+  <meta name="description" content="LUMEN × Three Studio: a product configurator demo with live materials, lighting and GLB export.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23f3eee5'/%3E%3Cpath d='M32 12v26M20 40h24M26 40v10h12V40' fill='none' stroke='%2315120d' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <title>LUMEN — a lamp, defined by you</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "../runtime/three.module.js",
+        "three/addons/": "../runtime/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="./index.html">
+      <span class="brand-mark">L</span>
+      <span><strong>LUMEN</strong><small>CONFIGURATOR · BY THREE STUDIO</small></span>
+    </a>
+    <nav class="topnav" aria-label="配置项导航">
+      <a href="#finish">材质</a>
+      <a href="#shade">灯罩</a>
+      <a href="#light">光色</a>
+    </nav>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20configurator%20demo">预约同款配置器 <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="workspace">
+    <section class="intro">
+      <p class="eyebrow">LUMEN / MODULAR LIGHT</p>
+      <h1>一盏灯，<br><em>由你定义。</em></h1>
+      <p class="lede">从材质、灯罩到色温，所有变化都在真实场景里实时发生。
+        选好配置，直接下载 GLB，或把同一套逻辑接到 Shopify / CPQ / AR。</p>
+      <ul class="intro-list">
+        <li><span>01</span> 实时材质与灯光</li>
+        <li><span>02</span> 价格/规则联动</li>
+        <li><span>03</span> GLB 导出与 AR 就绪</li>
+      </ul>
+      <div class="intro-note">
+        <span>CONFIGURATOR MVP</span>
+        <small>4–6 周交付 · 可接商品目录与报价系统</small>
+      </div>
+    </section>
+
+    <section class="viewer" aria-label="LUMEN 灯具实时配置预览">
+      <canvas id="scene"></canvas>
+      <div class="viewer-top">
+        <span>LIVE CONFIGURATOR</span>
+        <strong id="live-label">Sand / Cone / 2700K</strong>
+      </div>
+      <div class="viewer-hint">拖动旋转 · 滚轮缩放</div>
+      <button type="button" class="reset-view" id="reset-view">重置视角</button>
+    </section>
+
+    <aside class="config" id="config" aria-label="配置器选项">
+      <div class="config-head">
+        <div>
+          <span class="eyebrow">YOUR LUMEN</span>
+          <strong id="price">¥899</strong>
+        </div>
+        <small>含基础灯体 · 不含运费</small>
+      </div>
+
+      <section class="option-group" id="finish">
+        <p class="option-title"><span>01</span> 材质</p>
+        <div class="option-grid finish-grid" role="group" aria-label="选择灯体材质">
+          <button type="button" data-finish="sand" aria-pressed="true">
+            <span class="finish-dot sand"></span><span>Sand</span><small>+¥0</small>
+          </button>
+          <button type="button" data-finish="graphite" aria-pressed="false">
+            <span class="finish-dot graphite"></span><span>Graphite</span><small>+¥0</small>
+          </button>
+          <button type="button" data-finish="forest" aria-pressed="false">
+            <span class="finish-dot forest"></span><span>Forest</span><small>+¥100</small>
+          </button>
+          <button type="button" data-finish="chrome" aria-pressed="false">
+            <span class="finish-dot chrome"></span><span>Chrome</span><small>+¥200</small>
+          </button>
+        </div>
+      </section>
+
+      <section class="option-group" id="shade">
+        <p class="option-title"><span>02</span> 灯罩</p>
+        <div class="choice-row" role="group" aria-label="选择灯罩形状">
+          <button type="button" data-shade="cone" aria-pressed="true">Cone<small>+¥0</small></button>
+          <button type="button" data-shade="dome" aria-pressed="false">Dome<small>+¥150</small></button>
+        </div>
+      </section>
+
+      <section class="option-group" id="light">
+        <p class="option-title"><span>03</span> 光色</p>
+        <div class="choice-row light-row" role="group" aria-label="选择色温">
+          <button type="button" data-temp="warm" aria-pressed="true"><span class="light-dot warm"></span>2700K</button>
+          <button type="button" data-temp="neutral" aria-pressed="false"><span class="light-dot neutral"></span>4000K</button>
+          <button type="button" data-temp="cool" aria-pressed="false"><span class="light-dot cool"></span>5600K</button>
+        </div>
+      </section>
+
+      <div class="config-actions">
+        <button type="button" class="primary" id="export-glb">下载 GLB <span aria-hidden="true">↓</span></button>
+        <button type="button" id="copy-config">复制配置 JSON</button>
+      </div>
+      <p class="fineprint">这是 Three Studio 的配置器 demo。真实项目可接商品目录、价格规则、库存、Shopify/CPQ 和 AR Quick Look。</p>
+    </aside>
+  </main>
+
+  <footer class="site-footer">
+    <span>LUMEN 是为 Three Studio 配置器 demo 虚构的产品，不是真实灯具品牌。</span>
+    <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

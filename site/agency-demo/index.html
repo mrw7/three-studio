@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#05070b">
+  <meta name="description" content="AUREL × Three Studio: a scroll-driven Three.js interactive product page demo.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%2305070b'/%3E%3Ccircle cx='32' cy='32' r='18' fill='none' stroke='%23e8c98a'/%3E%3Cpath d='M22 40 32 20l10 20' fill='none' stroke='%23e8c98a' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <title>AUREL — time, re-rendered</title>
+  <script>document.documentElement.classList.add('js')</script>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">
+    { "imports": { "three": "../runtime/three.module.js" } }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-hidden="true"></canvas>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"><span></span></div>
+
+  <div id="loading" class="loading" role="status" aria-live="polite">
+    <div class="loading-mark">A</div>
+    <div class="loading-copy">AUREL <span>·</span> THREE STUDIO</div>
+  </div>
+
+  <header class="site-header">
+    <a class="brand" href="#hero" aria-label="AUREL 首页">
+      <span class="brand-mark">A</span>
+      <span class="brand-copy">
+        <strong>AUREL</strong>
+        <small>BY THREE STUDIO</small>
+      </span>
+    </a>
+    <nav class="site-nav" aria-label="页面导航">
+      <a href="#craft">工艺</a>
+      <a href="#dial">表盘</a>
+      <a href="#variants">配色</a>
+      <a href="#specs">参数</a>
+    </nav>
+    <a class="header-cta" href="#contact">预约同款页面 <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main>
+    <section id="hero" class="hero section" aria-labelledby="hero-title">
+      <div class="hero-copy" data-reveal>
+        <p class="eyebrow">AUREL HORLOGERIE <span>·</span> SWISS MADE</p>
+        <h1 id="hero-title">时间，<br><em>被重新渲染</em></h1>
+        <p class="lede">AUREL Azure 是一枚机械表，也是一段实时运行的 Three.js 场景。
+          滚动、光照与材质都在浏览器里发生，每一帧都可以被编辑、导出、带走。</p>
+        <div class="hero-actions">
+          <a class="button primary" href="#craft">探索细节 <span aria-hidden="true">↓</span></a>
+          <a class="button ghost" href="#variants">切换配色</a>
+        </div>
+        <dl class="hero-meta">
+          <div><dt>表径</dt><dd>40 mm</dd></div>
+          <div><dt>机芯</dt><dd>72 h</dd></div>
+          <div><dt>防水</dt><dd>5 ATM</dd></div>
+          <div><dt>渲染</dt><dd>Real-time</dd></div>
+        </dl>
+      </div>
+      <div class="scroll-cue" aria-hidden="true">
+        <span>SCROLL TO EXPLORE</span>
+        <i></i>
+      </div>
+    </section>
+
+    <section id="craft" class="section story" aria-labelledby="craft-title">
+      <article class="panel panel-left" data-reveal>
+        <p class="eyebrow">01 / CRAFT</p>
+        <h2 id="craft-title">不是渲染图，<br>是可交互的实物。</h2>
+        <p>表壳、表圈、指针、机芯齿轮和每一颗夜光点都是场景里的真实几何体。
+          滚轮改变视角，鼠标带来视差，时间轴上的每一帧都能被重新编排。</p>
+        <ul class="feature-list">
+          <li><span>01</span> 实时 ACES 色调映射与环境反射</li>
+          <li><span>02</span> 程序化表盘、陶瓷圈与拉丝钢材质</li>
+          <li><span>03</span> 可编辑场景图，而不是固定视频</li>
+        </ul>
+      </article>
+    </section>
+
+    <section id="dial" class="section story story-right" aria-labelledby="dial-title">
+      <article class="panel panel-right" data-reveal>
+        <p class="eyebrow">02 / DIAL</p>
+        <h2 id="dial-title">每一束光，<br>都来自真实材质。</h2>
+        <p>表盘不是一张贴图。太阳纹、分钟轨道、日期窗与夜光刻度在程序化纹理中生成，
+          再被 envMap、clearcoat 和阴影重新点亮。</p>
+        <div class="chips">
+          <span>CanvasTexture</span>
+          <span>PMREM</span>
+          <span>PCF Shadows</span>
+          <span>ACES</span>
+        </div>
+      </article>
+    </section>
+
+    <section id="variants" class="section story variants" aria-labelledby="variants-title">
+      <article class="panel panel-wide" data-reveal>
+        <p class="eyebrow">03 / MATERIALS</p>
+        <h2 id="variants-title">四种性格，<br>一套场景。</h2>
+        <p class="variant-copy" id="variant-copy">深海蓝陶瓷圈，冷光钢壳。像一段被冻结的蓝色时间。</p>
+        <div class="swatches" role="group" aria-label="选择表款配色">
+          <button type="button" data-variant="azure" aria-pressed="true" title="Azure Blue">
+            <span class="swatch-dot azure"></span><span>Azure</span>
+          </button>
+          <button type="button" data-variant="graphite" aria-pressed="false" title="Graphite">
+            <span class="swatch-dot graphite"></span><span>Graphite</span>
+          </button>
+          <button type="button" data-variant="champagne" aria-pressed="false" title="Champagne">
+            <span class="swatch-dot champagne"></span><span>Champagne</span>
+          </button>
+          <button type="button" data-variant="ember" aria-pressed="false" title="Ember">
+            <span class="swatch-dot ember"></span><span>Ember</span>
+          </button>
+        </div>
+        <div class="variant-readout">
+          <span class="eyebrow">LIVE MATERIAL</span>
+          <strong id="variant-title">Azure Blue</strong>
+          <small>点击色块，材质在场景中实时切换，不需要重新加载。</small>
+        </div>
+      </article>
+    </section>
+
+    <section id="specs" class="section story specs" aria-labelledby="specs-title">
+      <article class="panel panel-wide specs-panel" data-reveal>
+        <p class="eyebrow">04 / SPECIFICATION</p>
+        <h2 id="specs-title">为屏幕而生的机械感。</h2>
+        <div class="specs-grid">
+          <div><span>CASE</span><strong>40 mm</strong><small>316L 精钢，拉丝与抛光交替</small></div>
+          <div><span>CRYSTAL</span><strong>Sapphire</strong><small>双面防眩，蓝宝石镜面</small></div>
+          <div><span>MOVEMENT</span><strong>72 h</strong><small>自动上链，动力储存</small></div>
+          <div><span>WATER</span><strong>5 ATM</strong><small>日常防水</small></div>
+          <div><span>LUME</span><strong>Super-LumiNova</strong><small>蓝色夜光刻度与指针</small></div>
+          <div><span>EXPORT</span><strong>GLB / USDZ</strong><small>场景可导出到 DCC 与 AR</small></div>
+        </div>
+      </article>
+    </section>
+
+    <section id="contact" class="section contact" aria-labelledby="contact-title">
+      <div class="contact-panel" data-reveal>
+        <p class="eyebrow">05 / NEXT</p>
+        <h2 id="contact-title">想让你的产品<br>也这样被看见？</h2>
+        <p>这是 Three Studio 的 agency demo：我们用 AI-native Three.js 工作台，
+          在 2 周内交付可上线、可编辑、代码归你的 3D 互动页。</p>
+        <div class="contact-meta">
+          <span>2 周交付</span><span>代码归你</span><span>本地优先</span>
+        </div>
+        <a class="button primary" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20agency%20demo">聊聊你的项目 <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <span>AUREL 是为 Three Studio agency demo 虚构的产品，不是真实腕表品牌。</span>
+    <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
+  </footer>
+
+  <noscript>
+    <div class="noscript">这个 demo 需要启用 JavaScript 和 WebGL。</div>
+  </noscript>
+
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
