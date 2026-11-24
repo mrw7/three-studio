@@ -5,6 +5,14 @@
   "type": "module",
   "description": "Standalone AI-native Three.js 3D workbench with an embedded AI Studio, plus an optional DeepSeek Harness plugin mode.",
   "license": "Apache-2.0",
+  "homepage": "https://mrw7.github.io/three-studio/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrw7/three-studio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mrw7/three-studio/issues"
+  },
   "engines": {
     "node": ">=24",
     "dsh": ">=0.2.0 <0.3.0"

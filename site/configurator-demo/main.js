@@ -252,21 +252,40 @@ contact.position.y = 0.002
 scene.add(contact)
 
 const FINISHES = {
-  sand: { label: 'Sand', color: 0xd8c5a4, metalness: 0.28, roughness: 0.5, env: 1.25, add: 0 },
-  graphite: { label: 'Graphite', color: 0x2b3037, metalness: 0.82, roughness: 0.32, env: 1.5, add: 0 },
-  forest: { label: 'Forest', color: 0x2f4a3a, metalness: 0.42, roughness: 0.42, env: 1.35, add: 100 },
-  chrome: { label: 'Chrome', color: 0xdbe2ea, metalness: 1.0, roughness: 0.08, env: 1.9, add: 200 },
+  sand: { label: 'Sand', color: 0xd8c5a4, metalness: 0.28, roughness: 0.5, env: 1.25 },
+  graphite: { label: 'Graphite', color: 0x2b3037, metalness: 0.82, roughness: 0.32, env: 1.5 },
+  forest: { label: 'Forest', color: 0x2f4a3a, metalness: 0.42, roughness: 0.42, env: 1.35 },
+  chrome: { label: 'Chrome', color: 0xdbe2ea, metalness: 1.0, roughness: 0.08, env: 1.9 },
 }
 const SHADES = {
-  cone: { label: 'Cone', add: 0 },
-  dome: { label: 'Dome', add: 150 },
+  cone: { label: 'Cone' },
+  dome: { label: 'Dome' },
 }
 const TEMPS = {
-  warm: { label: '2700K', light: 0xffa34d, bulb: 0xffb25e, glow: 0xffb25e, intensity: 30, add: 0 },
-  neutral: { label: '4000K', light: 0xffd9a8, bulb: 0xffe3bd, glow: 0xffd9a8, intensity: 27, add: 0 },
-  cool: { label: '5600K', light: 0xbfe0ff, bulb: 0xd8ecff, glow: 0xbfe0ff, intensity: 24, add: 0 },
+  warm: { label: '2700K', light: 0xffa34d, bulb: 0xffb25e, glow: 0xffb25e, intensity: 30 },
+  neutral: { label: '4000K', light: 0xffd9a8, bulb: 0xffe3bd, glow: 0xffd9a8, intensity: 27 },
+  cool: { label: '5600K', light: 0xbfe0ff, bulb: 0xd8ecff, glow: 0xbfe0ff, intensity: 24 },
 }
 const BASE_PRICE = 899
+// CNY is the canonical demo price; USD is a separate English-market list.
+// Keep the two lists explicit instead of swapping the currency symbol, which
+// would overstate the USD price by the CNY/USD exchange rate.
+const PRICES = {
+  zh: {
+    currency: 'CNY',
+    locale: 'zh-CN',
+    symbol: '¥',
+    base: BASE_PRICE,
+    add: { forest: 100, chrome: 200, dome: 150 },
+  },
+  en: {
+    currency: 'USD',
+    locale: 'en-US',
+    symbol: '$',
+    base: 149,
+    add: { forest: 15, chrome: 30, dome: 22 },
+  },
+}
 const config = { finish: 'sand', shade: 'cone', temp: 'warm' }
 
 const priceEl = document.getElementById('price')
@@ -282,14 +301,30 @@ function toast(message) {
   toastTimer = setTimeout(() => toastEl.classList.remove('is-visible'), 2600)
 }
 
+function priceTable() {
+  return PRICES[language()] ?? PRICES.en
+}
+
 function currentPrice() {
-  return BASE_PRICE + FINISHES[config.finish].add + SHADES[config.shade].add + TEMPS[config.temp].add
+  const table = priceTable()
+  return table.base + (table.add[config.finish] ?? 0) + (table.add[config.shade] ?? 0)
 }
 
 function formatPrice(value) {
-  const symbol = language() === 'zh' ? '¥' : '$'
-  const locale = language() === 'zh' ? 'zh-CN' : 'en-US'
-  return `${symbol}${new Intl.NumberFormat(locale).format(value)}`
+  const table = priceTable()
+  return `${table.symbol}${new Intl.NumberFormat(table.locale).format(value)}`
+}
+
+function applyPriceLabels() {
+  const table = priceTable()
+  for (const key of Object.keys(FINISHES)) {
+    const label = document.querySelector(`[data-finish="${key}"] small`)
+    if (label !== null) label.textContent = `+${formatPrice(table.add[key] ?? 0)}`
+  }
+  for (const key of Object.keys(SHADES)) {
+    const label = document.querySelector(`[data-shade="${key}"] small`)
+    if (label !== null) label.textContent = `+${formatPrice(table.add[key] ?? 0)}`
+  }
 }
 
 function applyFinish() {
@@ -337,6 +372,7 @@ function applyConfig() {
   syncButtons('finish', 'data-finish', config.finish)
   syncButtons('shade', 'data-shade', config.shade)
   syncButtons('temp', 'data-temp', config.temp)
+  applyPriceLabels()
   if (priceEl !== null) priceEl.textContent = formatPrice(currentPrice())
   if (liveLabel !== null) {
     liveLabel.textContent = `${FINISHES[config.finish].label} / ${SHADES[config.shade].label} / ${TEMPS[config.temp].label}`
@@ -399,7 +435,7 @@ async function copyConfig() {
     shade: config.shade,
     temp: config.temp,
     price: currentPrice(),
-    currency: 'CNY',
+    currency: priceTable().currency,
   }, null, 2)
   try {
     await navigator.clipboard.writeText(payload)

@@ -1,5 +1,7 @@
 # Three Studio demos
 
+**Live:** <https://mrw7.github.io/three-studio/>
+
 Static sales demos that can be deployed to any static host. They are separate
 from the Studio runtime and do not call the local API.
 
@@ -31,6 +33,9 @@ in `runtime/`.
   scroll/drag camera walkthrough
 
 All demos are procedural, responsive, and free of external fonts/CDNs/assets.
+
+English prices on the gallery are localized USD list prices, not a symbol-swapped
+copy of the CNY prices.
 
 The gallery and every demo default to English. The header toggle switches to
 Chinese, reloads the page so dynamic labels rebuild through `t()` in

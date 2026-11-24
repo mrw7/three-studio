@@ -1,5 +1,7 @@
 # Documentation
 
+- [Live demo gallery](https://mrw7.github.io/three-studio/) — the static agency,
+  configurator, education, motion, audio, data and space demos
 - [Open-core boundary](OPEN-CORE.md) — what is Apache-2.0, what stays private,
   and how the Pro template pack is assembled ([中文](OPEN-CORE.zh.md))
 - [Architecture](ARCHITECTURE.md) — standalone components, data flow, scene

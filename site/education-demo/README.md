@@ -26,7 +26,8 @@ Shared vendored Three.js r186 + `OrbitControls` live in `site/runtime/`.
 - The contact button points at `three.studio.2026@outlook.com`; change it for your own
   deployment.
 - Record a 2–3 minute walkthrough: step 1 → step 4 → copy code.
-- Offer as a **workshop**: 90 minutes to 2 days, ¥3k–8k/day; corporate teams,
+- Offer as a **workshop**: 90 minutes (`¥2,980`), half day (`¥4,800`), full day
+  (`¥6,800–9,800`) or 2 days (`¥12,800–18,800`); corporate teams,
   design/frontend groups and universities.
 - Use the free 60-minute version as a lead magnet; sell the recorded course or
   team workshop as the paid product.

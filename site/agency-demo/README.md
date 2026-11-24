@@ -34,8 +34,11 @@ r186 module and its MIT license.
    switch → contact.
 4. Use it as the “agency” case in your landing page; link to the live demo and
    the source.
-5. Offer the same page as a **2-week sprint** (`¥25k–50k`), including one
-   editable scene, responsive layout, performance pass, exports and handoff.
+5. Offer the same page as a **2-week sprint**:
+   - **Single scene** (`¥1.5万–2.5万`): one editable scene, responsive layout,
+     performance pass, exports and handoff; client provides design/models.
+   - **Design + modeling** (`¥2.5万–4万`): the same scope plus visual and 3D
+     model adaptation.
 
 ## Customize
 

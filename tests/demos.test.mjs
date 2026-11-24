@@ -44,6 +44,50 @@ test('configurator demo exposes live options and GLB export', async () => {
   assert.match(main, /BASE_PRICE/)
 })
 
+test('English demo prices are localized and tiered', async () => {
+  const gallery = await readFile(join(site, 'index.html'), 'utf8')
+  const i18n = await readFile(join(site, 'i18n.js'), 'utf8')
+  const main = await readFile(join(site, 'configurator-demo', 'main.js'), 'utf8')
+  for (const price of [
+    "'2-week sprint · from $3.5k'",
+    "'4–6 weeks · from $13k'",
+    "'Workshop · from $590'",
+    "'Single scene: 2 weeks · $3.5k–6k · responsive · performance pass · code handoff'",
+    "'Design + modeling: 2 weeks · $6k–9k · visual and model adaptation included'",
+    "'MVP: 4–6 weeks · $13k–22k · materials/lighting/pricing/GLB'",
+    "'Commerce/CPQ/AR integration: $22k–45k+ · quoted by scope'",
+    "'90 minutes: $590 · team intro'",
+    "'Half day: $950 · 3–4 hour hands-on'",
+    "'Full day: $1,500–2,200 · hands-on workshop'",
+    "'2 days: $2,800–4,100 · prompt to production'",
+  ]) {
+    assert.ok(i18n.includes(price), `English price ${price}`)
+  }
+  for (const price of [
+    '¥1.5万–2.5万',
+    '¥2.5万–4万',
+    '¥6万–10万',
+    '¥10万–20万+',
+    '¥2,980',
+    '¥4,800',
+    '¥6,800–9,800',
+    '¥12,800–18,800',
+  ]) {
+    assert.ok(gallery.includes(price), `Chinese tier ${price}`)
+  }
+  for (const stale of ['$25k–50k', '$60k–150k', '$3k–8k/day', '$4.5k–9k', '$13k–28k', '$700–1,800/day']) {
+    assert.ok(!i18n.includes(stale), `stale symbol-swapped price ${stale}`)
+  }
+  for (const stale of ['¥25k–50k', '¥60k–150k', '¥3k–8k/天']) {
+    assert.ok(!gallery.includes(stale), `stale Chinese price ${stale}`)
+    assert.ok(!i18n.includes(stale), `stale Chinese price ${stale}`)
+  }
+  assert.ok(main.includes("currency: 'USD'"), 'LUMEN has a USD price list')
+  assert.ok(main.includes('base: 149'), 'LUMEN USD base price')
+  assert.ok(main.includes('add: { forest: 15, chrome: 30, dome: 22 }'), 'LUMEN USD add-ons')
+  assert.ok(main.includes('currency: priceTable().currency'), 'config JSON uses the active currency')
+})
+
 test('motion demos use shaders and physical materials', async () => {
   const nebula = await readFile(join(site, 'nebula-demo', 'main.js'), 'utf8')
   const kinetic = await readFile(join(site, 'kinetic-demo', 'main.js'), 'utf8')

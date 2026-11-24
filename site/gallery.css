@@ -141,6 +141,8 @@ main { padding: 0 5vw; }
 .offers li > span { color: var(--gold); font-family: var(--mono); font-size: 8px; }
 .offers strong { font-size: 12px; font-weight: 500; }
 .offers small { color: var(--muted); font-size: 10px; line-height: 1.6; }
+.offers small span { display: block; }
+.offers small span + span { margin-top: 4px; }
 
 .contact {
   max-width: 860px;

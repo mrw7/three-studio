@@ -27,10 +27,11 @@ Shared vendored Three.js r186 + `OrbitControls` + `GLTFExporter` live in
 - The contact button points at `three.studio.2026@outlook.com`; change it for your own
   deployment.
 - Record a 30–60 second clip: switch finish → shade → light → download GLB.
-- Offer as a **Product Configurator MVP**: 4–6 weeks, ¥60k–150k, including
+- Offer as a **Product Configurator MVP**: 4–6 weeks, `¥6万–10万`, including
   options/rules, GLB/USDZ export, responsive embed and handoff.
-- The demo intentionally stops at “configurator MVP”; full CPQ/PIM/inventory is
-  a separate integration scope.
+- Quote **catalog/Shopify/CPQ/AR integration** separately: `¥10万–20万+`, by
+  scope. The demo intentionally stops at “configurator MVP”; full
+  CPQ/PIM/inventory is a separate integration scope.
 
 ## Customize
 
@@ -40,5 +41,7 @@ Shared vendored Three.js r186 + `OrbitControls` + `GLTFExporter` live in
 
 ## Notes
 
+- Prices are localized: CNY on the Chinese page and USD on the English page.
+  They are separate price lists, not a 1:1 currency-symbol swap.
 - GLB export excludes the ground/cable; the lamp group is exported.
 - The demo has no analytics, external fonts or CDN requests.
