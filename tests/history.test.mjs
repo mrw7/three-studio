@@ -2124,7 +2124,7 @@ test('H10 every latest-only action recomputes latestActionsAllowed before acting
     'const applyEnvironmentOverride = value => {',
     'const deleteAsset = assetId => {',
     'const stateForExport = () => {',
-    'const startExport = async format => {',
+    'const startExport = async (format, options) => {',
     'const paramWritable = (notice = true) => {',
     'const allowMutation = ops => {',
     'const toggleLock = node => {',

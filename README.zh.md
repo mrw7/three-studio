@@ -22,11 +22,15 @@ Three.js demo：一分钟动画短片、agency 互动页、产品配置器、教
 - **AI 原生工作台**：对话、流式工具调用和场景版本与视口在同一界面
 - **真实 3D 编辑**：场景树、属性、材质/灯光、变换手柄、参数、时间轴、关键帧、
   Dope Sheet、镜头、审查、测量和确定性导出
-- **多目标导出**：PNG、确定性 MP4/GIF/WebM、动画或静态 glTF（`.glb`）、STL、OBJ、
+- **多目标导出**：PNG、确定性 MP4/GIF 与实时 WebM、动画或静态 glTF（`.glb`）、STL、OBJ、
   项目 ZIP 与独立 HTML；另含面向 AR 预览的 USDZ 与自研二进制 FBX 7.4 写出器。
   USDZ/FBX 为静态导出：保留几何、层级、变换、Phong 化材质、法线与一套 UV；
   动画、蒙皮、贴图、PBR 通道与顶点色不随行（FBX 以米为单位，`UnitScaleFactor=100`，
   与 Blender 米制输出一致）
+- **一份场景，两种交付**：把机位/选择、BOM 和热点记录为交互说明书；按顺序编排影片
+  镜头，支持缓动机位、SRT 字幕和本地音乐轨；导出 1080p 16:9/9:16/1:1/4:5 MP4；
+  分享只读说明书，支持打印到 PDF 和 QR 码。AI 可把说明书步骤作为可审核提案草拟
+  出来。
 - **沙箱执行**：模型代码仅在 opaque-origin `srcDoc` iframe 中运行
   （`allow-scripts allow-pointer-lock allow-downloads`，绝不 `allow-same-origin`，
   不可作为 URL 导航）
@@ -181,6 +185,7 @@ flowchart LR
 - [开源核心边界](docs/OPEN-CORE.zh.md)（[English](docs/OPEN-CORE.md)）
 - [模型与供应商](docs/MODELS.md)
 - [导出](docs/EXPORTS.zh.md)（[English](docs/EXPORTS.md)）
+- [说明书与影片](docs/MANUAL-FILM.zh.md)（[English](docs/MANUAL-FILM.md)）— 说明书步骤、影片导出与开源/Pro 边界
 - [插件与市场](docs/PLUGINS.zh.md)（[English](docs/PLUGINS.md)）
 - [安全与信任边界](docs/SECURITY.zh.md)
 - [隐私说明](PRIVACY.md)（[English](docs/SECURITY.md)）

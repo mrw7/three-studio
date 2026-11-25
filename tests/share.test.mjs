@@ -66,6 +66,44 @@ function payload(overrides = {}) {
   }
 }
 
+function presentationField() {
+  return {
+    v: 1,
+    manual: {
+      v: 1,
+      title: 'Lamp walkthrough',
+      product: 'Task lamp',
+      version: '1.0',
+      language: 'en',
+      steps: [
+        {
+          id: 'step-1',
+          title: 'Overview',
+          body: 'Start with the whole lamp.',
+          camera: { position: [2, 3, 6], target: [0, 1, 0], fov: 40 },
+          time: 1.5,
+          hidden: ['s:shade'],
+          highlight: 's:base',
+          parts: [{ name: 'Base', number: 'A-01' }],
+          duration: 4,
+        },
+        {
+          id: 'step-2',
+          title: 'Exploded view',
+          body: 'The shade lifts away from the base.',
+          camera: { position: [0, 4, 7], target: [0, 1.2, 0], fov: 35 },
+          time: 0,
+          hidden: ['s:base'],
+          highlight: 's:shade',
+          parts: [{ name: 'Shade', number: 'B-02' }],
+          duration: 3,
+        },
+      ],
+    },
+    film: null,
+  }
+}
+
 function seed(sessionId, overrides = {}) {
   host.seedSession(sessionId, {
     revision: 0,
@@ -942,6 +980,145 @@ test('shell, metadata and document return the designed types, headers and bytes'
   assert.equal(headDocument.headers.get('content-length'), String(Buffer.byteLength(DOC)))
 })
 
+test('presentation suffix returns only the additive field with constant headers', async () => {
+  const presentation = presentationField()
+  const created = await createShare(SESSION_A, {
+    now: 1000,
+    payload: payload({ editorState: editorState({ presentation }) }),
+  })
+  assert.equal(created.response.status, 200)
+  const id = created.json.id
+  const response = await viewer(`${id}/presentation`, { now: 1000 })
+  assert.equal(response.status, 200)
+  assert.equal(response.headers.get('content-type'), 'application/json; charset=utf-8')
+  assert.equal(response.headers.get('content-disposition'), 'attachment; filename="presentation.json"')
+  assert.equal(response.headers.get('cache-control'), 'no-store')
+  assert.equal(response.headers.get('x-content-type-options'), 'nosniff')
+  assert.equal(response.headers.get('referrer-policy'), 'no-referrer')
+  assert.equal(response.headers.get('cross-origin-resource-policy'), 'same-origin')
+  assert.equal(response.headers.get('content-security-policy'), host.documentCsp)
+  assert.equal(response.headers.get('access-control-allow-origin'), null)
+  const text = await response.text()
+  assert.equal(Number(response.headers.get('content-length')), Buffer.byteLength(text))
+  assert.deepEqual(JSON.parse(text), { ok: true, presentation })
+  // The suffix is a projection, never a record dump.
+  for (const forbidden of ['editorState', 'ownerSessionHash', 'deleteKey', 'documentBuffer', 'metadataJson', SESSION_A]) {
+    assert.ok(!text.includes(forbidden), forbidden)
+  }
+  const head = await viewer(`${id}/presentation`, { now: 1000, method: 'HEAD' })
+  assert.equal(head.status, 200)
+  assert.equal(head.body, null)
+  assert.equal(head.headers.get('content-length'), String(Buffer.byteLength(text)))
+  assert.equal(head.headers.get('content-security-policy'), host.documentCsp)
+
+  const empty = await createShare(SESSION_B, { now: 1000 })
+  const emptyResponse = await viewer(`${empty.json.id}/presentation`, { now: 1000 })
+  assert.equal(emptyResponse.status, 200)
+  assert.deepEqual(JSON.parse(await emptyResponse.text()), { ok: true, presentation: null })
+})
+
+test('presentation data still rides the existing editor-state caps', async () => {
+  const oversized = {
+    v: 1,
+    manual: {
+      v: 1,
+      title: 'Manual',
+      product: '',
+      version: '',
+      language: 'en',
+      steps: [{
+        id: 'step-1',
+        title: 'Huge',
+        body: 'x'.repeat(2 * 1024 * 1024),
+        camera: { position: [0, 0, 0], target: [0, 0, 0], fov: 50 },
+        time: 0,
+        hidden: [],
+        highlight: null,
+        parts: [],
+        duration: 0,
+      }],
+    },
+    film: null,
+  }
+  const result = await createShare(SESSION_A, {
+    payload: payload({ editorState: editorState({ presentation: oversized }) }),
+  })
+  assert.equal(result.response.status, 413)
+  assert.equal(result.json.code, 'editor-state')
+  assert.equal(host.stats().shares, 0)
+})
+
+test('presentation 404s are indistinguishable from every other missing share', async () => {
+  const created = await createShare(SESSION_A, {
+    now: 1000,
+    handlerOptions: { makeDeleteKey: () => DELETE_KEY },
+  })
+  const id = created.json.id
+  const unknown = await viewer(`${'Z'.repeat(22)}/presentation`, { now: 1000 })
+  assert.equal(unknown.status, 404)
+  assert.equal(unknown.headers.get('content-security-policy'), host.documentCsp)
+  assert.equal(unknown.headers.get('access-control-allow-origin'), null)
+  const unknownBody = await unknown.text()
+  assert.equal(unknownBody, host.unavailableText)
+  assert.equal(await (await viewer('short/presentation', { now: 1000 })).text(), unknownBody)
+  await deleteShare(id, DELETE_KEY)
+  assert.equal(await (await viewer(`${id}/presentation`, { now: 1000 })).text(), unknownBody)
+  const expiredId = (await createShare(SESSION_A, { now: 5000, payload: payload({ ttlSeconds: 3600 }) })).json.id
+  assert.equal(await (await viewer(`${expiredId}/presentation`, { now: 5000 + 3600000 })).text(), unknownBody)
+  assert.equal((await viewer(`${'A'.repeat(22)}/presentations`, { now: 1000 })).status, 404)
+  assert.equal((await viewer(`${'A'.repeat(22)}/presentation/extra`, { now: 1000 })).status, 404)
+  assert.equal((await viewer(`${'A'.repeat(22)}/presentation`, { now: 1000, method: 'POST' })).status, 405)
+})
+
+test('presentation rate, concurrency and HEAD release are bounded', async () => {
+  const base = 3000000
+  const created = await createShare(SESSION_A, { now: base })
+  const id = created.json.id
+  const first = await viewer(`${id}/presentation`, { now: base })
+  const second = await viewer(`${id}/presentation`, { now: base })
+  assert.equal(first.status, 200)
+  assert.equal(second.status, 429)
+  assert.ok(Number(second.headers.get('retry-after')) >= 1)
+  await first.body.cancel()
+  await second.text()
+  const recovered = await viewer(`${id}/presentation`, { now: base })
+  assert.equal(recovered.status, 200)
+  await recovered.text()
+
+  const rateId = (await createShare(SESSION_B, { now: base })).json.id
+  for (let index = 0; index < host.limits.presentationRatePerIdPerMinute; index += 1) {
+    const response = await viewer(`${rateId}/presentation`, { now: base })
+    assert.equal(response.status, 200)
+    await response.text()
+  }
+  const limited = await viewer(`${rateId}/presentation`, { now: base })
+  assert.equal(limited.status, 429)
+  assert.ok(Number(limited.headers.get('retry-after')) >= 1)
+  // The presentation bucket is separate from the document bucket.
+  const documentResponse = await viewer(`${rateId}/document`, { now: base })
+  assert.equal(documentResponse.status, 200)
+  await documentResponse.text()
+  const headRecovered = await viewer(`${rateId}/presentation`, { now: base + 61000, method: 'HEAD' })
+  assert.equal(headRecovered.status, 200)
+  assert.equal(headRecovered.body, null)
+
+  const firstGlobalId = (await createShare(SESSION_C, { now: base + 61000 })).json.id
+  host.seedSession('share-session-d', { revision: 0, title: 'seed', code: '' })
+  const secondGlobalId = (await createShare('share-session-d', { now: base + 61000 })).json.id
+  const globalOne = await viewer(`${firstGlobalId}/presentation`, { now: base + 61000 })
+  const globalTwo = await viewer(`${secondGlobalId}/presentation`, { now: base + 61000 })
+  assert.equal(globalOne.status, 200)
+  assert.equal(globalTwo.status, 200)
+  const globalLimited = await viewer(`${rateId}/presentation`, { now: base + 61000 })
+  assert.equal(globalLimited.status, 429)
+  await globalOne.body.cancel()
+  await globalTwo.body.cancel()
+  await globalLimited.text()
+  const globalRecovered = await viewer(`${rateId}/presentation`, { now: base + 61000 })
+  assert.equal(globalRecovered.status, 200)
+  await globalRecovered.text()
+})
+
 test('the shell is constant across two valid ids and contains no share data', async () => {
   const first = await createShare(SESSION_A, { now: 1000 })
   const second = await createShare(SESSION_B, { now: 1000 })
@@ -955,15 +1132,35 @@ test('the shell is constant across two valid ids and contains no share data', as
   assert.ok(shellA.includes('This share link is unavailable or has expired.'))
   assert.ok(shellA.includes('分享链接不可用或已过期。'))
   assert.ok(shellA.includes("credentials: 'omit'"))
-  assert.equal((shellA.match(/credentials: 'omit'/g) ?? []).length, 2)
+  assert.equal((shellA.match(/credentials: 'omit'/g) ?? []).length, 3)
   assert.ok(shellA.includes("cache: 'no-store'"))
   assert.ok(shellA.includes("referrerPolicy: 'no-referrer'"))
-  assert.ok(!shellA.includes('postMessage'))
+  // The shell only posts runtime commands to the sandboxed frame. It never
+  // listens for messages and never accepts or echoes share data into markup.
+  assert.equal((shellA.match(/postMessage\(/g) ?? []).length, 1)
+  assert.ok(shellA.includes("frame.contentWindow.postMessage(Object.assign({ type: 'three-workbench:command' }, message), '*')"))
   assert.ok(!shellA.includes('addEventListener(\'message\''))
   assert.ok(!shellA.includes('allow-same-origin'))
   assert.ok(!shellA.includes('innerHTML'))
   assert.ok(!shellA.includes('eval('))
   assert.ok(!shellA.includes('new Function'))
+  assert.equal((shellA.match(/sandbox="allow-scripts allow-pointer-lock allow-downloads"/g) ?? []).length, 1)
+  // Manual presentation wiring: fetch the additive suffix and render every
+  // user-authored field through textContent.
+  assert.ok(shellA.includes("location.pathname + '/presentation'"))
+  assert.ok(shellA.includes("command: 'camera'"))
+  assert.ok(shellA.includes("command: 'select'"))
+  assert.ok(shellA.includes("command: 'mutate'"))
+  assert.ok(shellA.includes("command: 'timeline'"))
+  assert.ok(shellA.includes('visible: true'))
+  assert.ok(shellA.includes('visible: false'))
+  assert.ok(shellA.includes('transient: true'))
+  assert.ok(shellA.includes("action: 'seek'"))
+  assert.ok(shellA.includes('manualTitleEl.textContent'))
+  assert.ok(shellA.includes('stepTitleEl.textContent'))
+  assert.ok(shellA.includes('stepBodyEl.textContent'))
+  assert.ok(shellA.includes('partsListEl.textContent'))
+  assert.ok(shellA.includes('ArrowLeft') && shellA.includes('ArrowRight'))
   assert.ok(!shellA.includes(`${ROUTE}/create`))
   assert.ok(!shellA.includes(`${ROUTE}/delete`))
   assert.ok(shellA.includes("const LOADING = 'Loading shared scene"))
@@ -1338,4 +1535,19 @@ test('client source keeps the pinned guards and the ref-backed share contract', 
   const createFetchAt = clientSource.indexOf('fetch(`${ROUTE}/share/create`')
   const dispatchAt = clientSource.lastIndexOf('shareDispatchRef.current = true', createFetchAt)
   assert.ok(createFetchAt > 0 && dispatchAt > 0 && dispatchAt < createFetchAt)
+})
+
+test('share shell renders manual BOM/hotspots, print-to-PDF and a local QR', () => {
+  const shell = host.shellHtml
+  assert.match(shell, /id="step-hotspots"/)
+  assert.match(shell, /id="bom-list"/)
+  assert.match(shell, /id="manual-print"/)
+  assert.match(shell, /id="print"/)
+  assert.match(shell, /qrcode-generator\.js/)
+  assert.match(shell, /renderHotspots/)
+  assert.match(shell, /renderBom/)
+  assert.match(shell, /renderPrint/)
+  assert.match(shell, /window\.print\(\)/)
+  assert.match(shell, /sandbox="allow-scripts allow-pointer-lock allow-downloads"/)
+  assert.ok(!shell.includes('allow-same-origin'))
 })

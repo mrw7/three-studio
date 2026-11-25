@@ -13,12 +13,17 @@ only, no network). None of them make network requests at runtime.
 | `gifenc.js` | [`gifenc`](https://github.com/mattdesl/gifenc) `dist/gifenc.esm.js` | 1.0.3 | MIT |
 | `MP4-MUXER-LICENSE.txt` | `mp4-muxer@5.2.2/LICENSE` | 5.2.2 | MIT |
 | `GIFENC-LICENSE.txt` | `gifenc@1.0.3/LICENSE.md` | 1.0.3 | MIT |
+| `qrcode-generator.js` | [`qrcode-generator`](https://github.com/kazuhikoarase/qrcode-generator) `qrcode.js` | 1.4.4 | MIT |
+| `qrcode_UTF8.js` | same package `qrcode_UTF8.js` | 1.4.4 | MIT |
+| `QRCODE-LICENSE.txt` | upstream MIT header/copyright | 1.4.4 | MIT |
 | `fflate.module.js` | [`fflate`](https://github.com/101arrowz/fflate) via `three@0.186.0/examples/jsm/libs/fflate.module.js` | 0.8.2 | MIT (header in file) |
 
 SHA-256 of the files as committed:
 
 - `mp4-muxer.js`: `d2c4c782f180c86ed30b1f5d9487a34a0d370bf9b4535285734ea187d38f9bb5`
   (identical to the upstream build)
+- `qrcode-generator.js`: `18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780`
+- `qrcode_UTF8.js`: `e522d64003b332e29271fdce4993ed3ae2934c8947f41654bd324ddcfa2de301`
 - `gifenc.js`: `cec614f6b77348eb6ea6a64921bab65e72d5e7f839a097c8fda8fc883c3146f7`
   (upstream pre-strip SHA-256 is
   `217761244379253ba5815510d3048a4fb1f4c4dbe9fb51a5cfbfe26f34eec093`)

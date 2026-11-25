@@ -445,6 +445,130 @@ test('host registers workbench_proposal and defaults baseRevision to the head', 
   }, exec), /two different object uids/)
 })
 
+test('host accepts bounded manual proposals and rejects malformed or oversized data', async () => {
+  const ctx = recordingHostContext()
+  applyHost(ctx)
+  const tool = ctx.records.tools.workbench_proposal
+  assert.ok(tool.parameters.properties.kind.enum.includes('manual'))
+  assert.match(tool.parameters.properties.payload.description, /manual: \{manual:/)
+  assert.match(ctx.records.sections['tool:workbench-proposal'].text, /read-only product walkthrough/)
+
+  const exec = { agent: { session: { id: 'sess-manual' } } }
+  const minimalStep = () => ({
+    id: 'step-1',
+    title: 'Step',
+    body: 'Body',
+    camera: { position: [0, 1, 2], target: [0, 0, 0], fov: 50 },
+    time: 0,
+    hidden: [],
+    highlight: null,
+    parts: [],
+    duration: 0,
+  })
+  const manual = overrides => ({
+    v: 1,
+    title: 'Manual',
+    product: 'Product',
+    version: '1',
+    language: 'en',
+    steps: [minimalStep()],
+    ...overrides,
+  })
+  const accepted = await tool.execute({
+    kind: 'manual',
+    rationale: 'Walkthrough',
+    payload: { manual: manual() },
+  }, exec)
+  assert.equal(accepted.kind, 'manual')
+  assert.deepEqual(accepted.payload.manual, manual())
+  assert.match(accepted.id, /^proposal_[a-f0-9]{24}$/)
+  const bare = await tool.execute({ kind: 'manual', payload: manual() }, exec)
+  assert.equal(bare.kind, 'manual')
+  assert.equal(bare.payload.v, 1)
+
+  // Every documented maximum is inclusive, counted in code points.
+  const hidden = Array.from({ length: 64 }, (_value, index) => 's:u' + String(index))
+  const parts = Array.from({ length: 16 }, () => ({
+    name: 'p'.repeat(80),
+    number: 'n'.repeat(40),
+  }))
+  const maxStep = {
+    id: 'step-max',
+    title: 'T'.repeat(80),
+    body: 'B'.repeat(600),
+    camera: { position: [1e7, -1e7, 0], target: [0, 0, 1e7], fov: 120 },
+    time: 86400,
+    hidden,
+    highlight: 's:highlight',
+    parts,
+    duration: 60,
+  }
+  const maxManual = manual({
+    title: 'M'.repeat(120),
+    product: 'P'.repeat(120),
+    version: 'V'.repeat(40),
+    language: 'zh',
+    steps: Array.from({ length: 64 }, (_value, index) => ({
+      ...maxStep,
+      id: 'step-' + String(index),
+    })),
+  })
+  const bounded = await tool.execute({ kind: 'manual', payload: { manual: maxManual } }, exec)
+  assert.equal(bounded.payload.manual.steps.length, 64)
+  assert.equal(bounded.payload.manual.steps[0].hidden.length, 64)
+  assert.equal(bounded.payload.manual.steps[0].parts.length, 16)
+
+  const lowerFov = await tool.execute({
+    kind: 'manual',
+    payload: { manual: manual({ steps: [{ ...minimalStep(), camera: { position: [0, 0, 0], target: [0, 0, 0], fov: 15 } }] }) },
+  }, exec)
+  assert.equal(lowerFov.kind, 'manual')
+
+  const reject = async (payload, pattern = /manual payload/) => {
+    await assert.rejects(tool.execute({ kind: 'manual', payload }, exec), pattern)
+  }
+  await reject({})
+  await reject({ manual: null })
+  await reject({ manual: [] })
+  await reject({ manual: manual({ v: 2 }) })
+  await reject({ manual: manual({ title: 'M'.repeat(121) }) })
+  await reject({ manual: manual({ product: 'P'.repeat(121) }) })
+  await reject({ manual: manual({ version: 'V'.repeat(41) }) })
+  await reject({ manual: manual({ language: 'fr' }) })
+  await reject({ manual: manual({ steps: null }) })
+  await reject({ manual: manual({ steps: 'nope' }) })
+  await reject({ manual: manual({ steps: Array.from({ length: 65 }, () => minimalStep()) }) })
+  await reject({ manual: manual({ steps: [null] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), id: '' }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), id: 'x'.repeat(101) }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), title: 'T'.repeat(81) }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), body: 'B'.repeat(601) }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), camera: null }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), camera: { position: [0, Infinity, 0], target: [0, 0, 0], fov: 50 } }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), camera: { position: [0, NaN, 0], target: [0, 0, 0], fov: 50 } }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), camera: { position: [1e7 + 1, 0, 0], target: [0, 0, 0], fov: 50 } }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), camera: { position: [0, 0, 0], target: 'nope', fov: 50 } }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), camera: { position: [0, 0, 0], target: [0, 0, 0], fov: 14 } }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), camera: { position: [0, 0, 0], target: [0, 0, 0], fov: 121 } }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), camera: { position: [0, 0, 0], target: [0, 0, 0], fov: NaN } }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), time: -1 }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), time: 86401 }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), time: Infinity }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), hidden: 's:u' }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), hidden: Array.from({ length: 65 }, (_v, index) => 's:u' + String(index)) }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), hidden: ['s:' + 'u'.repeat(199)] }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), hidden: [42] }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), highlight: 42 }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), highlight: 's:' + 'u'.repeat(199) }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), parts: Array.from({ length: 17 }, () => ({ name: 'x', number: '' })) }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), parts: [{ name: '', number: '' }] }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), parts: [{ name: 'P'.repeat(81), number: '' }] }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), parts: [{ name: 'P', number: 'N'.repeat(41) }] }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), parts: [null] }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), duration: -1 }] }) })
+  await reject({ manual: manual({ steps: [{ ...minimalStep(), duration: 61 }] }) })
+})
+
 test('host brands the boot page before any client plugin can run', () => {
   const ctx = recordingHostContext()
   applyHost(ctx)

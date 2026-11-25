@@ -63,6 +63,25 @@ services may be developed separately; the core must stay useful without them.
 - [ ] Template packs for agency/marketing and product-configurator workflows.
 - [ ] Better accessibility and small-screen editing coverage.
 
+## 0.4.0 — product content: manual + film
+
+- [x] Optional `presentation` editor record with bounded manual steps, parts,
+  hidden UIDs, highlights and film settings.
+- [x] Manual rail panel: capture camera/selection, edit, reorder, delete, play.
+- [x] Film dock panel: shots, 16:9/9:16/1:1/4:5, 24/30/60 fps, 1080p MP4.
+- [x] Deterministic export plans up to 1920x1080 and H.264 High 4.0/4.2
+  probing; Film filenames carry the cut.
+- [x] AI `workbench_proposal` kind `manual`; proposals stay inert until applied.
+- [x] Read-only manual sidebar in share links via `/share/<id>/presentation`.
+- [x] Ordered film shots with eased start→end camera keys, hard cuts, SRT
+  sidecar and local music with Opus mux or a video-only fallback.
+- [x] Manual hotspots (sidebar Focus) and a parts/BOM table; share print-to-PDF
+  and a local QR code.
+- [x] BOM CSV import/export for the parts list.
+- [ ] Fades, burned-in captions, per-aspect reframing and safe-area guides.
+- [ ] Sequential batch variants and a local render worker (audio, 1080p60).
+- [ ] 4K, hosted publishing/analytics/SSO/translations (Pro/private).
+
 ## Later / separate services
 
 - [ ] Hosted share viewer and team review (proprietary service).

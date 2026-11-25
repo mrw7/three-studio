@@ -29,11 +29,23 @@ const RUNTIME_DIR = join(HERE, 'runtime')
 const ROUTE_PATH = '/three-workbench'
 const TOOL_NAME = 'three_scene'
 const PROPOSAL_TOOL_NAME = 'workbench_proposal'
-const PROPOSAL_KINDS = ['shots', 'pins', 'measure', 'explode', 'view', 'geometry', 'insert', 'recipe', 'link', 'scene']
+const PROPOSAL_KINDS = ['shots', 'pins', 'measure', 'explode', 'view', 'geometry', 'insert', 'recipe', 'link', 'manual', 'scene']
 const PROPOSAL_VIEW_PRESETS = ['perspective', 'front', 'back', 'left', 'right', 'top', 'bottom', 'plan']
 const PROPOSAL_SHAPES = ['box', 'sphere', 'plane', 'cylinder', 'cone', 'torus']
 const PROPOSAL_MAX_PARTS = 32
 const PROPOSAL_MAX_RATIONALE = 1200
+const PROPOSAL_MANUAL_STEPS_MAX = 64
+const PROPOSAL_MANUAL_PARTS_MAX = 16
+const PROPOSAL_MANUAL_HIDDEN_MAX = 64
+const PROPOSAL_MANUAL_UID_MAX = 200
+const PROPOSAL_MANUAL_VECTOR_MAX = 1e7
+const PROPOSAL_MANUAL_TITLE_MAX = 120
+const PROPOSAL_MANUAL_PRODUCT_MAX = 120
+const PROPOSAL_MANUAL_VERSION_MAX = 40
+const PROPOSAL_MANUAL_STEP_TITLE_MAX = 80
+const PROPOSAL_MANUAL_BODY_MAX = 600
+const PROPOSAL_MANUAL_PART_NAME_MAX = 80
+const PROPOSAL_MANUAL_PART_NUMBER_MAX = 40
 
 /**
  * Branding and first-paint cover for the kernel-owned boot interval.
@@ -286,6 +298,10 @@ const SHARE_LIMITS = {
   documentRatePerIdPerMinute: 8,
   documentConcurrentGlobal: 2,
   documentConcurrentPerId: 1,
+  presentationRateGlobalPerMinute: 20,
+  presentationRatePerIdPerMinute: 8,
+  presentationConcurrentGlobal: 2,
+  presentationConcurrentPerId: 1,
   defaultTtlSeconds: 604800,
   minTtlSeconds: 3600,
   maxTtlSeconds: 2592000,
@@ -587,6 +603,12 @@ scene while the user is exploring, call \`workbench_proposal\` with one of:
 - \`link\` — record an editor-only relationship between two existing objects:
   \`{ fromUid, toUid, kind:'relation'|'flow'|'dependency', label }\`. It never
   enters the generated scene, exports or share documents.
+- \`manual\` — a read-only product walkthrough for the share viewer:
+  \`{ manual: { v:1, title, product, version, language:'zh'|'en', steps:[{ id, title, body, camera:{ position:[x,y,z], target:[x,y,z], fov }, time, hidden, highlight, parts:[{ name, number }], duration }] } }\`.
+  \`hidden\` is up to 64 object UIDs, \`highlight\` is one UID or null, and each
+  step may seek the shared timeline. A manual is data, never code: titles,
+  bodies and part labels are rendered as plain text. Keep step bodies short and
+  reference stable \`wb.id\` UIDs.
 - \`scene\` — an instruction for a later \`three_scene\` edit: \`{ prompt }\`.
 
 Rules:
@@ -6538,7 +6560,9 @@ export function apply(ctx) {
             + 'pins: {pins:[{uid,position,severity,message,kind}]}; measure: {label,from:[x,y,z],to:[x,y,z],uidA,uidB}; '
             + 'explode: {amount}; view: {preset,projection} or {position,target,fov,projection}; geometry: {uid,params}; '
             + 'insert: {parts:[{shape,name,position,rotation,scale,params,material}],origin} or {recipeId,origin}; '
-            + 'recipe: {name,description,parts}; link: {fromUid,toUid,kind,label}; scene: {prompt}.',
+            + 'recipe: {name,description,parts}; link: {fromUid,toUid,kind,label}; '
+            + 'manual: {manual:{v:1,title,product,version,language,steps:[{id,title,body,camera:{position,target,fov},'
+            + 'time,hidden,highlight,parts:[{name,number}],duration}]}}; scene: {prompt}.',
         },
       },
       required: ['kind', 'payload'],
@@ -6651,6 +6675,68 @@ export function apply(ctx) {
       }
       if (kind === 'scene' && (typeof payload.prompt !== 'string' || payload.prompt.trim() === '')) {
         throw new Error('workbench_proposal scene payload needs a prompt')
+      }
+      if (kind === 'manual') {
+        // Product walkthrough data for the share viewer. Validation is
+        // deliberately strict and complete before any proposal state exists:
+        // unknown fields are ignored, but every documented field must be in
+        // bounds. Nothing here executes or interprets the text as code.
+        const isManualText = (value, max) => {
+          if (typeof value !== 'string') return false
+          // The UTF-16 length is an upper bound on code points, so a short
+          // string needs no scan; a long one stops after max + 1 points.
+          if (value.length <= max) return true
+          let count = 0
+          for (const _point of value) {
+            count += 1
+            if (count > max) return false
+          }
+          return true
+        }
+        const isManualUid = value => typeof value === 'string'
+          && value.length > 0 && isManualText(value, PROPOSAL_MANUAL_UID_MAX)
+        const isManualVector = value => isVector(value)
+          && value.every(component => Math.abs(component) <= PROPOSAL_MANUAL_VECTOR_MAX)
+        const isManualNumber = (value, min, max) => typeof value === 'number'
+          && Number.isFinite(value) && value >= min && value <= max
+        const isManualStep = step => {
+          if (step === null || typeof step !== 'object' || Array.isArray(step)) return false
+          if (typeof step.id !== 'string' || !/^[A-Za-z0-9_:.-]{1,100}$/.test(step.id)) return false
+          if (!isManualText(step.title, PROPOSAL_MANUAL_STEP_TITLE_MAX)
+            || !isManualText(step.body, PROPOSAL_MANUAL_BODY_MAX)) return false
+          const camera = step.camera
+          if (camera === null || typeof camera !== 'object' || Array.isArray(camera)) return false
+          if (!isManualVector(camera.position) || !isManualVector(camera.target)) return false
+          if (!isManualNumber(camera.fov, 15, 120)) return false
+          if (!isManualNumber(step.time, 0, 86400)) return false
+          if (!Array.isArray(step.hidden) || step.hidden.length > PROPOSAL_MANUAL_HIDDEN_MAX
+            || !step.hidden.every(isManualUid)) return false
+          if (step.highlight !== null && !isManualUid(step.highlight)) return false
+          if (!Array.isArray(step.parts) || step.parts.length > PROPOSAL_MANUAL_PARTS_MAX) return false
+          for (const part of step.parts) {
+            if (part === null || typeof part !== 'object' || Array.isArray(part)) return false
+            if (typeof part.name !== 'string' || part.name === ''
+              || !isManualText(part.name, PROPOSAL_MANUAL_PART_NAME_MAX)) return false
+            if (!isManualText(part.number, PROPOSAL_MANUAL_PART_NUMBER_MAX)) return false
+          }
+          return isManualNumber(step.duration, 0, 60)
+        }
+        // Accept the documented `{ manual }` wrapper; a bare manual object is
+        // also validated and returned unchanged so an older caller keeps
+        // working without a second code path.
+        const manual = payload.manual === undefined ? payload : payload.manual
+        const validManual = manual !== null && typeof manual === 'object' && !Array.isArray(manual)
+          && manual.v === 1
+          && isManualText(manual.title, PROPOSAL_MANUAL_TITLE_MAX)
+          && isManualText(manual.product, PROPOSAL_MANUAL_PRODUCT_MAX)
+          && isManualText(manual.version, PROPOSAL_MANUAL_VERSION_MAX)
+          && (manual.language === 'zh' || manual.language === 'en')
+          && Array.isArray(manual.steps)
+          && manual.steps.length <= PROPOSAL_MANUAL_STEPS_MAX
+          && manual.steps.every(isManualStep)
+        if (!validManual) {
+          throw new Error('workbench_proposal manual payload needs a valid manual object')
+        }
       }
       const sceneId = String(sessionId)
       const entry = scenes.get(sceneId)
@@ -8620,6 +8706,8 @@ const shareRates = {
   viewerById: new Map(),
   documentGlobal: { times: [], active: 0 },
   documentById: new Map(),
+  presentationGlobal: { times: [], active: 0 },
+  presentationById: new Map(),
 }
 
 const SHARE_SHELL_HTML = `<!doctype html>
@@ -8635,27 +8723,120 @@ const SHARE_SHELL_HTML = `<!doctype html>
     background: #12161b; border-bottom: 1px solid rgba(255,255,255,.12); }
   #bar[hidden] { display: none; }
   #view { flex: 1 1 auto; width: 100%; border: 0; background: #0b0d10; }
+  #manual { position: fixed; top: 12px; right: 12px; z-index: 2; box-sizing: border-box;
+    width: min(340px, calc(100vw - 24px)); max-height: calc(100vh - 24px); overflow: auto;
+    padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255,255,255,.14);
+    background: rgba(14,18,25,.92); box-shadow: 0 12px 40px rgba(0,0,0,.45);
+    font: 13px/1.5 system-ui, sans-serif; }
+  #manual[hidden] { display: none; }
+  #manual-title { font-size: 15px; font-weight: 650; }
+  #manual-sub, #manual-count { color: rgba(232,237,244,.62); font-size: 11px;
+    letter-spacing: .06em; text-transform: uppercase; }
+  #manual-sub { margin-top: 2px; }
+  #manual-count { margin: 8px 0 10px; }
+  #manual-sub[hidden], #manual-count[hidden], #step-body[hidden], #parts-label[hidden] { display: none; }
+  #step-title { margin: 0 0 6px; font-size: 17px; line-height: 1.3; }
+  #step-body { margin: 0 0 12px; white-space: pre-wrap; color: rgba(232,237,244,.88); }
+  #parts-label { margin-bottom: 4px; color: rgba(232,237,244,.55); font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; }
+  #step-parts { margin: 0 0 12px; padding-left: 18px; }
+  #step-parts:empty { display: none; }
+  #hotspots-label, #bom-label { margin: 8px 0 4px; color: rgba(232,237,244,.55); font-size: 11px;
+    letter-spacing: .08em; text-transform: uppercase; }
+  #step-hotspots, #bom-list { margin: 0 0 10px; padding-left: 18px; }
+  #step-hotspots:empty, #bom-list:empty { display: none; }
+  #step-hotspots button, #bom-list button { padding: 1px 6px; border-radius: 5px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: inherit;
+    font: 11px/1.4 inherit; }
+  #manual-qr { display: block; width: 96px; height: 96px; margin: 10px auto 0; padding: 4px;
+    background: #fff; border-radius: 4px; }
+  #print { display: none; }
+  @media print {
+    html, body { background: #fff !important; color: #111 !important; display: block !important; }
+    #bar, #view, #manual { display: none !important; }
+    #print { display: block !important; padding: 24px; font: 12px/1.5 system-ui, sans-serif; }
+    #print h1 { font-size: 22px; margin: 0 0 4px; }
+    #print h2 { font-size: 15px; margin: 18px 0 4px; page-break-after: avoid; }
+    #print .print-meta { color: #555; margin-bottom: 12px; }
+    #print .print-qr { float: right; width: 112px; height: 112px; margin: 0 0 12px 16px; }
+    #print ul { margin: 4px 0 8px; padding-left: 18px; }
+  }
+  #manual-nav { display: flex; gap: 8px; }
+  #manual-nav button { flex: 1; padding: 7px 10px; border-radius: 8px; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.08);
+    color: inherit; font: inherit; }
+  #manual-nav button:disabled { opacity: .4; cursor: default; }
+  @media (max-width: 640px) {
+    #manual { top: auto; bottom: 10px; left: 10px; right: 10px; width: auto; max-height: 46vh; }
+  }
 </style>
 </head>
 <body>
 <div id="bar"><span id="status">Loading shared scene… / 正在加载分享场景…</span></div>
 <iframe id="view" sandbox="allow-scripts allow-pointer-lock allow-downloads" referrerpolicy="no-referrer"></iframe>
+<aside id="manual" hidden aria-live="polite">
+  <div id="manual-title"></div>
+  <div id="manual-sub" hidden></div>
+  <div id="manual-count" hidden></div>
+  <h2 id="step-title"></h2>
+  <p id="step-body" hidden></p>
+  <div id="parts-label" hidden></div>
+  <ul id="step-parts"></ul>
+  <div id="hotspots-label" hidden></div>
+  <ul id="step-hotspots"></ul>
+  <div id="bom-label" hidden></div>
+  <ul id="bom-list"></ul>
+  <img id="manual-qr" alt="Share QR code" hidden>
+  <div id="manual-nav">
+    <button id="manual-prev" type="button"></button>
+    <button id="manual-next" type="button"></button>
+    <button id="manual-print" type="button"></button>
+  </div>
+</aside>
+<section id="print"></section>
+<script src="/three-workbench/runtime/vendor/qrcode-generator.js"></script>
+<script src="/three-workbench/runtime/vendor/qrcode_UTF8.js"></script>
 <script>
 (() => {
   'use strict'
   const bar = document.getElementById('bar')
   const status = document.getElementById('status')
   const frame = document.getElementById('view')
+  const manualEl = document.getElementById('manual')
+  const manualTitleEl = document.getElementById('manual-title')
+  const manualSubEl = document.getElementById('manual-sub')
+  const manualCountEl = document.getElementById('manual-count')
+  const stepTitleEl = document.getElementById('step-title')
+  const stepBodyEl = document.getElementById('step-body')
+  const partsLabelEl = document.getElementById('parts-label')
+  const partsListEl = document.getElementById('step-parts')
+  const hotspotsLabelEl = document.getElementById('hotspots-label')
+  const hotspotsListEl = document.getElementById('step-hotspots')
+  const bomLabelEl = document.getElementById('bom-label')
+  const bomListEl = document.getElementById('bom-list')
+  const qrImageEl = document.getElementById('manual-qr')
+  const printEl = document.getElementById('print')
+  const prevButton = document.getElementById('manual-prev')
+  const nextButton = document.getElementById('manual-next')
+  const printButton = document.getElementById('manual-print')
   const META = ${JSON.stringify(SHARE_DOCUMENT_META)}
   const LOADING = 'Loading shared scene… / 正在加载分享场景…'
   const UNAVAILABLE = 'This share link is unavailable or has expired. / 分享链接不可用或已过期。'
   const DOCTYPE = /^<!doctype html>/i
+  const LABELS = {
+    en: { previous: 'Previous', next: 'Next', parts: 'Parts', step: 'Step', hotspots: 'Hotspots', bom: 'Parts / BOM', print: 'Print / PDF', focus: 'Focus' },
+    zh: { previous: '上一步', next: '下一步', parts: '零件', step: '步骤', hotspots: '热点', bom: '零件清单', print: '打印 / PDF', focus: '定位' },
+  }
   let generation = 0
   let timer = 0
   let loadedOnce = false
+  let manualData = null
+  let stepIndex = 0
+  let previousHidden = []
   const showUnavailable = () => {
     bar.hidden = false
     status.textContent = UNAVAILABLE
+    manualEl.hidden = true
     frame.removeAttribute('srcdoc')
   }
   const injectMeta = text => {
@@ -8663,6 +8844,341 @@ const SHARE_SHELL_HTML = `<!doctype html>
     if (match === null) return META + text
     const at = match.index + match[0].length
     return text.slice(0, at) + META + text.slice(at)
+  }
+  const textValue = (value, max) => {
+    if (typeof value !== 'string') return ''
+    if (value.length <= max) return value
+    let text = ''
+    let count = 0
+    for (const point of value) {
+      text += point
+      count += 1
+      if (count >= max) break
+    }
+    return text
+  }
+  const withinChars = (value, max) => {
+    if (typeof value !== 'string') return false
+    if (value.length <= max) return true
+    let count = 0
+    for (const _point of value) {
+      count += 1
+      if (count > max) return false
+    }
+    return true
+  }
+  const uidValue = value => typeof value === 'string' && value.length > 0
+    && withinChars(value, 200) ? value : null
+  const vectorValue = value => {
+    if (!Array.isArray(value) || value.length !== 3) return null
+    const next = []
+    for (const part of value) {
+      if (typeof part !== 'number' || !Number.isFinite(part) || Math.abs(part) > 1e7) return null
+      next.push(part)
+    }
+    return next
+  }
+  const numberValue = (value, min, max, fallback) => {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return fallback
+    return Math.min(max, Math.max(min, value))
+  }
+  const readPart = value => {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+    const name = textValue(value.name, 80).trim()
+    if (name === '') return null
+    return { name, number: textValue(value.number, 40).trim() }
+  }
+  const readHotspot = value => {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+    const uid = uidValue(value.uid)
+    if (uid === null) return null
+    return { uid, label: textValue(value.label, 120).trim() || 'Part' }
+  }
+  const readBomPart = value => {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+    const name = textValue(value.name, 120).trim()
+    if (name === '') return null
+    return {
+      number: textValue(value.number, 40).trim(),
+      name,
+      qty: numberValue(value.qty, 0, 100000, 1),
+      uid: uidValue(value.uid),
+    }
+  }
+  const readStep = value => {
+    if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+    const camera = value.camera !== null && typeof value.camera === 'object' && !Array.isArray(value.camera)
+      ? value.camera : null
+    if (camera === null) return null
+    const position = vectorValue(camera.position)
+    const target = vectorValue(camera.target)
+    if (position === null || target === null) return null
+    const hidden = []
+    if (Array.isArray(value.hidden)) {
+      for (const uid of value.hidden) {
+        const next = uidValue(uid)
+        if (next !== null && hidden.length < 64) hidden.push(next)
+      }
+    }
+    const parts = []
+    if (Array.isArray(value.parts)) {
+      for (const part of value.parts) {
+        if (parts.length >= 16) break
+        const next = readPart(part)
+        if (next !== null) parts.push(next)
+      }
+    }
+    const hotspots = []
+    if (Array.isArray(value.hotspots)) {
+      for (const hotspot of value.hotspots) {
+        if (hotspots.length >= 16) break
+        const next = readHotspot(hotspot)
+        if (next !== null) hotspots.push(next)
+      }
+    }
+    return {
+      title: textValue(value.title, 80).trim(),
+      body: textValue(value.body, 600).trim(),
+      camera: { position, target, fov: numberValue(camera.fov, 15, 120, 50) },
+      time: numberValue(value.time, 0, 86400, 0),
+      hidden,
+      highlight: value.highlight === null || value.highlight === undefined ? null : uidValue(value.highlight),
+      parts,
+      hotspots,
+    }
+  }
+  const readManual = value => {
+    if (value === null || typeof value !== 'object' || Array.isArray(value) || value.v !== 1) return null
+    if (!Array.isArray(value.steps) || value.steps.length === 0) return null
+    const steps = []
+    for (const entry of value.steps.slice(0, 64)) {
+      const step = readStep(entry)
+      if (step !== null) steps.push(step)
+    }
+    if (steps.length === 0) return null
+    const bom = []
+    if (Array.isArray(value.parts)) {
+      for (const part of value.parts) {
+        if (bom.length >= 64) break
+        const next = readBomPart(part)
+        if (next !== null) bom.push(next)
+      }
+    }
+    return {
+      title: textValue(value.title, 120).trim(),
+      product: textValue(value.product, 120).trim(),
+      version: textValue(value.version, 40).trim(),
+      language: value.language === 'zh' ? 'zh' : 'en',
+      steps,
+      parts: bom,
+    }
+  }
+  const postCommand = message => {
+    if (frame.contentWindow === null) return
+    frame.contentWindow.postMessage(Object.assign({ type: 'three-workbench:command' }, message), '*')
+  }
+  const focusUid = uid => {
+    if (typeof uid !== 'string' || uid === '') return
+    postCommand({ command: 'select', uids: [uid], primary: uid })
+    postCommand({ command: 'focus', uid })
+  }
+  const renderHotspots = (step, labels) => {
+    hotspotsLabelEl.textContent = labels.hotspots
+    hotspotsLabelEl.hidden = step.hotspots.length === 0
+    hotspotsListEl.textContent = ''
+    for (const hotspot of step.hotspots) {
+      const item = document.createElement('li')
+      item.textContent = hotspot.label + ' '
+      const button = document.createElement('button')
+      button.type = 'button'
+      button.textContent = labels.focus
+      button.addEventListener('click', () => focusUid(hotspot.uid))
+      item.appendChild(button)
+      hotspotsListEl.appendChild(item)
+    }
+  }
+  const renderBom = (data, labels) => {
+    bomLabelEl.textContent = labels.bom
+    bomLabelEl.hidden = data.parts.length === 0
+    bomListEl.textContent = ''
+    for (const part of data.parts) {
+      const item = document.createElement('li')
+      item.textContent = (part.number === '' ? part.name : part.name + ' · ' + part.number)
+        + (part.qty === 1 ? '' : ' × ' + String(part.qty)) + ' '
+      if (part.uid !== null) {
+        const button = document.createElement('button')
+        button.type = 'button'
+        button.textContent = labels.focus
+        button.addEventListener('click', () => focusUid(part.uid))
+        item.appendChild(button)
+      }
+      bomListEl.appendChild(item)
+    }
+  }
+  const renderQr = () => {
+    try {
+      if (typeof qrcode !== 'function') return
+      if (qrcode.stringToBytesFuncs !== undefined && qrcode.stringToBytesFuncs['UTF-8'] !== undefined) {
+        qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8']
+      }
+      const qr = qrcode(0, 'M')
+      qr.addData(location.href)
+      qr.make()
+      qrImageEl.src = qr.createDataURL(4, 2)
+      qrImageEl.hidden = false
+    } catch (error) {
+      qrImageEl.hidden = true
+    }
+  }
+  const renderPrint = data => {
+    const labels = LABELS[data.language]
+    printEl.textContent = ''
+    const title = document.createElement('h1')
+    title.textContent = data.title || labels.bom
+    printEl.appendChild(title)
+    const meta = [data.product, data.version].filter(part => part !== '').join(' · ')
+    if (meta !== '') {
+      const line = document.createElement('div')
+      line.className = 'print-meta'
+      line.textContent = meta
+      printEl.appendChild(line)
+    }
+    if (qrImageEl.src !== '') {
+      const qr = document.createElement('img')
+      qr.className = 'print-qr'
+      qr.alt = 'QR'
+      qr.src = qrImageEl.src
+      printEl.appendChild(qr)
+    }
+    data.steps.forEach((step, index) => {
+      const heading = document.createElement('h2')
+      heading.textContent = labels.step + ' ' + String(index + 1) + (step.title === '' ? '' : ' · ' + step.title)
+      printEl.appendChild(heading)
+      if (step.body !== '') {
+        const body = document.createElement('p')
+        body.textContent = step.body
+        printEl.appendChild(body)
+      }
+      if (step.parts.length > 0) {
+        const list = document.createElement('ul')
+        for (const part of step.parts) {
+          const item = document.createElement('li')
+          item.textContent = part.number === '' ? part.name : part.name + ' · ' + part.number
+          list.appendChild(item)
+        }
+        printEl.appendChild(list)
+      }
+      if (step.hotspots.length > 0) {
+        const list = document.createElement('ul')
+        for (const hotspot of step.hotspots) {
+          const item = document.createElement('li')
+          item.textContent = hotspot.label
+          list.appendChild(item)
+        }
+        printEl.appendChild(list)
+      }
+    })
+    if (data.parts.length > 0) {
+      const heading = document.createElement('h2')
+      heading.textContent = labels.bom
+      printEl.appendChild(heading)
+      const list = document.createElement('ul')
+      for (const part of data.parts) {
+        const item = document.createElement('li')
+        item.textContent = (part.number === '' ? part.name : part.name + ' · ' + part.number)
+          + (part.qty === 1 ? '' : ' × ' + String(part.qty))
+        list.appendChild(item)
+      }
+      printEl.appendChild(list)
+    }
+  }
+  const renderStep = data => {
+    const step = data.steps[stepIndex]
+    const labels = LABELS[data.language]
+    manualEl.hidden = false
+    manualTitleEl.textContent = data.title
+    const sub = [data.product, data.version].filter(part => part !== '').join(' · ')
+    manualSubEl.textContent = sub
+    manualSubEl.hidden = sub === ''
+    manualCountEl.hidden = false
+    manualCountEl.textContent = labels.step + ' ' + String(stepIndex + 1) + ' / ' + String(data.steps.length)
+    stepTitleEl.textContent = step.title === '' ? labels.step + ' ' + String(stepIndex + 1) : step.title
+    stepBodyEl.textContent = step.body
+    stepBodyEl.hidden = step.body === ''
+    partsLabelEl.textContent = labels.parts
+    partsLabelEl.hidden = step.parts.length === 0
+    partsListEl.textContent = ''
+    for (const part of step.parts) {
+      const item = document.createElement('li')
+      item.textContent = part.number === '' ? part.name : part.name + ' · ' + part.number
+      partsListEl.appendChild(item)
+    }
+    renderHotspots(step, labels)
+    renderBom(data, labels)
+    prevButton.textContent = labels.previous
+    nextButton.textContent = labels.next
+    printButton.textContent = labels.print
+    prevButton.disabled = stepIndex === 0
+    nextButton.disabled = stepIndex === data.steps.length - 1
+  }
+  const showStep = (nextIndex, force) => {
+    const data = manualData
+    if (data === null) return
+    const next = Math.max(0, Math.min(data.steps.length - 1, nextIndex))
+    if (next === stepIndex && force !== true) return
+    stepIndex = next
+    renderStep(data)
+    const step = data.steps[stepIndex]
+    if (frame.contentWindow !== null) {
+      const restore = []
+      for (const uid of previousHidden) restore.push({ kind: 'visibility', uid, visible: true })
+      if (restore.length > 0) postCommand({ command: 'mutate', ops: restore, transient: true })
+      if (step.hidden.length > 0) {
+        const hideOps = []
+        for (const uid of step.hidden) hideOps.push({ kind: 'visibility', uid, visible: false })
+        postCommand({ command: 'mutate', ops: hideOps, transient: true })
+      }
+      postCommand({
+        command: 'camera',
+        position: step.camera.position,
+        target: step.camera.target,
+        fov: step.camera.fov,
+      })
+      if (step.highlight !== null) {
+        postCommand({ command: 'select', uids: [step.highlight], primary: step.highlight })
+      }
+      if (step.time > 0) postCommand({ command: 'timeline', action: 'seek', time: step.time })
+    }
+    previousHidden = step.hidden.slice()
+  }
+  prevButton.addEventListener('click', () => { showStep(stepIndex - 1) })
+  nextButton.addEventListener('click', () => { showStep(stepIndex + 1) })
+  printButton.addEventListener('click', () => {
+    if (manualData === null) return
+    renderPrint(manualData)
+    window.print()
+  })
+  window.addEventListener('keydown', event => {
+    if (manualData === null || manualEl.hidden) return
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+    event.preventDefault()
+    showStep(stepIndex + (event.key === 'ArrowRight' ? 1 : -1))
+  })
+  const loadPresentation = async mine => {
+    try {
+      const response = await fetch(location.pathname + '/presentation', {
+        cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer',
+      })
+      if (mine !== generation || !response.ok) return null
+      const data = await response.json()
+      if (mine !== generation) return null
+      if (data === null || typeof data !== 'object' || data.ok !== true) return null
+      const presentation = data.presentation
+      if (presentation === null || typeof presentation !== 'object' || Array.isArray(presentation)) return null
+      return readManual(presentation.manual)
+    } catch (error) {
+      return null
+    }
   }
   const start = async () => {
     const mine = ++generation
@@ -8684,6 +9200,7 @@ const SHARE_SHELL_HTML = `<!doctype html>
       if (mine !== generation) return
       if (metadata === null || typeof metadata !== 'object' || metadata.ok !== true) throw new Error('metadata')
       if (typeof metadata.title === 'string') document.title = metadata.title
+      const presentationPromise = loadPresentation(mine)
       const documentResponse = await fetch(location.pathname + '/document', {
         cache: 'no-store', credentials: 'omit', referrerPolicy: 'no-referrer',
       })
@@ -8692,6 +9209,14 @@ const SHARE_SHELL_HTML = `<!doctype html>
       const text = await documentResponse.text()
       if (mine !== generation) return
       if (typeof text !== 'string' || !DOCTYPE.test(text)) throw new Error('document')
+      manualData = await presentationPromise
+      if (mine !== generation) return
+      if (manualData !== null) {
+        stepIndex = 0
+        previousHidden = []
+        renderStep(manualData)
+        renderQr()
+      }
       if (timer !== 0) {
         clearTimeout(timer)
         timer = 0
@@ -8703,6 +9228,8 @@ const SHARE_SHELL_HTML = `<!doctype html>
         }
         loadedOnce = true
         bar.hidden = true
+        previousHidden = []
+        showStep(stepIndex, true)
       })
       frame.srcdoc = injectMeta(text)
     } catch (error) {
@@ -8970,12 +9497,12 @@ function takeShareDeleteRate(now) {
 }
 
 /**
- * @param kind - `viewer` (shell + metadata) or `document`.
+ * @param kind - `viewer` (shell + metadata), `document` or `presentation`.
  * @returns the global state, limits and per-id map for one viewer kind.
  */
 function shareViewerBucket(kind) {
-  return kind === 'document'
-    ? {
+  if (kind === 'document') {
+    return {
       global: shareRates.documentGlobal,
       byId: shareRates.documentById,
       globalPerMinute: SHARE_LIMITS.documentRateGlobalPerMinute,
@@ -8983,14 +9510,25 @@ function shareViewerBucket(kind) {
       globalConcurrent: SHARE_LIMITS.documentConcurrentGlobal,
       perIdConcurrent: SHARE_LIMITS.documentConcurrentPerId,
     }
-    : {
-      global: shareRates.viewerGlobal,
-      byId: shareRates.viewerById,
-      globalPerMinute: SHARE_LIMITS.viewerRateGlobalPerMinute,
-      perIdPerMinute: SHARE_LIMITS.viewerRatePerIdPerMinute,
-      globalConcurrent: SHARE_LIMITS.viewerConcurrentGlobal,
-      perIdConcurrent: SHARE_LIMITS.viewerConcurrentPerId,
+  }
+  if (kind === 'presentation') {
+    return {
+      global: shareRates.presentationGlobal,
+      byId: shareRates.presentationById,
+      globalPerMinute: SHARE_LIMITS.presentationRateGlobalPerMinute,
+      perIdPerMinute: SHARE_LIMITS.presentationRatePerIdPerMinute,
+      globalConcurrent: SHARE_LIMITS.presentationConcurrentGlobal,
+      perIdConcurrent: SHARE_LIMITS.presentationConcurrentPerId,
     }
+  }
+  return {
+    global: shareRates.viewerGlobal,
+    byId: shareRates.viewerById,
+    globalPerMinute: SHARE_LIMITS.viewerRateGlobalPerMinute,
+    perIdPerMinute: SHARE_LIMITS.viewerRatePerIdPerMinute,
+    globalConcurrent: SHARE_LIMITS.viewerConcurrentGlobal,
+    perIdConcurrent: SHARE_LIMITS.viewerConcurrentPerId,
+  }
 }
 
 /**
@@ -9118,6 +9656,7 @@ function insertShare(record) {
 function deleteShareRateKeys(id) {
   shareRates.viewerById.delete(id)
   shareRates.documentById.delete(id)
+  shareRates.presentationById.delete(id)
 }
 
 async function stageShareDurable(record, order) {
@@ -9332,13 +9871,14 @@ function sweepShares(now) {
       scheduleShareDiskCleanup(record)
     }
   }
-  for (const map of [shareRates.createsBySession, shareRates.viewerById, shareRates.documentById]) {
+  for (const map of [shareRates.createsBySession, shareRates.viewerById,
+    shareRates.documentById, shareRates.presentationById]) {
     for (const [key, state] of [...map]) {
       cleanupShareRateState(map, key, state, now)
     }
   }
   for (const state of [shareRates.createGlobal, shareRates.deleteGlobal,
-    shareRates.viewerGlobal, shareRates.documentGlobal]) {
+    shareRates.viewerGlobal, shareRates.documentGlobal, shareRates.presentationGlobal]) {
     pruneShareRateTimes(state.times, now)
   }
 }
@@ -10617,6 +11157,29 @@ function shareMetadataResponse(record, method) {
 /**
  * @param record - share record.
  * @param method - GET or HEAD.
+ * @returns only the additive presentation field as a JSON attachment.
+ */
+function sharePresentationResponse(record, method) {
+  const state = record.editorState !== null && typeof record.editorState === 'object'
+    ? record.editorState : null
+  const presentation = state === null || state.presentation === undefined ? null : state.presentation
+  const body = JSON.stringify({ ok: true, presentation })
+  const headers = {
+    'content-type': 'application/json; charset=utf-8',
+    'content-disposition': 'attachment; filename="presentation.json"',
+    'cache-control': 'no-store',
+    'x-content-type-options': 'nosniff',
+    'referrer-policy': 'no-referrer',
+    'cross-origin-resource-policy': 'same-origin',
+    'content-security-policy': SHARE_DOCUMENT_CSP,
+    'content-length': String(Buffer.byteLength(body, 'utf8')),
+  }
+  return new Response(method === 'HEAD' ? null : body, { status: 200, headers })
+}
+
+/**
+ * @param record - share record.
+ * @param method - GET or HEAD.
  * @returns the opaque document as a text/plain attachment.
  */
 function shareDocumentResponse(record, method) {
@@ -10765,6 +11328,7 @@ async function shareViewerResponse(request, options = {}) {
   if (suffix === '') kind = 'viewer'
   else if (suffix === 'metadata') kind = 'viewer'
   else if (suffix === 'document') kind = 'document'
+  else if (suffix === 'presentation') kind = 'presentation'
   else return shareNotFoundResponse(method)
   const nowValue = now()
   const globalRate = beginShareViewerGlobal(kind, nowValue)
@@ -10792,6 +11356,7 @@ async function shareViewerResponse(request, options = {}) {
     let response
     if (suffix === '') response = shareShellResponse(SHARE_SHELL_HTML, method)
     else if (suffix === 'metadata') response = shareMetadataResponse(record, method)
+    else if (suffix === 'presentation') response = sharePresentationResponse(record, method)
     else response = shareDocumentResponse(record, method)
     return shareHeldResponse(response, release, request.signal)
   } catch (error) {
@@ -10879,6 +11444,7 @@ export const __shareInternal = {
   shellResponse: shareShellResponse,
   metadataResponse: shareMetadataResponse,
   documentResponse: shareDocumentResponse,
+  presentationResponse: sharePresentationResponse,
   store: shareStore,
   seedSession: seedShareSession,
   clearScene(sessionId) {
@@ -10910,6 +11476,9 @@ export const __shareInternal = {
     shareRates.documentGlobal.times.length = 0
     shareRates.documentGlobal.active = 0
     shareRates.documentById.clear()
+    shareRates.presentationGlobal.times.length = 0
+    shareRates.presentationGlobal.active = 0
+    shareRates.presentationById.clear()
   },
   usage: shareSessionUsage,
   globalUsage: () => ({ ...shareGlobalUsage }),
@@ -11396,6 +11965,9 @@ function resetInMemoryStoresForTests() {
   shareRates.documentGlobal.times.length = 0
   shareRates.documentGlobal.active = 0
   shareRates.documentById.clear()
+  shareRates.presentationGlobal.times.length = 0
+  shareRates.presentationGlobal.active = 0
+  shareRates.presentationById.clear()
   sceneEpochs.clear()
   sceneRevisionOrderBySession.clear()
   deleteAssetSessionRecorded.clear()

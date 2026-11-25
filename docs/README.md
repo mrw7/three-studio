@@ -13,6 +13,8 @@
   ([中文](PLUGINS.zh.md))
 - [Exports](EXPORTS.md) — every export target, USDZ/FBX scope and limits,
   verification commands ([中文](EXPORTS.zh.md))
+- [Manual and film](MANUAL-FILM.md) — manual steps, film export, limits and the
+  open-core/Pro boundary
 - [Security](SECURITY.md) — sandbox, credentials, network egress, plugin trust
   and known limitations ([中文](SECURITY.zh.md))
 - [Plugin trust boundaries](TRUST-BOUNDARIES.md) — frozen decisions for MCP,

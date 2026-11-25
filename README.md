@@ -29,13 +29,19 @@ walkthrough.
 - **Real Three.js editing** — outliner, inspector, material/lighting controls,
   transform gizmos, parameters, timeline, keyframes, dope sheet, shots, review
   pins, measurements and deterministic exports.
-- **Many export targets** — PNG, deterministic MP4/GIF/WebM, animated or static
-  glTF (`.glb`), STL, OBJ, project ZIP and standalone HTML; USDZ for AR
-  previews and a native binary FBX 7.4 writer for DCC interop. USDZ/FBX are
-  static exports: geometry, hierarchy, transforms, Phong-converted materials,
-  normals and one UV set survive; animation, skinning, textures, PBR channels
-  and vertex colors are not carried over (FBX uses metre units via
-  `UnitScaleFactor=100`, matching Blender's metre-unit output).
+- **Many export targets** — PNG, deterministic MP4/GIF and realtime WebM,
+  animated or static glTF (`.glb`), STL, OBJ, project ZIP and standalone HTML;
+  USDZ for AR previews and a native binary FBX 7.4 writer for DCC interop.
+  USDZ/FBX are static exports: geometry, hierarchy, transforms,
+  Phong-converted materials, normals and one UV set survive; animation,
+  skinning, textures, PBR channels and vertex colors are not carried over
+  (FBX uses metre units via `UnitScaleFactor=100`, matching Blender's
+  metre-unit output).
+- **Manual and film from one scene** — capture camera/selection steps and
+  BOM/hotspots as an interactive manual; order film shots with eased camera
+  moves, SRT captions and a local music track; export 1080p
+  16:9/9:16/1:1/4:5 MP4; share a read-only manual with print-to-PDF and a QR
+  code. The AI drafts manual steps as reviewable proposals.
 - **Sandboxed execution** — model-written code runs only inside an opaque-origin
   `srcDoc` iframe (`allow-scripts allow-pointer-lock allow-downloads`, never
   `allow-same-origin`, never navigable).
@@ -214,6 +220,8 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the component contracts,
 - [Open-core boundary](docs/OPEN-CORE.md) ([中文](docs/OPEN-CORE.zh.md))
 - [Models and providers](docs/MODELS.md)
 - [Exports](docs/EXPORTS.md) ([中文](docs/EXPORTS.zh.md))
+- [Manual and film](docs/MANUAL-FILM.md) ([中文](docs/MANUAL-FILM.zh.md)) — manual
+  steps, film export and the open-core/Pro boundary
 - [Plugins and marketplace](docs/PLUGINS.md) ([中文](docs/PLUGINS.zh.md))
 - [Security and trust boundaries](docs/SECURITY.md) ([中文](docs/SECURITY.zh.md))
 - [Privacy](PRIVACY.md)

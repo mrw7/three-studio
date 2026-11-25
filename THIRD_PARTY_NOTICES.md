@@ -14,7 +14,7 @@ licensed under the Apache License 2.0 (see `LICENSE` and `NOTICE`).
 
 ## Export helper libraries
 
-These pinned builds are used by deterministic MP4/GIF export and USDZ export.
+These pinned builds are used by deterministic MP4/GIF export, USDZ export and the share viewer QR code.
 
 - `runtime/vendor/fflate.module.js` — fflate 0.8.2, MIT; license header in
   the file.
@@ -22,6 +22,9 @@ These pinned builds are used by deterministic MP4/GIF export and USDZ export.
   `runtime/vendor/GIFENC-LICENSE.txt`.
 - `runtime/vendor/mp4-muxer.js` — mp4-muxer 5.2.2, MIT; license text in
   `runtime/vendor/MP4-MUXER-LICENSE.txt`.
+- `runtime/vendor/qrcode-generator.js` and `runtime/vendor/qrcode_UTF8.js` —
+  qrcode-generator 1.4.4, MIT; license text in
+  `runtime/vendor/QRCODE-LICENSE.txt`.
 - Provenance, versions and SHA-256 pins: `runtime/vendor/README.md`.
 
 ## Electron and Chromium

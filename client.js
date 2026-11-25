@@ -444,6 +444,86 @@ window.__ModuleLoader__.load({
       'studio.shots.saved': '已记录镜头',
       'studio.shots.previous': '上一镜',
       'studio.shots.next': '下一镜',
+      'studio.rail.manual': '说明书',
+      'studio.manual.title': '说明书',
+      'studio.manual.empty': '还没有步骤。调整机位后点击“记录当前步骤”。',
+      'studio.manual.take': '记录当前步骤',
+      'studio.manual.play': '播放步骤',
+      'studio.manual.stop': '停止',
+      'studio.manual.delete': '删除',
+      'studio.manual.up': '上移',
+      'studio.manual.down': '下移',
+      'studio.manual.go': '切到此步',
+      'studio.manual.step': '步骤 {n}',
+      'studio.manual.count': '{n} 个步骤',
+      'studio.manual.saved': '已记录步骤',
+      'studio.manual.titleField': '标题',
+      'studio.manual.bodyField': '说明',
+      'studio.manual.titlePlaceholder': '产品说明书',
+      'studio.manual.updateCamera': '用当前机位',
+      'studio.manual.highlight': '高亮选中对象',
+      'studio.manual.parts': '零件',
+      'studio.manual.noParts': '暂无零件',
+      'studio.manual.clear': '清空',
+      'studio.manual.confirmClear': '清空所有步骤？',
+      'studio.manual.limit': '最多 64 步',
+      'studio.manual.noSelection': '未选中对象',
+      'studio.manual.bom': '零件清单',
+      'studio.manual.addBom': '添加零件',
+      'studio.manual.importBom': '导入 CSV',
+      'studio.manual.exportBom': '导出 CSV',
+      'studio.manual.bomEmpty': '还没有 BOM 零件',
+      'studio.manual.bomImported': '已导入 {n} 个零件',
+      'studio.manual.bomImportEmpty': 'CSV 中没有可导入的零件',
+      'studio.manual.bomImportFailed': 'CSV 导入失败',
+      'studio.manual.bomImportTooLarge': 'CSV 需小于 512 KiB',
+      'studio.manual.hotspots': '热点',
+      'studio.manual.addHotspot': '添加热点',
+      'studio.manual.hotspotsEmpty': '暂无热点',
+      'studio.manual.hotspotFocus': '定位',
+      'studio.manual.qty': '数量',
+      'studio.manual.partNumber': '编号',
+      'studio.manual.partName': '名称',
+      'studio.drawer.manual': '说明书',
+      'studio.film.title': '影片',
+      'studio.film.empty': '还没有镜头。调整机位后点击“记录当前机位”，或直接导出当前时间轴。',
+      'studio.film.take': '记录当前机位',
+      'studio.film.play': '预览镜头',
+      'studio.film.stop': '停止',
+      'studio.film.aspect': '画幅',
+      'studio.film.fps': '帧率',
+      'studio.film.resolution': '分辨率',
+      'studio.film.export': '导出 1080p MP4',
+      'studio.film.exportHint': '最长 60 秒 · 确定性逐帧',
+      'studio.film.shots': '{n} 个镜头',
+      'studio.film.settings': '影片设置',
+      'studio.film.exporting': '导出中…',
+      'studio.film.noShots': '可选：先记录镜头，再导出时间轴',
+      'studio.film.shot': '镜头 {n}',
+      'studio.film.limit': '最多 24 个镜头',
+      'studio.film.duration': '时长',
+      'studio.film.shotDuration': '镜头时长',
+      'studio.film.setStart': '起点机位',
+      'studio.film.setEnd': '终点机位',
+      'studio.film.go': '切到此镜',
+      'studio.film.captions': '字幕',
+      'studio.film.captionsHint': '粘贴 SRT 字幕，失焦后保存。',
+      'studio.film.downloadSrt': '下载 SRT',
+      'studio.film.music': '音乐',
+      'studio.film.noMusic': '未选择音乐',
+      'studio.film.chooseMusic': '选择音频',
+      'studio.film.removeMusic': '移除音乐',
+      'studio.film.gain': '音量',
+      'studio.film.offset': '偏移',
+      'studio.film.fade': '淡入/淡出',
+      'studio.film.sequenceHint': '{n} 个镜头 · 硬切序列',
+      'studio.film.musicTooLarge': '音频文件过大（最多 20 MiB）。',
+      'studio.film.musicFailed': '音频读取失败。',
+      'studio.film.audioUnsupported': '当前浏览器不支持音频编码，已导出纯视频。',
+      'studio.film.durationCap': '影片最长 60 秒；请缩短镜头时长。',
+      'studio.drawer.film': '影片',
+      'studio.proposal.kind.manual': '说明书步骤',
+      'studio.proposal.manualHint': '这些步骤不会自动应用；先预览，再应用到当前场景。',
       'studio.measure.title': '测量',
       'studio.measure.empty': '选中两个对象，或让 AI 提议测量。',
       'studio.measure.selection': '测量选中对象',
@@ -608,6 +688,7 @@ window.__ModuleLoader__.load({
       'studio.proposal.summary.insertRecipe': '配方 · {name}',
       'studio.proposal.summary.recipe': '{name} · {n} 个部件',
       'studio.proposal.summary.link': '{from} → {to}',
+      'studio.proposal.summary.manual': '{n} 个步骤',
       'studio.proposal.view.plan': '正交平面',
       'studio.proposal.insertHint': '应用后会作为手动对象原子插入，可一键撤销。',
       'studio.proposal.recipeHint': '应用后只保存到插入货架，不改场景。',
@@ -1394,6 +1475,86 @@ window.__ModuleLoader__.load({
       'studio.shots.saved': 'Shot saved',
       'studio.shots.previous': 'Previous shot',
       'studio.shots.next': 'Next shot',
+      'studio.rail.manual': 'Manual',
+      'studio.manual.title': 'Manual',
+      'studio.manual.empty': 'No steps yet. Frame the scene and click Capture step.',
+      'studio.manual.take': 'Capture step',
+      'studio.manual.play': 'Play steps',
+      'studio.manual.stop': 'Stop',
+      'studio.manual.delete': 'Delete',
+      'studio.manual.up': 'Move up',
+      'studio.manual.down': 'Move down',
+      'studio.manual.go': 'Go to step',
+      'studio.manual.step': 'Step {n}',
+      'studio.manual.count': '{n} steps',
+      'studio.manual.saved': 'Step saved',
+      'studio.manual.titleField': 'Title',
+      'studio.manual.bodyField': 'Body',
+      'studio.manual.titlePlaceholder': 'Product manual',
+      'studio.manual.updateCamera': 'Use current camera',
+      'studio.manual.highlight': 'Highlight selection',
+      'studio.manual.parts': 'Parts',
+      'studio.manual.noParts': 'No parts',
+      'studio.manual.clear': 'Clear',
+      'studio.manual.confirmClear': 'Clear all steps?',
+      'studio.manual.limit': '64 steps max',
+      'studio.manual.noSelection': 'No selection',
+      'studio.manual.bom': 'Parts / BOM',
+      'studio.manual.addBom': 'Add part',
+      'studio.manual.importBom': 'Import CSV',
+      'studio.manual.exportBom': 'Export CSV',
+      'studio.manual.bomEmpty': 'No BOM parts yet',
+      'studio.manual.bomImported': 'Imported {n} parts',
+      'studio.manual.bomImportEmpty': 'No importable parts in the CSV',
+      'studio.manual.bomImportFailed': 'CSV import failed',
+      'studio.manual.bomImportTooLarge': 'CSV must be under 512 KiB',
+      'studio.manual.hotspots': 'Hotspots',
+      'studio.manual.addHotspot': 'Add hotspot',
+      'studio.manual.hotspotsEmpty': 'No hotspots',
+      'studio.manual.hotspotFocus': 'Focus',
+      'studio.manual.qty': 'Qty',
+      'studio.manual.partNumber': 'Number',
+      'studio.manual.partName': 'Name',
+      'studio.drawer.manual': 'Manual',
+      'studio.film.title': 'Film',
+      'studio.film.empty': 'No shots yet. Frame the scene and click Take shot, or export the current timeline.',
+      'studio.film.take': 'Take shot',
+      'studio.film.play': 'Play shots',
+      'studio.film.stop': 'Stop',
+      'studio.film.aspect': 'Aspect',
+      'studio.film.fps': 'FPS',
+      'studio.film.resolution': 'Resolution',
+      'studio.film.export': 'Export 1080p MP4',
+      'studio.film.exportHint': 'Up to 60s · deterministic frames',
+      'studio.film.shots': '{n} shots',
+      'studio.film.settings': 'Film settings',
+      'studio.film.exporting': 'Exporting…',
+      'studio.film.noShots': 'Optional: take shots, then export the timeline',
+      'studio.film.shot': 'Shot {n}',
+      'studio.film.limit': '24 shots max',
+      'studio.film.duration': 'Duration',
+      'studio.film.shotDuration': 'Shot duration',
+      'studio.film.setStart': 'Set start camera',
+      'studio.film.setEnd': 'Set end camera',
+      'studio.film.go': 'Go to shot',
+      'studio.film.captions': 'Captions',
+      'studio.film.captionsHint': 'Paste SRT captions; they save on blur.',
+      'studio.film.downloadSrt': 'Download SRT',
+      'studio.film.music': 'Music',
+      'studio.film.noMusic': 'No music',
+      'studio.film.chooseMusic': 'Choose audio',
+      'studio.film.removeMusic': 'Remove music',
+      'studio.film.gain': 'Gain',
+      'studio.film.offset': 'Offset',
+      'studio.film.fade': 'Fade in/out',
+      'studio.film.sequenceHint': '{n} shots · hard cuts',
+      'studio.film.musicTooLarge': 'Audio file is too large (20 MiB max).',
+      'studio.film.musicFailed': 'Could not read that audio file.',
+      'studio.film.audioUnsupported': 'Audio encoding is unavailable in this browser; exported video only.',
+      'studio.film.durationCap': 'Films are limited to 60 seconds; shorten the shot durations.',
+      'studio.drawer.film': 'Film',
+      'studio.proposal.kind.manual': 'Manual steps',
+      'studio.proposal.manualHint': 'These steps are not applied automatically. Preview them, then apply to the current scene.',
       'studio.measure.title': 'Measurements',
       'studio.measure.empty': 'Select two objects, or ask AI to propose a measurement.',
       'studio.measure.selection': 'Measure selection',
@@ -1558,6 +1719,7 @@ window.__ModuleLoader__.load({
       'studio.proposal.summary.insertRecipe': 'Recipe · {name}',
       'studio.proposal.summary.recipe': '{name} · {n} parts',
       'studio.proposal.summary.link': '{from} → {to}',
+      'studio.proposal.summary.manual': '{n} steps',
       'studio.proposal.view.plan': 'Orthographic plan',
       'studio.proposal.insertHint': 'Applying inserts manual objects atomically; one undo removes them all.',
       'studio.proposal.recipeHint': 'Applying only saves this recipe to the Insert Shelf.',
@@ -2583,6 +2745,8 @@ window.__ModuleLoader__.load({
     const LATE_CAPTURE_SLACK_MS = 1500
     const LATE_CAPTURE_FALLBACK_MS = 6500
     const EXPORT_CODECS = [
+      { encoderCodec: 'avc1.64002a', muxerCodec: 'avc', avc: true },
+      { encoderCodec: 'avc1.640028', muxerCodec: 'avc', avc: true },
       { encoderCodec: 'avc1.42001f', muxerCodec: 'avc', avc: true },
       { encoderCodec: 'vp09.00.10.08', muxerCodec: 'vp9', avc: false },
     ]
@@ -2590,18 +2754,24 @@ window.__ModuleLoader__.load({
     /**
      * Clamp the live timeline duration/fps onto the deterministic frame grid.
      * Frame `i` samples `i / fps`; the last sample is one step before the
-     * requested duration.
+     * requested duration. Optional width/height let the Film panel export
+     * 1080p 16:9, vertical and square cuts through the same capture protocol.
      */
-    function exportPlan(durationValue, fpsValue) {
+    function exportPlan(durationValue, fpsValue, options) {
       const clamp = (value, min, max) => typeof value === 'number' && !Number.isNaN(value)
         ? Math.min(max, Math.max(min, value))
         : min
+      const config = options !== null && typeof options === 'object' && !Array.isArray(options) ? options : {}
+      const requestedWidth = Number.isSafeInteger(config.width) && config.width > 0 ? config.width : EXPORT_WIDTH
+      const requestedHeight = Number.isSafeInteger(config.height) && config.height > 0 ? config.height : EXPORT_HEIGHT
+      const width = requestedWidth * requestedHeight <= EXPORT_MAX_PIXELS ? requestedWidth : EXPORT_WIDTH
+      const height = requestedWidth * requestedHeight <= EXPORT_MAX_PIXELS ? requestedHeight : EXPORT_HEIGHT
       const duration = clamp(durationValue, EXPORT_MIN_DURATION, EXPORT_MAX_DURATION)
       const fps = clamp(fpsValue, EXPORT_MIN_FPS, EXPORT_MAX_FPS)
       const frameCount = Math.max(1, Math.round(duration * fps))
       return {
-        width: EXPORT_WIDTH,
-        height: EXPORT_HEIGHT,
+        width,
+        height,
         fps,
         duration,
         frameCount,
@@ -2637,16 +2807,104 @@ window.__ModuleLoader__.load({
       return null
     }
 
-    /** Export filename carries only the scene revision and frame rate. */
-    function exportFilename(revision, format, fps) {
+    /** Export filename carries only the scene revision, frame rate and cut. */
+    function exportFilename(revision, format, fps, width, height) {
       const rev = Number.isSafeInteger(revision) && revision >= 0 ? revision : 0
       const rate = typeof fps === 'number' && Number.isFinite(fps) && fps > 0 ? fps : EXPORT_MIN_FPS
       const extension = format === 'gif' ? 'gif' : 'mp4'
-      return `three-scene-${String(rev)}-${String(rate)}fps.${extension}`
+      const cut = width === 960 && height === 540 ? ''
+        : width === 1920 && height === 1080 ? '-1080p'
+          : width === 1080 && height === 1920 ? '-vertical'
+            : width === 1080 && height === 1080 ? '-square'
+              : width === 1080 && height === 1350 ? '-4x5'
+                : typeof width === 'number' && typeof height === 'number' ? `-${String(width)}x${String(height)}` : ''
+      return `three-scene-${String(rev)}-${String(rate)}fps${cut}.${extension}`
     }
 
     function exportMime(format) {
       return format === 'gif' ? 'image/gif' : 'video/mp4'
+    }
+
+    /** SRT sidecar shares the MP4 base name. */
+    function exportSrtFilename(revision, fps, width, height) {
+      return exportFilename(revision, 'mp4', fps, width, height).replace(/\.mp4$/, '.srt')
+    }
+
+    /** Decode, trim, fade and resample the attached music to the film grid. */
+    async function renderMusicBuffer(blob, music, duration) {
+      const AudioCtor = window.AudioContext || window.webkitAudioContext
+      if (typeof AudioCtor !== 'function') throw new Error('audio-unavailable')
+      const decodeContext = new AudioCtor()
+      let decoded
+      try {
+        decoded = await decodeContext.decodeAudioData(await blob.arrayBuffer())
+      } finally {
+        void decodeContext.close()
+      }
+      const sampleRate = 48000
+      const length = Math.max(1, Math.ceil(duration * sampleRate))
+      const offline = new OfflineAudioContext(2, length, sampleRate)
+      const source = offline.createBufferSource()
+      source.buffer = decoded
+      const gain = offline.createGain()
+      const level = Math.min(2, Math.max(0, typeof music.gain === 'number' ? music.gain : 1))
+      const fadeIn = Math.min(duration, Math.max(0, typeof music.fadeIn === 'number' ? music.fadeIn : 0))
+      const fadeOut = Math.min(duration, Math.max(0, typeof music.fadeOut === 'number' ? music.fadeOut : 0))
+      gain.gain.setValueAtTime(fadeIn > 0 ? 0 : level, 0)
+      if (fadeIn > 0) gain.gain.linearRampToValueAtTime(level, fadeIn)
+      const fadeAt = Math.max(fadeIn, duration - fadeOut)
+      gain.gain.setValueAtTime(level, fadeAt)
+      if (fadeOut > 0) gain.gain.linearRampToValueAtTime(0, duration)
+      source.connect(gain).connect(offline.destination)
+      source.start(0, Math.min(decoded.duration, Math.max(0, music.offset || 0)))
+      source.stop(duration)
+      return offline.startRendering()
+    }
+
+    /** Encode a stereo 48 kHz AudioBuffer as Opus chunks for mp4-muxer. */
+    async function encodeOpusChunks(buffer) {
+      if (typeof AudioEncoder !== 'function' || typeof AudioData !== 'function') {
+        throw new Error('audio-encoder-unavailable')
+      }
+      const config = { codec: 'opus', sampleRate: 48000, numberOfChannels: 2, bitrate: 128000 }
+      if (typeof AudioEncoder.isConfigSupported === 'function') {
+        const support = await AudioEncoder.isConfigSupported(config)
+        if (support === null || support.supported !== true) throw new Error('audio-encoder-unsupported')
+      }
+      const chunks = []
+      let failure = null
+      const encoder = new AudioEncoder({
+        output: chunk => { chunks.push(chunk) },
+        error: error => { failure = error },
+      })
+      encoder.configure(config)
+      const left = buffer.getChannelData(0)
+      const right = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : left
+      const total = buffer.length
+      const chunkFrames = 1024
+      try {
+        for (let offset = 0; offset < total; offset += chunkFrames) {
+          if (failure !== null) throw failure
+          const frames = Math.min(chunkFrames, total - offset)
+          const planar = new Float32Array(frames * 2)
+          planar.set(left.subarray(offset, offset + frames), 0)
+          planar.set(right.subarray(offset, offset + frames), frames)
+          const audioData = new AudioData({
+            format: 'f32-planar',
+            sampleRate: 48000,
+            numberOfFrames: frames,
+            numberOfChannels: 2,
+            timestamp: Math.round(offset / 48000 * 1e6),
+            data: planar,
+          })
+          try { encoder.encode(audioData) } finally { audioData.close() }
+        }
+        await encoder.flush()
+        if (failure !== null) throw failure
+      } finally {
+        try { encoder.close() } catch (error) { void error }
+      }
+      return chunks
     }
 
     /** Bitrate policy shared by preflight and VideoEncoder.configure. */
@@ -6242,6 +6500,476 @@ window.__ModuleLoader__.load({
       buildAnimatedTrackPlan.toString(),
     ].join('\n')
 
+    // ---------------------------------------------------------------------
+    // Product content: manual steps and film settings. This is additive,
+    // optional editor metadata stored beside the existing v2 record; old
+    // records without it normalize to no presentation.
+    // ---------------------------------------------------------------------
+    const PRESENTATION_VERSION = 1
+    const PRESENTATION_MANUAL_STEPS_MAX = 64
+    const PRESENTATION_MANUAL_PARTS_MAX = 16
+    const PRESENTATION_MANUAL_HIDDEN_MAX = 64
+    const PRESENTATION_FILM_SHOTS_MAX = 24
+    const PRESENTATION_FILM_CAPTIONS_MAX = 200
+    const PRESENTATION_FILM_SHOT_DURATION_MAX = 60
+    const PRESENTATION_BOM_MAX = 64
+    const PRESENTATION_HOTSPOTS_MAX = 16
+    const PRESENTATION_ASPECTS = ['16:9', '9:16', '1:1', '4:5']
+    const PRESENTATION_ASPECT_SIZES = {
+      '16:9': [1920, 1080],
+      '9:16': [1080, 1920],
+      '1:1': [1080, 1080],
+      '4:5': [1080, 1350],
+    }
+    const PRESENTATION_FPS = [24, 30, 60]
+    const PRESENTATION_UID_RE = /^[sml]:[A-Za-z0-9_-]+$/
+    const presentationText = (value, max) => typeof value === 'string'
+      ? value.trim().slice(0, max) : ''
+    const presentationVector = value => {
+      if (!Array.isArray(value) || value.length !== 3) return null
+      const next = []
+      for (const part of value) {
+        if (typeof part !== 'number' || !Number.isFinite(part) || Math.abs(part) > 1e7) return null
+        next.push(Math.round(part * 1e5) / 1e5)
+      }
+      return next
+    }
+    const presentationNumber = (value, fallback, min, max) => {
+      if (typeof value !== 'number' || !Number.isFinite(value)) return fallback
+      return Math.min(max, Math.max(min, Math.round(value * 1e5) / 1e5))
+    }
+    const presentationUid = value => typeof value === 'string' && PRESENTATION_UID_RE.test(value)
+      ? value : null
+    const presentationUids = value => Array.isArray(value)
+      ? value.map(presentationUid).filter(Boolean).slice(0, PRESENTATION_MANUAL_HIDDEN_MAX)
+      : []
+
+    function normalizePresentationPart(value) {
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+      const name = presentationText(value.name, 80)
+      if (name === '') return null
+      return { name, number: presentationText(value.number, 40) }
+    }
+
+    function normalizePresentationBomPart(value, index) {
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+      const name = presentationText(value.name, 120)
+      if (name === '') return null
+      return {
+        id: typeof value.id === 'string' && /^[A-Za-z0-9_:.-]{1,100}$/.test(value.id)
+          ? value.id : 'part-' + String(index + 1),
+        number: presentationText(value.number, 40),
+        name,
+        qty: presentationNumber(value.qty, 1, 0, 100000),
+        uid: presentationUid(value.uid),
+      }
+    }
+
+    function normalizePresentationHotspot(value, index) {
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+      const uid = presentationUid(value.uid)
+      if (uid === null) return null
+      return {
+        id: typeof value.id === 'string' && /^[A-Za-z0-9_:.-]{1,100}$/.test(value.id)
+          ? value.id : 'hotspot-' + String(index + 1),
+        uid,
+        label: presentationText(value.label, 120) || 'Part',
+      }
+    }
+
+    function normalizePresentationStep(value, index) {
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+      const camera = value.camera !== null && typeof value.camera === 'object' && !Array.isArray(value.camera)
+        ? value.camera : {}
+      const position = presentationVector(camera.position)
+      const target = presentationVector(camera.target)
+      if (position === null || target === null) return null
+      const parts = Array.isArray(value.parts)
+        ? value.parts.map(normalizePresentationPart).filter(Boolean).slice(0, PRESENTATION_MANUAL_PARTS_MAX)
+        : []
+      const hotspots = Array.isArray(value.hotspots)
+        ? value.hotspots.map(normalizePresentationHotspot).filter(Boolean).slice(0, PRESENTATION_HOTSPOTS_MAX)
+        : []
+      return {
+        id: typeof value.id === 'string' && /^[A-Za-z0-9_:.-]{1,100}$/.test(value.id)
+          ? value.id : 'step-' + String(index + 1),
+        title: presentationText(value.title, 80) || 'Step ' + String(index + 1),
+        body: presentationText(value.body, 600),
+        camera: {
+          position,
+          target,
+          fov: presentationNumber(camera.fov, 50, 15, 120),
+        },
+        time: presentationNumber(value.time, 0, 0, 86400),
+        hidden: presentationUids(value.hidden),
+        highlight: presentationUid(value.highlight),
+        parts,
+        hotspots,
+        duration: presentationNumber(value.duration, 0, 0, 60),
+      }
+    }
+
+    function normalizePresentationManual(value, issues) {
+      if (value === undefined || value === null) return null
+      if (typeof value !== 'object' || Array.isArray(value) || value.v !== 1) {
+        if (Array.isArray(issues)) issues.push({ kind: 'malformed-presentation', key: 'manual' })
+        return null
+      }
+      const steps = []
+      const sourceSteps = Array.isArray(value.steps) ? value.steps : []
+      for (const entry of sourceSteps.slice(0, PRESENTATION_MANUAL_STEPS_MAX)) {
+        const step = normalizePresentationStep(entry, steps.length)
+        if (step === null) {
+          if (Array.isArray(issues)) issues.push({ kind: 'malformed-presentation', key: 'manual.step' })
+          continue
+        }
+        steps.push(step)
+      }
+      const parts = Array.isArray(value.parts)
+        ? value.parts.map(normalizePresentationBomPart).filter(Boolean).slice(0, PRESENTATION_BOM_MAX)
+        : []
+      return {
+        v: 1,
+        title: presentationText(value.title, 120),
+        product: presentationText(value.product, 120),
+        version: presentationText(value.version, 40),
+        language: value.language === 'zh' ? 'zh' : 'en',
+        parts,
+        steps,
+      }
+    }
+
+    function normalizePresentationFilmShot(entry, index) {
+      if (entry === null || typeof entry !== 'object' || Array.isArray(entry)) return null
+      const legacy = {
+        position: presentationVector(entry.position),
+        target: presentationVector(entry.target),
+        fov: presentationNumber(entry.fov, 50, 15, 120),
+      }
+      const readPose = value => {
+        if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+        const position = presentationVector(value.position)
+        const target = presentationVector(value.target)
+        if (position === null || target === null) return null
+        return { position, target, fov: presentationNumber(value.fov, 50, 15, 120) }
+      }
+      const from = readPose(entry.from) || (legacy.position !== null && legacy.target !== null ? legacy : null)
+      const to = readPose(entry.to) || from
+      if (from === null || to === null) return null
+      return {
+        id: typeof entry.id === 'string' && /^[A-Za-z0-9_:.-]{1,100}$/.test(entry.id)
+          ? entry.id : 'shot-' + String(index + 1),
+        name: presentationText(entry.name, 80) || 'Shot ' + String(index + 1),
+        duration: presentationNumber(entry.duration, 2, 0.5, PRESENTATION_FILM_SHOT_DURATION_MAX),
+        from,
+        to,
+        time: presentationNumber(entry.time, 0, 0, 86400),
+      }
+    }
+
+    function normalizePresentationCaption(value) {
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+      const start = presentationNumber(value.start, 0, 0, 86400)
+      const end = presentationNumber(value.end, start + 2, 0, 86400)
+      const text = presentationText(value.text, 200)
+      if (text === '' || end <= start) return null
+      return { start, end, text }
+    }
+
+    function normalizePresentationMusic(value) {
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+      const name = presentationText(value.name, 120)
+      const id = presentationText(value.id, 100)
+      const duration = presentationNumber(value.duration, 0, 0, 86400)
+      if (name === '' || id === '' || duration <= 0) return null
+      return {
+        id,
+        name,
+        mime: presentationText(value.mime, 80),
+        bytes: presentationNumber(value.bytes, 0, 0, 64 * 1024 * 1024),
+        duration,
+        gain: presentationNumber(value.gain, 1, 0, 2),
+        offset: presentationNumber(value.offset, 0, 0, 3600),
+        fadeIn: presentationNumber(value.fadeIn, 0, 0, 30),
+        fadeOut: presentationNumber(value.fadeOut, 0, 0, 30),
+      }
+    }
+
+    function normalizePresentationFilm(value, issues) {
+      if (value === undefined || value === null) return null
+      if (typeof value !== 'object' || Array.isArray(value) || value.v !== 1) {
+        if (Array.isArray(issues)) issues.push({ kind: 'malformed-presentation', key: 'film' })
+        return null
+      }
+      const shots = []
+      const sourceShots = Array.isArray(value.shots) ? value.shots : []
+      for (const entry of sourceShots.slice(0, PRESENTATION_FILM_SHOTS_MAX)) {
+        const shot = normalizePresentationFilmShot(entry, shots.length)
+        if (shot !== null) shots.push(shot)
+      }
+      const captions = []
+      const sourceCaptions = Array.isArray(value.captions) ? value.captions : []
+      for (const entry of sourceCaptions.slice(0, PRESENTATION_FILM_CAPTIONS_MAX)) {
+        const caption = normalizePresentationCaption(entry)
+        if (caption !== null) captions.push(caption)
+      }
+      captions.sort((a, b) => a.start - b.start)
+      return {
+        v: 1,
+        title: presentationText(value.title, 120),
+        aspect: PRESENTATION_ASPECTS.includes(value.aspect) ? value.aspect : '16:9',
+        resolution: '1080p',
+        fps: PRESENTATION_FPS.includes(value.fps) ? value.fps : 30,
+        shots,
+        captions,
+        music: normalizePresentationMusic(value.music),
+      }
+    }
+
+    function filmShotsDuration(shots) {
+      if (!Array.isArray(shots)) return 0
+      let total = 0
+      for (const shot of shots) total += shot !== null && typeof shot.duration === 'number' ? shot.duration : 0
+      return Math.round(total * 1e5) / 1e5
+    }
+
+    function filmCameraAt(shots, time) {
+      if (!Array.isArray(shots) || shots.length === 0) return null
+      let cursor = 0
+      for (const shot of shots) {
+        const duration = Math.max(0.001, shot.duration)
+        if (time < cursor + duration || shot === shots[shots.length - 1]) {
+          const u = Math.min(1, Math.max(0, (time - cursor) / duration))
+          const eased = u * u * (3 - 2 * u)
+          const lerp = (a, b) => Math.round((a + (b - a) * eased) * 1e5) / 1e5
+          return {
+            position: shot.from.position.map((value, index) => lerp(value, shot.to.position[index])),
+            target: shot.from.target.map((value, index) => lerp(value, shot.to.target[index])),
+            fov: Math.round((shot.from.fov + (shot.to.fov - shot.from.fov) * eased) * 1e5) / 1e5,
+          }
+        }
+        cursor += duration
+      }
+      return null
+    }
+
+    function formatSrtTime(seconds) {
+      const total = Math.max(0, Math.round(seconds * 1000))
+      const ms = total % 1000
+      const whole = Math.floor(total / 1000)
+      const s = whole % 60
+      const m = Math.floor(whole / 60) % 60
+      const h = Math.floor(whole / 3600)
+      return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')},${String(ms).padStart(3, '0')}`
+    }
+
+    function captionsToSrt(captions) {
+      if (!Array.isArray(captions) || captions.length === 0) return ''
+      return captions.map((caption, index) => `${String(index + 1)}\n${formatSrtTime(caption.start)} --> ${formatSrtTime(caption.end)}\n${caption.text}`).join('\n\n') + '\n'
+    }
+
+    function parseSrt(text) {
+      if (typeof text !== 'string' || text.trim() === '') return []
+      const captions = []
+      const blocks = text.replace(/\r\n/g, '\n').split(/\n{2,}/)
+      for (const block of blocks) {
+        const lines = block.split('\n').map(line => line.trim()).filter(Boolean)
+        if (lines.length < 2) continue
+        const timing = lines.find(line => line.includes('-->'))
+        if (timing === undefined) continue
+        const match = /^(\d{1,2}):(\d{2}):(\d{2})[,.](\d{3})\s*-->\s*(\d{1,2}):(\d{2}):(\d{2})[,.](\d{3})/.exec(timing)
+        if (match === null) continue
+        const start = Number(match[1]) * 3600 + Number(match[2]) * 60 + Number(match[3]) + Number(match[4]) / 1000
+        const end = Number(match[5]) * 3600 + Number(match[6]) * 60 + Number(match[7]) + Number(match[8]) / 1000
+        const body = lines.slice(lines.indexOf(timing) + 1).join(' ').trim()
+        if (body === '' || end <= start) continue
+        captions.push({ start, end, text: body.slice(0, 200) })
+      }
+      return captions.sort((a, b) => a.start - b.start).slice(0, PRESENTATION_FILM_CAPTIONS_MAX)
+    }
+
+    function parseBomCsvRows(text) {
+      const source = text.replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n')
+      const rows = []
+      let row = []
+      let field = ''
+      let quoted = false
+      for (let index = 0; index < source.length; index += 1) {
+        const character = source[index]
+        if (quoted) {
+          if (character === '"') {
+            if (source[index + 1] === '"') {
+              field += '"'
+              index += 1
+            } else {
+              quoted = false
+            }
+          } else {
+            field += character
+          }
+        } else if (character === '"') {
+          quoted = true
+        } else if (character === ',') {
+          row.push(field)
+          field = ''
+        } else if (character === '\n') {
+          row.push(field)
+          rows.push(row)
+          row = []
+          field = ''
+        } else {
+          field += character
+        }
+      }
+      if (field !== '' || row.length > 0) {
+        row.push(field)
+        rows.push(row)
+      }
+      return rows
+    }
+
+    const BOM_CSV_HEADER = ['number', 'name', 'qty']
+    const BOM_CSV_ALIASES = {
+      number: ['number', 'part number', 'part', '编号', '零件号', '零件编号'],
+      name: ['name', 'part name', '名称', '零件名称'],
+      qty: ['qty', 'quantity', '数量', '件数'],
+    }
+
+    function parseBomCsv(text) {
+      if (typeof text !== 'string' || text.trim() === '') return []
+      const rows = parseBomCsvRows(text).filter(cells => cells.some(cell => cell.trim() !== ''))
+      if (rows.length === 0) return []
+      const header = rows[0].map(cell => cell.trim().toLowerCase())
+      const column = key => header.findIndex(cell => BOM_CSV_ALIASES[key].includes(cell))
+      const numberIndex = column('number')
+      const nameIndex = column('name')
+      const qtyIndex = column('qty')
+      const hasHeader = numberIndex >= 0 || nameIndex >= 0 || qtyIndex >= 0
+      const parts = []
+      for (const cells of rows.slice(hasHeader ? 1 : 0)) {
+        if (parts.length >= PRESENTATION_BOM_MAX) break
+        const name = presentationText(cells[nameIndex >= 0 ? nameIndex : 1], 120)
+        const number = presentationText(cells[numberIndex >= 0 ? numberIndex : 0], 40)
+        if (name === '' && number === '') continue
+        const rawQty = cells[qtyIndex >= 0 ? qtyIndex : 2]
+        const qty = Number.parseFloat(String(rawQty === undefined ? '' : rawQty).trim())
+        parts.push({
+          number,
+          name: name === '' ? number : name,
+          qty: Math.round(Math.min(100000, Math.max(0, Number.isFinite(qty) ? qty : 1)) * 1e5) / 1e5,
+        })
+      }
+      return parts
+    }
+
+    function csvCell(value) {
+      const text = String(value === undefined || value === null ? '' : value)
+      return /[",\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text
+    }
+
+    function bomToCsv(parts) {
+      const rows = [BOM_CSV_HEADER]
+      if (Array.isArray(parts)) {
+        for (const part of parts.slice(0, PRESENTATION_BOM_MAX)) {
+          rows.push([
+            presentationText(part !== null && typeof part === 'object' ? part.number : '', 40),
+            presentationText(part !== null && typeof part === 'object' ? part.name : '', 120),
+            String(part !== null && typeof part === 'object' && typeof part.qty === 'number' ? part.qty : 1),
+          ])
+        }
+      }
+      // Excel needs the UTF-8 BOM to detect the encoding of Chinese part names.
+      return '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\n') + '\n'
+    }
+
+    const MUSIC_DB_NAME = 'three-workbench-music'
+    function openMusicDb() {
+      return new Promise((resolve, reject) => {
+        if (typeof indexedDB === 'undefined') {
+          reject(new Error('indexeddb-unavailable'))
+          return
+        }
+        const request = indexedDB.open(MUSIC_DB_NAME, 1)
+        request.onupgradeneeded = () => {
+          const db = request.result
+          if (!db.objectStoreNames.contains('files')) db.createObjectStore('files', { keyPath: 'id' })
+        }
+        request.onsuccess = () => resolve(request.result)
+        request.onerror = () => reject(request.error || new Error('indexeddb-open-failed'))
+      })
+    }
+
+    async function putMusicBlob(id, blob) {
+      const db = await openMusicDb()
+      try {
+        await new Promise((resolve, reject) => {
+          const transaction = db.transaction('files', 'readwrite')
+          transaction.objectStore('files').put({ id, blob })
+          transaction.oncomplete = () => resolve()
+          transaction.onerror = () => reject(transaction.error || new Error('indexeddb-write-failed'))
+        })
+      } finally {
+        db.close()
+      }
+    }
+
+    async function getMusicBlob(id) {
+      const db = await openMusicDb()
+      try {
+        return await new Promise((resolve, reject) => {
+          const transaction = db.transaction('files', 'readonly')
+          const request = transaction.objectStore('files').get(id)
+          request.onsuccess = () => resolve(request.result !== undefined && request.result !== null ? request.result.blob : null)
+          request.onerror = () => reject(request.error || new Error('indexeddb-read-failed'))
+        })
+      } finally {
+        db.close()
+      }
+    }
+
+    async function deleteMusicBlob(id) {
+      const db = await openMusicDb()
+      try {
+        await new Promise((resolve, reject) => {
+          const transaction = db.transaction('files', 'readwrite')
+          transaction.objectStore('files').delete(id)
+          transaction.oncomplete = () => resolve()
+          transaction.onerror = () => reject(transaction.error || new Error('indexeddb-delete-failed'))
+        })
+      } finally {
+        db.close()
+      }
+    }
+
+    function normalizeEditorPresentationField(value, issues) {
+      if (value === undefined || value === null) return { presentation: null, issues: [] }
+      if (typeof value !== 'object' || Array.isArray(value) || value.v !== 1) {
+        return {
+          presentation: null,
+          issues: [{ kind: 'malformed-presentation', key: 'presentation' }],
+        }
+      }
+      const localIssues = []
+      const manual = normalizePresentationManual(value.manual, localIssues)
+      const film = normalizePresentationFilm(value.film, localIssues)
+      if (Array.isArray(issues)) {
+        for (const issue of localIssues) issues.push(issue)
+      }
+      if (manual === null && film === null) return { presentation: null, issues: localIssues }
+      return { presentation: { v: 1, manual, film }, issues: localIssues }
+    }
+
+    function updateEditorPresentation(record, presentation, now) {
+      const base = record !== null && typeof record === 'object' ? record : emptyEditorRecord(now)
+      const field = normalizeEditorPresentationField(presentation, null)
+      const next = Object.assign({}, base, {
+        updatedAt: typeof now === 'number' && Number.isFinite(now) ? now : Date.now(),
+      })
+      if (field.presentation === null) delete next.presentation
+      else next.presentation = field.presentation
+      return next
+    }
+
     /** @returns a fresh empty v2 editor record for one Session. */
     function emptyEditorRecord(now) {
       return {
@@ -6393,6 +7121,7 @@ window.__ModuleLoader__.load({
           })
         }
       }
+      const presentationField = normalizeEditorPresentationField(value.presentation, report)
       const record = {
         v: 2,
         updatedAt: typeof value.updatedAt === 'number' && Number.isFinite(value.updatedAt)
@@ -6405,6 +7134,7 @@ window.__ModuleLoader__.load({
         tracks: tracksField.tracks,
       }
       if (rendererField.renderer !== null) record.renderer = rendererField.renderer
+      if (presentationField.presentation !== null) record.presentation = presentationField.presentation
       return record
     }
 
@@ -11856,6 +12586,9 @@ try {
       cssOutline: canvas.style.outline,
       pixelRatio: renderer.getPixelRatio(),
       aspect: camera.aspect,
+      cameraPosition: camera.position.toArray(),
+      cameraTarget: controls.target.toArray(),
+      cameraFov: camera.fov,
       time: timeline.time,
       playing: timeline.playing,
     }
@@ -11890,6 +12623,11 @@ try {
       timeline.last = performance.now()
       camera.aspect = session.saved.aspect
       camera.updateProjectionMatrix()
+      camera.position.fromArray(session.saved.cameraPosition)
+      controls.target.fromArray(session.saved.cameraTarget)
+      camera.fov = session.saved.cameraFov
+      camera.updateProjectionMatrix()
+      camera.lookAt(controls.target)
       renderer.setPixelRatio(session.saved.pixelRatio)
       // setSize takes CSS units; divide by the saved ratio so the drawing
       // buffer returns to its exact pre-export pixel dimensions.
@@ -12012,6 +12750,23 @@ try {
         }
       }
       if (controls.update) controls.update()
+      // Film shots supply an authoritative per-frame camera after script
+      // callbacks, pins and tracks. Object animation still comes from the
+      // scene timeline; this only pins the camera for the captured frame.
+      const shotCamera = data.camera !== null && typeof data.camera === 'object' ? data.camera : null
+      if (shotCamera !== null
+        && Array.isArray(shotCamera.position) && shotCamera.position.length === 3
+        && Array.isArray(shotCamera.target) && shotCamera.target.length === 3
+        && shotCamera.position.every(value => typeof value === 'number' && Number.isFinite(value))
+        && shotCamera.target.every(value => typeof value === 'number' && Number.isFinite(value))) {
+        camera.position.fromArray(shotCamera.position)
+        controls.target.fromArray(shotCamera.target)
+        if (typeof shotCamera.fov === 'number' && Number.isFinite(shotCamera.fov)) {
+          camera.fov = Math.min(120, Math.max(15, shotCamera.fov))
+          camera.updateProjectionMatrix()
+        }
+        camera.lookAt(controls.target)
+      }
       renderer.render(scene, camera)
       const pixels = readCapturePixels(session)
       session.expected += 1
@@ -17008,7 +17763,7 @@ THE SOFTWARE.
     const normalizeStudioLayout = value => {
       const source = value !== null && typeof value === 'object' ? value : {}
       const legacy = typeof source.version !== 'number' || source.version < STUDIO_LAYOUT_VERSION
-      const tab = ['scene', 'create', 'assets', 'params', 'history', 'sessions', 'plugins', 'files', 'web', 'ai', 'cases'].includes(source.tab) ? source.tab : 'ai'
+      const tab = ['scene', 'create', 'assets', 'params', 'history', 'sessions', 'plugins', 'files', 'web', 'ai', 'cases', 'manual'].includes(source.tab) ? source.tab : 'ai'
       return {
         version: STUDIO_LAYOUT_VERSION,
         left: clampStudioWidth('left', source.left),
@@ -17878,7 +18633,7 @@ THE SOFTWARE.
       const dz = measure.to[2] - measure.from[2]
       return Math.sqrt(dx * dx + dy * dy + dz * dz)
     }
-    const STUDIO_PROPOSAL_KINDS = ['shots', 'pins', 'measure', 'explode', 'view', 'geometry', 'insert', 'recipe', 'link', 'scene']
+    const STUDIO_PROPOSAL_KINDS = ['shots', 'pins', 'measure', 'explode', 'view', 'geometry', 'insert', 'recipe', 'link', 'manual', 'scene']
     const normalizeStudioProposal = (value, fallbackRevision) => {
       if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
       const kind = STUDIO_PROPOSAL_KINDS.includes(value.kind) ? value.kind : null
@@ -17930,6 +18685,11 @@ THE SOFTWARE.
         if (link !== null) {
           payload = { fromUid: link.fromUid, toUid: link.toUid, kind: link.kind, label: link.label }
         }
+      } else if (kind === 'manual') {
+        const source = payloadSource.manual !== undefined && payloadSource.manual !== null
+          ? payloadSource.manual : payloadSource
+        const manual = normalizePresentationManual(source, null)
+        if (manual !== null && manual.steps.length > 0) payload = { manual }
       } else if (kind === 'geometry') {
         const uid = studioText(payloadSource.uid, 200)
         const params = payloadSource.params !== null && typeof payloadSource.params === 'object'
@@ -17983,6 +18743,9 @@ THE SOFTWARE.
       })
       if (proposal.kind === 'link') return t('studio.proposal.summary.link', {
         from: proposal.payload.fromUid, to: proposal.payload.toUid,
+      })
+      if (proposal.kind === 'manual') return t('studio.proposal.summary.manual', {
+        n: proposal.payload.manual.steps.length,
       })
       return t('studio.proposal.summary.scene')
     }
@@ -18615,12 +19378,14 @@ THE SOFTWARE.
           proposal.rationale),
       proposal.kind === 'scene' || proposal.kind === 'geometry'
         || proposal.kind === 'insert' || proposal.kind === 'recipe' || proposal.kind === 'link'
+        || proposal.kind === 'manual'
         ? h('div', { style: { fontSize: 8.5, lineHeight: 1.45, color: 'var(--twb-warn-ink)' } },
           proposal.kind === 'scene' ? t('studio.proposal.sceneHint')
             : proposal.kind === 'geometry' ? t('studio.proposal.geometryHint')
               : proposal.kind === 'insert' ? t('studio.proposal.insertHint')
                 : proposal.kind === 'recipe' ? t('studio.proposal.recipeHint')
-                  : t('studio.proposal.linkHint'))
+                  : proposal.kind === 'manual' ? t('studio.proposal.manualHint')
+                    : t('studio.proposal.linkHint'))
         : null,
       base === null ? null : h('div', { style: { fontSize: 8, color: STUDIO_MUTED, fontFamily: mono } },
         t('studio.proposal.baseRevision', { revision: base })),
@@ -19566,6 +20331,355 @@ THE SOFTWARE.
      * event window directly, so tool calls and streamed replies appear here
      * without going through a third-party chat UI.
      */
+    /** Read-only/manual-step authoring panel. Steps are stored in presentation.manual. */
+    function StudioManualPanel(props) {
+      const t = props.t
+      const manual = props.manual
+      const steps = manual !== null && manual !== undefined && Array.isArray(manual.steps) ? manual.steps : []
+      const selectedId = props.selectedId
+      const selectedStep = steps.find(step => step.id === selectedId) || null
+      const disabled = props.disabled === true
+      const chip = (label, onClick, options = {}) => h('button', {
+        type: 'button',
+        className: 'twb-studio-chip',
+        disabled: disabled || options.disabled === true,
+        onClick,
+        style: { height: 24, padding: '0 8px', borderRadius: 6, cursor: disabled || options.disabled === true ? 'not-allowed' : 'pointer',
+          fontSize: 9, border: '1px solid ' + (options.accent === true ? STUDIO_ACCENT_LINE : STUDIO_LINE),
+          background: options.accent === true ? STUDIO_ACCENT_SOFT : 'var(--twb-fill)',
+          color: options.accent === true ? STUDIO_ACCENT : STUDIO_TEXT,
+          opacity: disabled || options.disabled === true ? .4 : 1, whiteSpace: 'nowrap' },
+      }, label)
+      const patchStep = patch => {
+        if (selectedStep !== null) props.onUpdate(selectedStep.id, patch)
+      }
+      return h('div', {
+        'data-three-workbench-drawer': 'manual',
+        style: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', color: STUDIO_TEXT },
+      },
+      h('div', {
+        style: { flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px',
+          borderBottom: '1px solid ' + STUDIO_LINE },
+      },
+      h('span', { style: { fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: STUDIO_MUTED } },
+        t('studio.manual.title')),
+      h('span', { style: { fontSize: 8.5, color: STUDIO_MUTED } },
+        t('studio.manual.count', { n: steps.length })),
+      h('span', { style: { flex: 1 } }),
+      chip(t('studio.manual.take'), props.onTake, { accent: true, disabled: steps.length >= 64 }),
+      chip(props.playing === true ? t('studio.manual.stop') : t('studio.manual.play'), props.onPlay,
+        { accent: props.playing === true, disabled: steps.length === 0 })),
+      h('div', { style: { flex: '0 0 auto', padding: '6px 8px 4px' } },
+        h('input', {
+          type: 'text',
+          value: manual !== null && manual !== undefined ? manual.title : '',
+          placeholder: t('studio.manual.titlePlaceholder'),
+          disabled,
+          onChange: event => props.onMeta({ title: event.target.value }),
+          style: { width: '100%', boxSizing: 'border-box', height: 28, padding: '0 8px', borderRadius: 6,
+            border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 10 },
+        })),
+      steps.length === 0
+        ? h('div', { style: { flex: 1, display: 'grid', placeItems: 'center', padding: 18,
+          fontSize: 10, color: STUDIO_MUTED, textAlign: 'center', lineHeight: 1.6 } }, t('studio.manual.empty'))
+        : h('div', { style: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', gap: 6, padding: '4px 8px 8px' } },
+          h('div', { style: { flex: '0 0 auto', maxHeight: 168, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 3 } },
+            ...steps.map((step, index) => h('div', {
+              key: step.id,
+              'data-three-workbench-manual-step': step.id,
+              onClick: () => props.onSelect(step.id),
+              style: { display: 'flex', alignItems: 'center', gap: 5, padding: '4px 5px', borderRadius: 6,
+                cursor: 'pointer', border: '1px solid ' + (step.id === selectedId ? STUDIO_ACCENT_LINE : 'transparent'),
+                background: step.id === selectedId ? STUDIO_ACCENT_SOFT : 'var(--twb-fill-soft)' },
+            },
+            h('span', { style: { width: 18, flex: '0 0 auto', fontSize: 8.5, fontFamily: mono, color: STUDIO_MUTED } },
+              String(index + 1).padStart(2, '0')),
+            h('div', { style: { flex: 1, minWidth: 0 } },
+              h('div', { style: { fontSize: 9.5, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, step.title),
+              h('div', { style: { fontSize: 8, fontFamily: mono, color: STUDIO_MUTED } },
+                'fov ' + String(Math.round(step.camera.fov)) + (step.time > 0 ? ' · ' + step.time.toFixed(1) + 's' : ''))),
+            chip('↑', () => props.onMove(step.id, -1), { disabled: index === 0 }),
+            chip('↓', () => props.onMove(step.id, 1), { disabled: index === steps.length - 1 }),
+            chip('×', () => props.onDelete(step.id)))),
+          selectedStep === null
+            ? h('div', { style: { flex: 1, display: 'grid', placeItems: 'center', color: STUDIO_MUTED, fontSize: 9.5 } },
+              t('studio.manual.noSelection'))
+            : h('div', { style: { flex: 1, minHeight: 0, overflow: 'auto', display: 'flex', flexDirection: 'column', gap: 5,
+              paddingTop: 6, borderTop: '1px solid ' + STUDIO_LINE } },
+              h('label', { style: { display: 'flex', flexDirection: 'column', gap: 3, fontSize: 8.5, color: STUDIO_MUTED } },
+                t('studio.manual.titleField'),
+                h('input', {
+                  type: 'text', value: selectedStep.title, disabled, maxLength: 80,
+                  onChange: event => patchStep({ title: event.target.value }),
+                  style: { height: 26, padding: '0 7px', borderRadius: 5, border: '1px solid ' + STUDIO_LINE,
+                    background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 10 },
+                })),
+              h('label', { style: { display: 'flex', flexDirection: 'column', gap: 3, fontSize: 8.5, color: STUDIO_MUTED } },
+                t('studio.manual.bodyField'),
+                h('textarea', {
+                  value: selectedStep.body, disabled, rows: 3, maxLength: 600,
+                  onChange: event => patchStep({ body: event.target.value }),
+                  style: { resize: 'vertical', padding: '6px 7px', borderRadius: 5, border: '1px solid ' + STUDIO_LINE,
+                    background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 10, lineHeight: 1.5, fontFamily: 'inherit' },
+                })),
+              h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 4 } },
+                chip(t('studio.manual.updateCamera'), props.onUpdateCamera),
+                chip(t('studio.manual.highlight'), props.onHighlight)),
+              h('div', { style: { fontSize: 8.5, color: STUDIO_MUTED } },
+                t('studio.manual.parts') + ': ' + (selectedStep.parts.length === 0
+                  ? t('studio.manual.noParts')
+                  : selectedStep.parts.map(part => part.name + (part.number === '' ? '' : ' · ' + part.number)).join(', '))),
+              h('div', { style: { display: 'flex', flexDirection: 'column', gap: 3, paddingTop: 4, borderTop: '1px solid ' + STUDIO_LINE } },
+                h('div', { style: { display: 'flex', alignItems: 'center', gap: 4, fontSize: 8.5, color: STUDIO_MUTED } },
+                  h('span', { style: { flex: 1 } }, t('studio.manual.hotspots') + ' · ' + String(Array.isArray(selectedStep.hotspots) ? selectedStep.hotspots.length : 0)),
+                  chip(t('studio.manual.addHotspot'), props.onAddHotspot)),
+                (Array.isArray(selectedStep.hotspots) && selectedStep.hotspots.length > 0)
+                  ? selectedStep.hotspots.map(hotspot => h('div', {
+                    key: hotspot.id,
+                    style: { display: 'flex', alignItems: 'center', gap: 3, padding: '2px 4px', borderRadius: 4,
+                      background: 'var(--twb-fill-soft)', fontSize: 8.5 },
+                  },
+                  h('span', { style: { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+                    hotspot.label),
+                  chip(t('studio.manual.hotspotFocus'), () => props.onFocusHotspot(hotspot.uid)),
+                  chip('×', () => props.onDeleteHotspot(selectedStep.id, hotspot.id))))
+                  : h('div', { style: { fontSize: 8.5, color: STUDIO_MUTED } }, t('studio.manual.hotspotsEmpty'))),
+              h('div', { style: { display: 'flex', flexDirection: 'column', gap: 3, paddingTop: 4, borderTop: '1px solid ' + STUDIO_LINE } },
+                h('div', { style: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 4, fontSize: 8.5, color: STUDIO_MUTED } },
+                  h('span', { style: { flex: 1 } }, t('studio.manual.bom') + ' · ' + String(manual !== null && manual !== undefined && Array.isArray(manual.parts) ? manual.parts.length : 0)),
+                  chip(t('studio.manual.addBom'), props.onAddBomPart),
+                  chip(t('studio.manual.exportBom'), props.onExportBom, {
+                    disabled: manual === null || manual === undefined || !Array.isArray(manual.parts) || manual.parts.length === 0,
+                  }),
+                  h('label', {
+                    style: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: 24, padding: '0 8px',
+                      borderRadius: 6, cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 9, whiteSpace: 'nowrap',
+                      border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)', color: STUDIO_TEXT,
+                      opacity: disabled ? .4 : 1 },
+                  },
+                  t('studio.manual.importBom'),
+                  h('input', {
+                    type: 'file', accept: '.csv,text/csv', disabled, style: { display: 'none' },
+                    onChange: event => {
+                      const file = event.target.files !== null && event.target.files.length > 0 ? event.target.files[0] : null
+                      if (file !== null) props.onImportBom(file)
+                      event.target.value = ''
+                    },
+                  }))),
+                (manual !== null && manual !== undefined && Array.isArray(manual.parts) && manual.parts.length > 0)
+                  ? manual.parts.map(part => h('div', {
+                    key: part.id,
+                    style: { display: 'flex', alignItems: 'center', gap: 3, fontSize: 8.5 },
+                  },
+                  h('input', {
+                    type: 'text', value: part.number, maxLength: 40, disabled,
+                    onChange: event => props.onUpdateBomPart(part.id, { number: event.target.value }),
+                    style: { width: 60, height: 22, padding: '0 4px', borderRadius: 4, border: '1px solid ' + STUDIO_LINE,
+                      background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 8.5 },
+                  }),
+                  h('input', {
+                    type: 'text', value: part.name, maxLength: 120, disabled,
+                    onChange: event => props.onUpdateBomPart(part.id, { name: event.target.value }),
+                    style: { flex: 1, minWidth: 0, height: 22, padding: '0 4px', borderRadius: 4, border: '1px solid ' + STUDIO_LINE,
+                      background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 8.5 },
+                  }),
+                  h('input', {
+                    type: 'number', value: part.qty, min: 0, max: 100000, step: 1, disabled,
+                    onChange: event => {
+                      const next = Number(event.target.value)
+                      if (Number.isFinite(next)) props.onUpdateBomPart(part.id, { qty: next })
+                    },
+                    style: { width: 44, height: 22, padding: '0 4px', borderRadius: 4, border: '1px solid ' + STUDIO_LINE,
+                      background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 8.5 },
+                  }),
+                  chip('×', () => props.onDeleteBomPart(part.id))))
+                  : h('div', { style: { fontSize: 8.5, color: STUDIO_MUTED } }, t('studio.manual.bomEmpty'))),
+              h('div', { style: { display: 'flex', gap: 5 } },
+                chip(t('studio.manual.clear'), () => {
+                  if (typeof window !== 'undefined' && typeof window.confirm === 'function'
+                    && !window.confirm(t('studio.manual.confirmClear'))) return
+                  props.onClear()
+                }, { disabled: steps.length === 0 }))))))
+    }
+
+    /** Film authoring/export panel: ordered shots, camera keys, SRT and music. */
+    function StudioFilmPanel(props) {
+      const t = props.t
+      const film = props.film !== null && props.film !== undefined
+        ? props.film : {
+          v: 1, title: '', aspect: '16:9', resolution: '1080p', fps: 30,
+          shots: [], captions: [], music: null,
+        }
+      const shots = Array.isArray(film.shots) ? film.shots : []
+      const captions = Array.isArray(film.captions) ? film.captions : []
+      const selected = shots.find(shot => shot.id === props.selectedId) || shots[0] || null
+      const duration = shots.length > 0 ? filmShotsDuration(shots) : props.timelineDuration
+      const disabled = props.disabled === true
+      const exporting = props.exporting === true
+      const [srtDraft, setSrtDraft] = React.useState(() => captionsToSrt(captions))
+      const update = patch => props.onUpdate(Object.assign({}, film, patch, { v: 1, resolution: '1080p' }))
+      const updateShot = patch => {
+        if (selected !== null) props.onUpdateShot(selected.id, patch)
+      }
+      const updateMusic = patch => {
+        update({ music: Object.assign({}, film.music || {}, patch) })
+      }
+      const chip = (label, onClick, options = {}) => h('button', {
+        type: 'button', className: 'twb-studio-chip', disabled: disabled || options.disabled === true,
+        onClick,
+        style: { height: 24, padding: '0 8px', borderRadius: 6,
+          cursor: disabled || options.disabled === true ? 'not-allowed' : 'pointer', fontSize: 9,
+          border: '1px solid ' + (options.accent === true ? STUDIO_ACCENT_LINE : STUDIO_LINE),
+          background: options.accent === true ? STUDIO_ACCENT_SOFT : 'var(--twb-fill)',
+          color: options.accent === true ? STUDIO_ACCENT : STUDIO_TEXT,
+          opacity: disabled || options.disabled === true ? .4 : 1, whiteSpace: 'nowrap' },
+      }, label)
+      const select = (value, options, onChange) => h('select', {
+        value, disabled, onChange: event => onChange(event.target.value),
+        style: { height: 24, padding: '0 6px', borderRadius: 5, border: '1px solid ' + STUDIO_LINE,
+          background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 9 },
+      }, ...options.map(option => h('option', { key: option, value: option }, option)))
+      const numberField = (value, min, max, step, onChange) => h('input', {
+        type: 'number', value, min, max, step, disabled,
+        onChange: event => {
+          const next = Number(event.target.value)
+          if (Number.isFinite(next)) onChange(next)
+        },
+        style: { width: 58, height: 24, padding: '0 5px', borderRadius: 5, border: '1px solid ' + STUDIO_LINE,
+          background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 9 },
+      })
+      const header = h('div', {
+        style: { flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 6, padding: '6px 8px',
+          borderBottom: '1px solid ' + STUDIO_LINE },
+      },
+      h('span', { style: { fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: STUDIO_MUTED } },
+        t('studio.film.title')),
+      h('span', { style: { fontSize: 8.5, color: STUDIO_MUTED } }, t('studio.film.shots', { n: shots.length })),
+      h('span', { style: { flex: 1 } }),
+      chip(t('studio.film.take'), props.onTake, { accent: true, disabled: shots.length >= 24 }),
+      chip(props.playing === true ? t('studio.film.stop') : t('studio.film.play'), props.onPlay,
+        { accent: props.playing === true, disabled: shots.length === 0 }))
+      const settingsRow = h('div', {
+        style: { flex: '0 0 auto', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
+          padding: '6px 8px', borderBottom: '1px solid ' + STUDIO_LINE, fontSize: 8.5, color: STUDIO_MUTED },
+      },
+      h('span', null, t('studio.film.aspect')), select(film.aspect, PRESENTATION_ASPECTS, value => update({ aspect: value })),
+      h('span', null, t('studio.film.fps')), select(String(film.fps), PRESENTATION_FPS.map(String), value => update({ fps: Number(value) })),
+      h('span', null, '1080p'),
+      h('span', null, t('studio.film.duration') + ' ' + duration.toFixed(1) + 's'),
+      h('span', { style: { flex: 1 } }),
+      h('span', null, t('studio.film.exportHint')))
+      const shotCard = (shot, index) => h('div', {
+        key: shot.id,
+        'data-three-workbench-film-shot': shot.id,
+        onClick: () => props.onSelect(shot.id),
+        style: { flex: '0 0 136px', minWidth: 0, display: 'flex', flexDirection: 'column', borderRadius: 6,
+          cursor: 'pointer', overflow: 'hidden', background: 'var(--twb-fill-soft)',
+          border: '1px solid ' + (selected !== null && selected.id === shot.id ? STUDIO_ACCENT_LINE : STUDIO_LINE) },
+      },
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 3, padding: '5px 5px 2px' } },
+        h('span', { style: { flex: 1, minWidth: 0, fontSize: 8.5, overflow: 'hidden', textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap' } }, shot.name || String(index + 1)),
+        chip('×', event => { event.stopPropagation(); props.onDeleteShot(shot.id) })),
+      h('div', { style: { display: 'flex', alignItems: 'center', gap: 3, padding: '0 5px 5px', fontSize: 8, color: STUDIO_MUTED } },
+        h('span', { style: { flex: 1, fontFamily: mono } }, shot.duration.toFixed(1) + 's'),
+        chip('↑', event => { event.stopPropagation(); props.onMoveShot(shot.id, -1) }, { disabled: index === 0 }),
+        chip('↓', event => { event.stopPropagation(); props.onMoveShot(shot.id, 1) }, { disabled: index === shots.length - 1 })))
+      const shotsRow = h('div', {
+        style: { flex: '0 0 auto', display: 'flex', alignItems: 'stretch', gap: 6, overflowX: 'auto', padding: '6px 8px' },
+      },
+      shots.length === 0
+        ? h('div', { style: { flex: 1, padding: '10px 8px', color: STUDIO_MUTED, fontSize: 9.5, lineHeight: 1.5 } },
+          t('studio.film.empty'))
+        : shots.map(shotCard))
+      const shotEditor = selected === null ? null : h('div', {
+        style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 5, padding: '0 8px 6px',
+          fontSize: 8.5, color: STUDIO_MUTED },
+      },
+      h('span', null, t('studio.film.shotDuration')),
+      numberField(selected.duration, 0.5, 60, 0.5, value => updateShot({ duration: Math.min(60, Math.max(0.5, value)) })),
+      chip(t('studio.film.setStart'), props.onSetStart),
+      chip(t('studio.film.setEnd'), props.onSetEnd),
+      chip(t('studio.film.go'), () => props.onGo(selected)),
+      h('span', { style: { flex: 1 } }),
+      h('span', { style: { fontFamily: mono } }, 'fov ' + Math.round(selected.from.fov)))
+      const captionsRow = h('div', {
+        style: { display: 'flex', alignItems: 'flex-start', gap: 6, padding: '0 8px 6px',
+          borderTop: '1px solid ' + STUDIO_LINE, paddingTop: 6 },
+      },
+      h('div', { style: { flex: 1, minWidth: 0 } },
+        h('div', { style: { display: 'flex', alignItems: 'center', gap: 5, fontSize: 8.5, color: STUDIO_MUTED } },
+          h('span', null, t('studio.film.captions')),
+          h('span', null, String(captions.length)),
+          h('span', { style: { flex: 1 } }),
+          chip(t('studio.film.downloadSrt'), () => props.onDownloadSrt(srtDraft), { disabled: srtDraft.trim() === '' })),
+        h('textarea', {
+          value: srtDraft, disabled, rows: 4, spellCheck: false,
+          placeholder: t('studio.film.captionsHint'),
+          onChange: event => {
+            const value = event.target.value
+            setSrtDraft(value)
+            props.onUpdate({ captions: parseSrt(value) })
+          },
+          style: { width: '100%', boxSizing: 'border-box', marginTop: 3, resize: 'vertical', padding: '5px 6px',
+            borderRadius: 5, border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)', color: STUDIO_TEXT,
+            fontSize: 9, lineHeight: 1.45, fontFamily: mono },
+        })))
+      const music = film.music
+      const musicRow = h('div', {
+        style: { display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 5, padding: '0 8px 6px',
+          fontSize: 8.5, color: STUDIO_MUTED },
+      },
+      h('span', null, t('studio.film.music')),
+      music === null
+        ? h('span', null, t('studio.film.noMusic'))
+        : h('span', { style: { maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } },
+          music.name + ' · ' + music.duration.toFixed(1) + 's'),
+      h('label', {
+        style: { display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: 24, padding: '0 8px',
+          borderRadius: 6, cursor: disabled ? 'not-allowed' : 'pointer', fontSize: 9, whiteSpace: 'nowrap',
+          border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)', color: STUDIO_TEXT,
+          opacity: disabled ? .4 : 1 },
+      },
+        t('studio.film.chooseMusic'),
+        h('input', {
+          type: 'file', accept: 'audio/*', disabled, style: { display: 'none' },
+          onChange: event => {
+            const file = event.target.files !== null && event.target.files.length > 0 ? event.target.files[0] : null
+            if (file !== null) props.onAttachMusic(file)
+            event.target.value = ''
+          },
+        })),
+      music === null ? null : [
+        h('span', { key: 'gain' }, t('studio.film.gain')),
+        numberField(music.gain, 0, 2, 0.05, value => updateMusic({ gain: value })),
+        h('span', { key: 'offset' }, t('studio.film.offset')),
+        numberField(music.offset, 0, 3600, 0.5, value => updateMusic({ offset: value })),
+        h('span', { key: 'fade' }, t('studio.film.fade')),
+        numberField(music.fadeIn, 0, 30, 0.5, value => updateMusic({ fadeIn: value })),
+        numberField(music.fadeOut, 0, 30, 0.5, value => updateMusic({ fadeOut: value })),
+        chip(t('studio.film.removeMusic'), props.onRemoveMusic),
+      ],
+      props.musicUrl === null || props.musicUrl === undefined
+        ? null
+        : h('audio', { key: 'preview', controls: true, src: props.musicUrl,
+          style: { width: '100%', height: 28, marginTop: 2 } }))
+      const footer = h('div', {
+        style: { flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px',
+          borderTop: '1px solid ' + STUDIO_LINE },
+      },
+      h('span', { style: { flex: 1, fontSize: 8.5, color: STUDIO_MUTED } },
+        shots.length === 0 ? t('studio.film.noShots') : t('studio.film.sequenceHint', { n: shots.length })),
+      chip(exporting ? t('studio.film.exporting') : t('studio.film.export'), () => props.onExport(Object.assign({}, film, { captions: parseSrt(srtDraft) })),
+        { accent: true, disabled: exporting || duration <= 0 }))
+      return h('div', {
+        'data-three-workbench-drawer': 'film',
+        style: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', color: STUDIO_TEXT, overflow: 'hidden' },
+      }, header, settingsRow,
+      h('div', { style: { flex: 1, minHeight: 0, overflowY: 'auto' } }, shotsRow, shotEditor, captionsRow, musicRow),
+      footer)
+    }
+
     function StudioAgentPanel(props) {
       const t = props.t
       const snapshot = useStudioAgent(props.agent)
@@ -20922,6 +22036,19 @@ THE SOFTWARE.
       const onPlacement = props.onPlacement === undefined ? () => {} : props.onPlacement
       const getPlacement = props.getPlacement === undefined ? () => 'left' : props.getPlacement
       const overrides = props.overrides === undefined ? EMPTY_EDITOR_RECORD : props.overrides
+      const presentation = overrides !== null && overrides !== undefined
+        && overrides.presentation !== null && overrides.presentation !== undefined
+        && typeof overrides.presentation === 'object' ? overrides.presentation : null
+      const manualDoc = presentation !== null && presentation.manual !== null
+        && presentation.manual !== undefined ? presentation.manual : null
+      const filmSettings = presentation !== null && presentation.film !== null
+        && presentation.film !== undefined ? presentation.film : null
+      const onSetPresentation = props.onSetPresentation === undefined ? () => {} : props.onSetPresentation
+      const commitPresentation = next => {
+        const manual = Object.prototype.hasOwnProperty.call(next, 'manual') ? next.manual : (manualDoc === null ? null : manualDoc)
+        const film = Object.prototype.hasOwnProperty.call(next, 'film') ? next.film : (filmSettings === null ? null : filmSettings)
+        onSetPresentation(manual === null && film === null ? null : { v: 1, manual, film })
+      }
       const onOverride = props.onOverride === undefined ? () => {} : props.onOverride
       const onOverrideLive = props.onOverrideLive === undefined ? onOverride : props.onOverrideLive
       const onBatchOverride = props.onBatchOverride === undefined ? undefined : props.onBatchOverride
@@ -21051,6 +22178,61 @@ THE SOFTWARE.
       const studioLayoutRef = React.useRef(initialStudioLayoutRef.current)
       const [studioTab, setStudioTab] = React.useState(initialStudioLayoutRef.current.tab)
       const [studioDockTab, setStudioDockTab] = React.useState(initialStudioLayoutRef.current.dock)
+      const [studioManualSelected, setStudioManualSelected] = React.useState(null)
+      const [studioManualPlaying, setStudioManualPlaying] = React.useState(false)
+      const studioManualPlayingRef = React.useRef(false)
+      const studioManualTimerRef = React.useRef(null)
+      const studioManualHiddenRef = React.useRef([])
+      const [studioFilmSelected, setStudioFilmSelected] = React.useState(null)
+      const [studioFilmPlaying, setStudioFilmPlaying] = React.useState(false)
+      const studioFilmPlayingRef = React.useRef(false)
+      const studioFilmTimerRef = React.useRef(null)
+      const [studioFilmMusicUrl, setStudioFilmMusicUrl] = React.useState(null)
+      const studioFilmMusicUrlRef = React.useRef(null)
+      const filmMusicId = filmSettings !== null && filmSettings !== undefined && filmSettings.music !== null
+        && filmSettings.music !== undefined ? filmSettings.music.id : null
+      React.useEffect(() => {
+        let active = true
+        if (filmMusicId === null) {
+          if (studioFilmMusicUrlRef.current !== null) {
+            URL.revokeObjectURL(studioFilmMusicUrlRef.current)
+            studioFilmMusicUrlRef.current = null
+          }
+          setStudioFilmMusicUrl(null)
+          return undefined
+        }
+        void getMusicBlob(filmMusicId).then(blob => {
+          if (!active || blob === null) return
+          const url = URL.createObjectURL(blob)
+          if (studioFilmMusicUrlRef.current !== null) URL.revokeObjectURL(studioFilmMusicUrlRef.current)
+          studioFilmMusicUrlRef.current = url
+          setStudioFilmMusicUrl(url)
+        }).catch(() => { if (active) setStudioFilmMusicUrl(null) })
+        return () => { active = false }
+      }, [filmMusicId])
+      React.useEffect(() => () => {
+        if (studioFilmMusicUrlRef.current !== null) {
+          URL.revokeObjectURL(studioFilmMusicUrlRef.current)
+          studioFilmMusicUrlRef.current = null
+        }
+      }, [])
+      React.useEffect(() => {
+        setStudioManualSelected(null)
+        setStudioManualPlaying(false)
+        studioManualPlayingRef.current = false
+        studioManualHiddenRef.current = []
+        if (studioManualTimerRef.current !== null) {
+          clearInterval(studioManualTimerRef.current)
+          studioManualTimerRef.current = null
+        }
+        setStudioFilmSelected(null)
+        setStudioFilmPlaying(false)
+        studioFilmPlayingRef.current = false
+        if (studioFilmTimerRef.current !== null) {
+          clearInterval(studioFilmTimerRef.current)
+          studioFilmTimerRef.current = null
+        }
+      }, [sessionId])
       const [studioPrompt, setStudioPrompt] = React.useState('')
       const [studioTaskBusy, setStudioTaskBusy] = React.useState(false)
       const [studioTaskError, setStudioTaskError] = React.useState('')
@@ -22949,8 +24131,9 @@ THE SOFTWARE.
           let documentText
           let preflight
           try {
-            remapped = remapShareAssets(frozenState, assets)
-            documentText = shareDocument(record, frozenState, remapped.state, remapped.assets)
+            const shareState = frozenState
+            remapped = remapShareAssets(shareState, assets)
+            documentText = shareDocument(record, shareState, remapped.state, remapped.assets)
             preflight = sharePreflight({
               revision,
               editorState: remapped.state,
@@ -23940,6 +25123,8 @@ THE SOFTWARE.
             fps: job.plan.fps,
             width: job.plan.width,
             height: job.plan.height,
+            camera: Array.isArray(job.filmShots) && job.filmShots.length > 0
+              ? filmCameraAt(job.filmShots, index / job.plan.fps) : null,
           }, '*')
           job.sessionActive = true
         } catch (error) {
@@ -24009,6 +25194,20 @@ THE SOFTWARE.
         })
         if (!selection.supported) throw exportFallback()
         if (job.cancelled === true) throw exportCancelledError()
+        let audioChunks = []
+        if (job.music !== null && job.music !== undefined && typeof job.music.id === 'string') {
+          try {
+            const blob = await getMusicBlob(job.music.id)
+            if (blob === null) throw new Error('music-missing')
+            const buffer = await renderMusicBuffer(blob, job.music, job.plan.duration)
+            audioChunks = await encodeOpusChunks(buffer)
+            if (job.cancelled === true) throw exportCancelledError()
+          } catch (error) {
+            void error
+            job.audioSkipped = true
+            audioChunks = []
+          }
+        }
         job.vp9 = selection.muxerCodec === 'vp9'
         publishExportJob(job)
         let muxer
@@ -24016,7 +25215,7 @@ THE SOFTWARE.
         let target = null
         try {
           target = new ArrayBufferTarget()
-          muxer = new Muxer({
+          const muxerOptions = {
             target,
             video: {
               codec: selection.muxerCodec,
@@ -24025,7 +25224,12 @@ THE SOFTWARE.
               frameRate: job.plan.fps,
             },
             fastStart: 'in-memory',
-          })
+          }
+          if (audioChunks.length > 0) {
+            muxerOptions.audio = { codec: 'opus', numberOfChannels: 2, sampleRate: 48000 }
+          }
+          muxer = new Muxer(muxerOptions)
+          for (const chunk of audioChunks) muxer.addAudioChunk(chunk)
           encoder = new VideoEncoder({
             output: (chunk, meta) => {
               try {
@@ -24126,7 +25330,7 @@ THE SOFTWARE.
         return new Blob([bytes], { type: exportMime('gif') })
       }
 
-      const startExport = async format => {
+      const startExport = async (format, options) => {
         if (format !== 'mp4' && format !== 'gif') return
         if (!latestActionsAllowed()) {
           setProtocolNotice(t('editor.restoreNotReady'))
@@ -24158,7 +25362,19 @@ THE SOFTWARE.
           setProtocolNotice(t('export.notReady'))
           return
         }
-        const plan = exportPlan(timelineRef.current.duration, stepFpsRef.current)
+        const requestedDuration = options !== null && typeof options === 'object'
+          && typeof options.duration === 'number' && Number.isFinite(options.duration)
+          ? options.duration : timelineRef.current.duration
+        if (requestedDuration > EXPORT_MAX_DURATION) {
+          setProtocolNotice(t('studio.film.durationCap'))
+          return
+        }
+        const plan = exportPlan(
+          requestedDuration,
+          options !== null && typeof options === 'object' && typeof options.fps === 'number'
+            ? options.fps : stepFpsRef.current,
+          options,
+        )
         const refusal = exportRefusal(plan, format)
         if (refusal !== null) {
           setProtocolNotice(t('export.cap', {
@@ -24185,6 +25401,10 @@ THE SOFTWARE.
           encoderError: null,
           muxer: null,
           vp9: false,
+          filmShots: options !== null && typeof options === 'object' && Array.isArray(options.filmShots)
+            ? options.filmShots : [],
+          music: options !== null && typeof options === 'object' ? options.music || null : null,
+          srt: options !== null && typeof options === 'object' && typeof options.srt === 'string' ? options.srt : '',
           hidden: typeof document !== 'undefined' && document.visibilityState === 'hidden',
         }
         exportRef.current = job
@@ -24221,11 +25441,22 @@ THE SOFTWARE.
           return
         }
         finishExportJob(job, null)
-        download(blob, exportFilename(job.revision, format, job.plan.fps))
-        setProtocolNotice(t('export.success', {
-          format: format === 'gif' ? 'GIF' : 'MP4',
-          count: job.plan.frameCount,
-        }))
+        download(blob, exportFilename(job.revision, format, job.plan.fps, job.plan.width, job.plan.height))
+        if (typeof job.srt === 'string' && job.srt.trim() !== '') {
+          download(
+            new Blob([job.srt], { type: 'application/x-subrip' }),
+            exportSrtFilename(job.revision, job.plan.fps, job.plan.width, job.plan.height),
+          )
+        }
+        setProtocolNotice(job.audioSkipped === true
+          ? t('export.success', {
+            format: format === 'gif' ? 'GIF' : 'MP4',
+            count: job.plan.frameCount,
+          }) + ' · ' + t('studio.film.audioUnsupported')
+          : t('export.success', {
+            format: format === 'gif' ? 'GIF' : 'MP4',
+            count: job.plan.frameCount,
+          }))
       }
 
       // P1-9: a Session switch aborts in-flight uploads/list requests and
@@ -24690,12 +25921,12 @@ THE SOFTWARE.
       const isWide = panelWidth >= 620
       // The studio bottom dock mirrors the DopeSheet height so the viewport
       // can reserve exactly the visible centre area without covering panels.
-      const studioDrawerDock = studioDockTab === 'shots' || studioDockTab === 'review'
+      const studioDrawerDock = studioDockTab === 'shots' || studioDockTab === 'film' || studioDockTab === 'review'
         || studioDockTab === 'measure' || studioDockTab === 'geometry' || studioDockTab === 'log'
       const studioDockH = studioOn
         ? (studioDockTab === 'console'
           ? studioLayout.console
-          : studioDrawerDock ? 196 : 34 + 32 + (sheetOpen ? Math.max(80, sheetHeight) : 26))
+          : studioDockTab === 'film' ? 320 : studioDrawerDock ? 196 : 34 + 32 + (sheetOpen ? Math.max(80, sheetHeight) : 26))
         : 0
       // The animated action needs a live bound track: enabled, TRS-only, with
       // at least one key, bound to a UID present in the current runtime tree.
@@ -26801,6 +28032,458 @@ THE SOFTWARE.
           delete next[id]
           return next
         })
+      }
+      const studioManualSteps = () => manualDoc !== null && manualDoc !== undefined && Array.isArray(manualDoc.steps)
+        ? manualDoc.steps : []
+      const studioManualSelectedId = studioManualSelected !== null
+        && studioManualSteps().some(step => step.id === studioManualSelected)
+        ? studioManualSelected : (studioManualSteps()[0] === undefined ? null : studioManualSteps()[0].id)
+      const studioManualWithSteps = steps => Object.assign({
+        v: 1, title: '', product: '', version: '', language: activeLanguage === 'zh' ? 'zh' : 'en',
+      }, manualDoc === null ? {} : manualDoc, { v: 1, steps })
+      const studioApplyManualStep = step => {
+        if (step === null || step === undefined) return
+        const previous = studioManualHiddenRef.current
+        if (previous.length > 0) {
+          command('mutate', {
+            ops: previous.map(uid => ({ kind: 'visibility', uid, visible: true })),
+            transient: true,
+          })
+        }
+        const hidden = Array.isArray(step.hidden) ? step.hidden : []
+        studioManualHiddenRef.current = hidden.slice()
+        if (hidden.length > 0) {
+          command('mutate', {
+            ops: hidden.map(uid => ({ kind: 'visibility', uid, visible: false })),
+            transient: true,
+          })
+        }
+        command('camera', step.camera)
+        applyViewportView('perspective')
+        if (step.highlight !== null && step.highlight !== undefined) {
+          setSelectedUids([step.highlight])
+          setPrimaryUid(step.highlight)
+          command('select', { uids: [step.highlight], primary: step.highlight })
+        } else {
+          setSelectedUids([])
+          setPrimaryUid(null)
+          command('select', { uids: [], primary: null })
+        }
+        if (typeof step.time === 'number' && step.time > 0 && timelineRef.current.duration > 0) {
+          timelineAction('seek', Math.min(timelineRef.current.duration, step.time))
+        }
+      }
+      const studioStopManualPlayback = () => {
+        if (studioManualTimerRef.current !== null) {
+          clearTimeout(studioManualTimerRef.current)
+          studioManualTimerRef.current = null
+        }
+        studioManualPlayingRef.current = false
+        setStudioManualPlaying(false)
+      }
+      const studioPlayManual = () => {
+        if (studioManualPlayingRef.current) {
+          studioStopManualPlayback()
+          return
+        }
+        const steps = studioManualSteps()
+        if (steps.length === 0) return
+        studioManualPlayingRef.current = true
+        setStudioManualPlaying(true)
+        let index = 0
+        const tick = () => {
+          if (!studioManualPlayingRef.current) return
+          const list = studioManualSteps()
+          if (index >= list.length) {
+            studioStopManualPlayback()
+            return
+          }
+          const step = list[index]
+          studioApplyManualStep(step)
+          setStudioManualSelected(step.id)
+          const wait = Math.max(700, Math.round((typeof step.duration === 'number' && step.duration > 0 ? step.duration : 2.5) * 1000))
+          index += 1
+          studioManualTimerRef.current = setTimeout(tick, wait)
+        }
+        tick()
+      }
+      const studioTakeManualStep = () => {
+        const camera = cameraRef.current
+        if (camera === null || camera === undefined) return
+        const steps = studioManualSteps()
+        if (steps.length >= PRESENTATION_MANUAL_STEPS_MAX) {
+          setProtocolNotice(t('studio.manual.limit'))
+          return
+        }
+        const step = {
+          id: newUid('step'),
+          title: t('studio.manual.step', { n: steps.length + 1 }),
+          body: '',
+          camera: {
+            position: Array.isArray(camera.position) ? camera.position.slice(0, 3) : [0, 2.5, 7],
+            target: Array.isArray(camera.target) ? camera.target.slice(0, 3) : [0, 0, 0],
+            fov: typeof camera.fov === 'number' ? camera.fov : 50,
+          },
+          time: Math.max(0, Number(timelineRef.current.time) || 0),
+          hidden: [],
+          highlight: primaryUid === null ? null : primaryUid,
+          parts: [],
+          duration: 0,
+        }
+        commitPresentation({ manual: studioManualWithSteps(steps.concat([step])) })
+        setStudioManualSelected(step.id)
+      }
+      const studioUpdateManualStep = (id, patch) => {
+        const steps = studioManualSteps().map(step => step.id === id ? Object.assign({}, step, patch) : step)
+        commitPresentation({ manual: studioManualWithSteps(steps) })
+      }
+      const studioMoveManualStep = (id, direction) => {
+        const steps = studioManualSteps().slice()
+        const index = steps.findIndex(step => step.id === id)
+        const target = index + direction
+        if (index < 0 || target < 0 || target >= steps.length) return
+        const moved = steps[index]
+        steps[index] = steps[target]
+        steps[target] = moved
+        commitPresentation({ manual: studioManualWithSteps(steps) })
+      }
+      const studioDeleteManualStep = id => {
+        const steps = studioManualSteps().filter(step => step.id !== id)
+        commitPresentation({ manual: studioManualWithSteps(steps) })
+        if (studioManualSelected === id) setStudioManualSelected(steps[0] === undefined ? null : steps[0].id)
+      }
+      const studioUpdateManualMeta = patch => {
+        commitPresentation({ manual: Object.assign({}, studioManualWithSteps(studioManualSteps()), patch) })
+      }
+      const studioUpdateManualCamera = () => {
+        const step = studioManualSteps().find(item => item.id === studioManualSelectedId)
+        const camera = cameraRef.current
+        if (step === undefined || camera === null || camera === undefined) return
+        studioUpdateManualStep(step.id, {
+          camera: {
+            position: Array.isArray(camera.position) ? camera.position.slice(0, 3) : step.camera.position,
+            target: Array.isArray(camera.target) ? camera.target.slice(0, 3) : step.camera.target,
+            fov: typeof camera.fov === 'number' ? camera.fov : step.camera.fov,
+          },
+          time: Math.max(0, Number(timelineRef.current.time) || 0),
+        })
+      }
+      const studioHighlightManualStep = () => {
+        const step = studioManualSteps().find(item => item.id === studioManualSelectedId)
+        if (step === undefined) return
+        if (primaryUid === null) {
+          setProtocolNotice(t('studio.manual.noSelection'))
+          return
+        }
+        studioUpdateManualStep(step.id, { highlight: primaryUid })
+      }
+      const studioClearManual = () => {
+        studioStopManualPlayback()
+        setStudioManualSelected(null)
+        commitPresentation({ manual: null })
+      }
+      const studioManualParts = () => manualDoc !== null && manualDoc !== undefined && Array.isArray(manualDoc.parts)
+        ? manualDoc.parts : []
+      const studioManualWithParts = parts => Object.assign({}, studioManualWithSteps(studioManualSteps()), { parts })
+      const studioAddManualBomPart = () => {
+        if (selectedNode === null) {
+          setProtocolNotice(t('studio.manual.noSelection'))
+          return
+        }
+        const parts = studioManualParts()
+        if (parts.length >= PRESENTATION_BOM_MAX) return
+        const name = selectedNode.alias || selectedNode.name || selectedNode.type || 'Part'
+        const part = {
+          id: newUid('part'),
+          number: '',
+          name: String(name).slice(0, 120),
+          qty: 1,
+          uid: primaryUid,
+        }
+        commitPresentation({ manual: studioManualWithParts(parts.concat([part])) })
+      }
+      const studioUpdateManualBomPart = (id, patch) => {
+        const parts = studioManualParts().map(part => part.id === id ? Object.assign({}, part, patch) : part)
+        commitPresentation({ manual: studioManualWithParts(parts) })
+      }
+      const studioDeleteManualBomPart = id => {
+        commitPresentation({ manual: studioManualWithParts(studioManualParts().filter(part => part.id !== id)) })
+      }
+      const studioImportManualBomCsv = async file => {
+        if (file === null || file === undefined || typeof file.text !== 'function') return
+        if (typeof file.size === 'number' && file.size > 512 * 1024) {
+          setProtocolNotice(t('studio.manual.bomImportTooLarge'))
+          return
+        }
+        let text = ''
+        try {
+          text = await file.text()
+        } catch (error) {
+          void error
+          setProtocolNotice(t('studio.manual.bomImportFailed'))
+          return
+        }
+        const imported = parseBomCsv(text)
+        if (imported.length === 0) {
+          setProtocolNotice(t('studio.manual.bomImportEmpty'))
+          return
+        }
+        const parts = studioManualParts().slice()
+        let added = 0
+        for (const part of imported) {
+          if (parts.length >= PRESENTATION_BOM_MAX) break
+          parts.push({ id: newUid('part'), number: part.number, name: part.name, qty: part.qty, uid: null })
+          added += 1
+        }
+        if (added === 0) return
+        commitPresentation({ manual: studioManualWithParts(parts) })
+        setProtocolNotice(t('studio.manual.bomImported', { n: added }))
+      }
+      const studioDownloadManualBomCsv = () => {
+        const parts = studioManualParts()
+        if (parts.length === 0) return
+        download(new Blob([bomToCsv(parts)], { type: 'text/csv;charset=utf-8' }), 'three-scene-bom.csv')
+      }
+      const studioAddManualHotspot = () => {
+        const step = studioManualSteps().find(item => item.id === studioManualSelectedId)
+        if (step === undefined || selectedNode === null) {
+          setProtocolNotice(t('studio.manual.noSelection'))
+          return
+        }
+        const hotspots = Array.isArray(step.hotspots) ? step.hotspots.slice() : []
+        if (hotspots.length >= PRESENTATION_HOTSPOTS_MAX) return
+        hotspots.push({
+          id: newUid('hotspot'),
+          uid: selectedNode.uid,
+          label: String(selectedNode.alias || selectedNode.name || selectedNode.type || 'Part').slice(0, 120),
+        })
+        studioUpdateManualStep(step.id, { hotspots })
+      }
+      const studioDeleteManualHotspot = (stepId, hotspotId) => {
+        const step = studioManualSteps().find(item => item.id === stepId)
+        if (step === undefined) return
+        studioUpdateManualStep(stepId, {
+          hotspots: (Array.isArray(step.hotspots) ? step.hotspots : []).filter(hotspot => hotspot.id !== hotspotId),
+        })
+      }
+      const studioFocusManualHotspot = uid => {
+        if (typeof uid !== 'string' || uid === '') return
+        setSelectedUids([uid])
+        setPrimaryUid(uid)
+        command('select', { uids: [uid], primary: uid })
+        command('focus', { uid })
+      }
+      const studioFilmShots = () => filmSettings !== null && filmSettings !== undefined && Array.isArray(filmSettings.shots)
+        ? filmSettings.shots : []
+      const studioFilmSelectedId = studioFilmSelected !== null
+        && studioFilmShots().some(shot => shot.id === studioFilmSelected)
+        ? studioFilmSelected : (studioFilmShots()[0] === undefined ? null : studioFilmShots()[0].id)
+      const studioFilmWithShots = shots => Object.assign({
+        v: 1, title: '', aspect: '16:9', resolution: '1080p', fps: 30, captions: [], music: null,
+      }, filmSettings === null ? {} : filmSettings, { v: 1, resolution: '1080p', shots })
+      const studioUpdateFilm = patch => {
+        const next = Object.assign({ v: 1, title: '', aspect: '16:9', resolution: '1080p', fps: 30, shots: [] },
+          filmSettings === null ? {} : filmSettings, patch, { v: 1, resolution: '1080p' })
+        commitPresentation({ film: next })
+      }
+      const studioTakeFilmShot = () => {
+        const camera = cameraRef.current
+        if (camera === null || camera === undefined) return
+        const shots = studioFilmShots()
+        if (shots.length >= PRESENTATION_FILM_SHOTS_MAX) {
+          setProtocolNotice(t('studio.film.limit'))
+          return
+        }
+        const pose = {
+          position: Array.isArray(camera.position) ? camera.position.slice(0, 3) : [0, 2.5, 7],
+          target: Array.isArray(camera.target) ? camera.target.slice(0, 3) : [0, 0, 0],
+          fov: typeof camera.fov === 'number' ? camera.fov : 50,
+        }
+        const shot = {
+          id: newUid('shot'),
+          name: t('studio.film.shot', { n: shots.length + 1 }),
+          duration: 2,
+          from: pose,
+          to: JSON.parse(JSON.stringify(pose)),
+          time: Math.max(0, Number(timelineRef.current.time) || 0),
+        }
+        commitPresentation({ film: studioFilmWithShots(shots.concat([shot])) })
+        setStudioFilmSelected(shot.id)
+      }
+      const studioUpdateFilmShot = (id, patch) => {
+        const shots = studioFilmShots().map(shot => shot.id === id ? Object.assign({}, shot, patch) : shot)
+        commitPresentation({ film: studioFilmWithShots(shots) })
+      }
+      const studioDeleteFilmShot = id => {
+        const shots = studioFilmShots().filter(shot => shot.id !== id)
+        commitPresentation({ film: studioFilmWithShots(shots) })
+        if (studioFilmSelected === id) setStudioFilmSelected(shots[0] === undefined ? null : shots[0].id)
+      }
+      const studioMoveFilmShot = (id, direction) => {
+        const shots = studioFilmShots().slice()
+        const index = shots.findIndex(shot => shot.id === id)
+        const target = index + direction
+        if (index < 0 || target < 0 || target >= shots.length) return
+        const moved = shots[index]
+        shots[index] = shots[target]
+        shots[target] = moved
+        commitPresentation({ film: studioFilmWithShots(shots) })
+      }
+      const studioFilmPose = () => {
+        const camera = cameraRef.current
+        if (camera === null || camera === undefined) return null
+        return {
+          position: Array.isArray(camera.position) ? camera.position.slice(0, 3) : [0, 2.5, 7],
+          target: Array.isArray(camera.target) ? camera.target.slice(0, 3) : [0, 0, 0],
+          fov: typeof camera.fov === 'number' ? camera.fov : 50,
+        }
+      }
+      const studioSetFilmStart = () => {
+        const shot = studioFilmShots().find(item => item.id === studioFilmSelectedId)
+        const pose = studioFilmPose()
+        if (shot === undefined || pose === null) return
+        studioUpdateFilmShot(shot.id, { from: pose })
+      }
+      const studioSetFilmEnd = () => {
+        const shot = studioFilmShots().find(item => item.id === studioFilmSelectedId)
+        const pose = studioFilmPose()
+        if (shot === undefined || pose === null) return
+        studioUpdateFilmShot(shot.id, { to: pose })
+      }
+      const studioApplyFilmShot = shot => {
+        if (shot === null || shot === undefined) return
+        command('camera', shot.from)
+        applyViewportView('perspective')
+        setStudioFilmSelected(shot.id)
+      }
+      const studioStopFilmPlayback = () => {
+        if (studioFilmTimerRef.current !== null) {
+          clearInterval(studioFilmTimerRef.current)
+          studioFilmTimerRef.current = null
+        }
+        studioFilmPlayingRef.current = false
+        setStudioFilmPlaying(false)
+      }
+      const studioPlayFilm = () => {
+        if (studioFilmPlayingRef.current) {
+          studioStopFilmPlayback()
+          return
+        }
+        const shots = studioFilmShots()
+        if (shots.length === 0) return
+        const total = filmShotsDuration(shots)
+        if (total <= 0) return
+        studioFilmPlayingRef.current = true
+        setStudioFilmPlaying(true)
+        const started = performance.now()
+        const tick = () => {
+          if (!studioFilmPlayingRef.current) return
+          const elapsed = (performance.now() - started) / 1000
+          if (elapsed >= total) {
+            studioStopFilmPlayback()
+            return
+          }
+          const camera = filmCameraAt(shots, elapsed)
+          if (camera !== null) command('camera', camera)
+          if (timelineRef.current.duration > 0) {
+            timelineAction('seek', Math.min(timelineRef.current.duration, elapsed))
+          }
+          const shot = shots.find((item, index) => {
+            let start = 0
+            for (let i = 0; i < index; i += 1) start += shots[i].duration
+            return elapsed >= start && elapsed < start + item.duration
+          })
+          if (shot !== undefined) setStudioFilmSelected(shot.id)
+        }
+        tick()
+        studioFilmTimerRef.current = setInterval(tick, 33)
+      }
+      const studioDownloadSrt = text => {
+        if (typeof text !== 'string' || text.trim() === '') return
+        const plan = exportPlan(
+          studioFilmShots().length > 0 ? filmShotsDuration(studioFilmShots()) : timelineRef.current.duration,
+          filmSettings === null || filmSettings === undefined ? 30 : filmSettings.fps,
+          null,
+        )
+        download(new Blob([text], { type: 'application/x-subrip' }), exportSrtFilename(
+          record === null ? 0 : record.revision, plan.fps, plan.width, plan.height,
+        ))
+      }
+      const studioExportFilm = settings => {
+        const size = PRESENTATION_ASPECT_SIZES[settings.aspect] === undefined
+          ? PRESENTATION_ASPECT_SIZES['16:9'] : PRESENTATION_ASPECT_SIZES[settings.aspect]
+        const shots = studioFilmShots()
+        const duration = shots.length > 0 ? filmShotsDuration(shots) : timelineRef.current.duration
+        const captions = Array.isArray(settings.captions) ? settings.captions : []
+        studioUpdateFilm({ aspect: settings.aspect, fps: settings.fps, captions })
+        void startExport('mp4', {
+          width: size[0], height: size[1], fps: settings.fps, duration,
+          filmShots: shots, music: settings.music || null,
+          srt: captionsToSrt(captions),
+        })
+      }
+      const studioAttachFilmMusic = async file => {
+        if (file === null || file === undefined || typeof file.arrayBuffer !== 'function') return
+        const audioLike = (typeof file.type === 'string' && file.type.startsWith('audio/'))
+          || /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(typeof file.name === 'string' ? file.name : '')
+        if (!audioLike) return
+        if (file.size > 20 * 1024 * 1024) {
+          setProtocolNotice(t('studio.film.musicTooLarge'))
+          return
+        }
+        let duration = 0
+        try {
+          const AudioCtor = window.AudioContext || window.webkitAudioContext
+          if (typeof AudioCtor !== 'function') throw new Error('audio-unavailable')
+          const context = new AudioCtor()
+          try {
+            const buffer = await context.decodeAudioData(await file.arrayBuffer())
+            duration = buffer.duration
+          } finally {
+            void context.close()
+          }
+        } catch (error) {
+          void error
+          setProtocolNotice(t('studio.film.musicFailed'))
+          return
+        }
+        const id = newUid('music')
+        try {
+          await putMusicBlob(id, file)
+        } catch (error) {
+          void error
+          setProtocolNotice(t('studio.film.musicFailed'))
+          return
+        }
+        studioUpdateFilm({
+          music: {
+            id,
+            name: typeof file.name === 'string' && file.name !== '' ? file.name.slice(0, 120) : 'Music',
+            mime: typeof file.type === 'string' ? file.type.slice(0, 80) : '',
+            bytes: file.size,
+            duration: Math.max(0.1, Math.round(duration * 1e5) / 1e5),
+            gain: 1,
+            offset: 0,
+            fadeIn: 0.5,
+            fadeOut: 1,
+          },
+        })
+        if (studioFilmMusicUrlRef.current !== null) URL.revokeObjectURL(studioFilmMusicUrlRef.current)
+        const url = URL.createObjectURL(file)
+        studioFilmMusicUrlRef.current = url
+        setStudioFilmMusicUrl(url)
+      }
+      const studioRemoveFilmMusic = () => {
+        const music = filmSettings !== null && filmSettings !== undefined ? filmSettings.music : null
+        if (music !== null && music !== undefined) {
+          void deleteMusicBlob(music.id).catch(() => {})
+        }
+        if (studioFilmMusicUrlRef.current !== null) {
+          URL.revokeObjectURL(studioFilmMusicUrlRef.current)
+          studioFilmMusicUrlRef.current = null
+        }
+        setStudioFilmMusicUrl(null)
+        studioUpdateFilm({ music: null })
       }
       const studioAddPin = (message, kind) => {
         if (selectedNode === null) return false
@@ -29411,6 +31094,9 @@ THE SOFTWARE.
         } else if (proposal.kind === 'shots' && payload.shots.length > 0) {
           studioApplyShot(payload.shots[0])
           studioFlashPreview(t('studio.proposal.previewing'))
+        } else if (proposal.kind === 'manual' && payload.manual.steps.length > 0) {
+          studioApplyManualStep(payload.manual.steps[0])
+          studioFlashPreview(t('studio.proposal.previewing'))
         } else if (proposal.kind === 'pins' && payload.pins.length > 0) {
           const node = payload.pins[0].uid === null ? undefined
             : studioNodeList().find(candidate => candidate.uid === payload.pins[0].uid)
@@ -29480,6 +31166,9 @@ THE SOFTWARE.
             ? shot : Object.assign({}, shot, { time: Math.round(duration * (index + 0.5) / payload.shots.length * 1e5) / 1e5 }))
           commitStudioMeta({ shots })
           if (shots.length > 0) studioApplyShot(shots[0])
+        } else if (proposal.kind === 'manual') {
+          commitPresentation({ manual: payload.manual })
+          openStudioTab('manual')
         } else if (proposal.kind === 'pins') {
           const existing = studioMetaRef.current.pins
           const merged = existing.slice()
@@ -30078,6 +31767,7 @@ THE SOFTWARE.
         ['sessions', 'windows', t('studio.sessions.title')],
         ['cases', 'grid', t('studio.rail.cases')],
         ['create', 'cube', t('studio.rail.create')],
+        ['manual', 'panel', t('studio.rail.manual')],
         ['scene', 'layers', t('studio.rail.scene')],
         ['assets', 'folder', t('studio.rail.assets')],
         ['params', 'sliders', t('studio.rail.params')],
@@ -30135,6 +31825,7 @@ THE SOFTWARE.
       const studioLeftTitle = studioTab === 'ai' && studioAiSettings ? t('studio.settings.title')
         : studioTab === 'scene' ? t('studio.sceneTree')
         : studioTab === 'create' ? t('studio.shelf.title')
+          : studioTab === 'manual' ? t('studio.manual.title')
           : studioTab === 'cases' ? t('studio.cases.title')
             : studioTab === 'assets' ? t('studio.assets')
               : studioTab === 'params' ? t('editor.params')
@@ -30147,6 +31838,7 @@ THE SOFTWARE.
         : studioTab === 'scene'
         ? (tree === null ? '—' : String(tree.nodes.length))
         : studioTab === 'create' ? String(MANUAL_SHAPE_IDS.length + studioMeta.recipes.length)
+          : studioTab === 'manual' ? String(manualDoc === null ? 0 : manualDoc.steps.length)
           : studioTab === 'cases' ? String(STUDIO_CASES.length + studioMeta.customCases.length)
             : studioTab === 'assets' ? String(assetList.length)
               : studioTab === 'params' ? String(paramRuntime.schema.length)
@@ -30410,6 +32102,31 @@ THE SOFTWARE.
                 onShowArchived: setStudioShowArchived,
                 onArchive: studioArchiveSession,
                 onDelete: studioDeleteSession,
+              })
+              : studioTab === 'manual' ? h(StudioManualPanel, {
+                t,
+                manual: manualDoc,
+                selectedId: studioManualSelectedId,
+                playing: studioManualPlaying,
+                disabled: viewingHistory || exportJob !== null,
+                onSelect: setStudioManualSelected,
+                onTake: studioTakeManualStep,
+                onPlay: studioPlayManual,
+                onUpdate: studioUpdateManualStep,
+                onMove: studioMoveManualStep,
+                onDelete: studioDeleteManualStep,
+                onMeta: studioUpdateManualMeta,
+                onUpdateCamera: studioUpdateManualCamera,
+                onHighlight: studioHighlightManualStep,
+                onAddBomPart: studioAddManualBomPart,
+                onUpdateBomPart: studioUpdateManualBomPart,
+                onDeleteBomPart: studioDeleteManualBomPart,
+                onImportBom: studioImportManualBomCsv,
+                onExportBom: studioDownloadManualBomCsv,
+                onAddHotspot: studioAddManualHotspot,
+                onDeleteHotspot: studioDeleteManualHotspot,
+                onFocusHotspot: studioFocusManualHotspot,
+                onClear: studioClearManual,
               })
               : studioTab === 'history' ? studioHistoryPanel : studioAiBody
 
@@ -30686,6 +32403,31 @@ THE SOFTWARE.
           onTake: studioTakeShot, onPlay: studioPlayShots, onGo: studioApplyShot,
           onDelete: studioDeleteShot,
         })
+        : studioDockTab === 'film'
+          ? h(StudioFilmPanel, {
+            t,
+            film: filmSettings,
+            selectedId: studioFilmSelectedId,
+            playing: studioFilmPlaying,
+            disabled: viewingHistory || exportJob !== null,
+            exporting: exportJob !== null,
+            timelineDuration: timeline.duration,
+            musicUrl: studioFilmMusicUrl,
+            onUpdate: studioUpdateFilm,
+            onSelect: setStudioFilmSelected,
+            onTake: studioTakeFilmShot,
+            onUpdateShot: studioUpdateFilmShot,
+            onDeleteShot: studioDeleteFilmShot,
+            onMoveShot: studioMoveFilmShot,
+            onGo: studioApplyFilmShot,
+            onPlay: studioPlayFilm,
+            onSetStart: studioSetFilmStart,
+            onSetEnd: studioSetFilmEnd,
+            onExport: studioExportFilm,
+            onDownloadSrt: studioDownloadSrt,
+            onAttachMusic: studioAttachFilmMusic,
+            onRemoveMusic: studioRemoveFilmMusic,
+          })
         : studioDockTab === 'review'
           ? h(StudioReviewPanel, {
             t, pins: studioMeta.pins,
@@ -30737,6 +32479,7 @@ THE SOFTWARE.
       },
       studioDockTabButton('timeline', 'clock', t('studio.timeline'), null),
       studioDockTabButton('shots', 'camera', t('studio.drawer.shots'), studioMeta.shots.length),
+      studioDockTabButton('film', 'monitor', t('studio.drawer.film'), null),
       studioDockTabButton('review', 'eye', t('studio.drawer.review'),
         studioMeta.pins.filter(pin => pin.resolved !== true).length),
       studioDockTabButton('links', 'link', t('studio.drawer.links'), studioMeta.links.length),
@@ -31924,6 +33667,7 @@ THE SOFTWARE.
         onSetParamValues: updates => props.setParamValues(sessionId, updates),
         onResetParamValues: keys => props.resetParamValues(sessionId, keys),
         onDurationOverride: duration => props.setTimelineDuration(sessionId, duration),
+        onSetPresentation: presentation => props.setPresentation(sessionId, presentation),
         getEditorRecord: () => props.getEditorRecord(sessionId),
         onCreateManual: item => props.createManual(sessionId, item),
         onRemoveManual: uid => props.removeManual(sessionId, uid),
@@ -31998,6 +33742,7 @@ THE SOFTWARE.
         onSetParamValues: updates => props.setParamValues(props.sessionId, updates),
         onResetParamValues: keys => props.resetParamValues(props.sessionId, keys),
         onDurationOverride: duration => props.setTimelineDuration(props.sessionId, duration),
+        onSetPresentation: presentation => props.setPresentation(props.sessionId, presentation),
         getEditorRecord: () => props.getEditorRecord(props.sessionId),
         onCreateManual: item => props.createManual(props.sessionId, item),
         onRemoveManual: uid => props.removeManual(props.sessionId, uid),
@@ -32272,6 +34017,27 @@ THE SOFTWARE.
       __scriptParentUidFor: scriptParentUidFor,
       __normalizeEditorParent: normalizeEditorParent,
       __updateEditorParent: updateEditorParent,
+      __normalizeEditorPresentationField: normalizeEditorPresentationField,
+      __normalizePresentationManual: normalizePresentationManual,
+      __normalizePresentationFilm: normalizePresentationFilm,
+      __updateEditorPresentation: updateEditorPresentation,
+      __PRESENTATION_MANUAL_STEPS_MAX: PRESENTATION_MANUAL_STEPS_MAX,
+      __PRESENTATION_MANUAL_PARTS_MAX: PRESENTATION_MANUAL_PARTS_MAX,
+      __PRESENTATION_FILM_SHOTS_MAX: PRESENTATION_FILM_SHOTS_MAX,
+      __PRESENTATION_FILM_CAPTIONS_MAX: PRESENTATION_FILM_CAPTIONS_MAX,
+      __PRESENTATION_BOM_MAX: PRESENTATION_BOM_MAX,
+      __PRESENTATION_HOTSPOTS_MAX: PRESENTATION_HOTSPOTS_MAX,
+      __PRESENTATION_ASPECTS: PRESENTATION_ASPECTS,
+      __PRESENTATION_FPS: PRESENTATION_FPS,
+      __filmShotsDuration: filmShotsDuration,
+      __filmCameraAt: filmCameraAt,
+      __captionsToSrt: captionsToSrt,
+      __parseSrt: parseSrt,
+      __parseBomCsv: parseBomCsv,
+      __bomToCsv: bomToCsv,
+      __exportSrtFilename: exportSrtFilename,
+      __renderMusicBuffer: renderMusicBuffer,
+      __encodeOpusChunks: encodeOpusChunks,
       __setEditorManualLocal: setEditorManualLocal,
       __makeCloneItem: makeCloneItem,
       __buildManualClone: buildManualClone,
@@ -32591,6 +34357,17 @@ THE SOFTWARE.
         }
         /** Authoritative snapshot for same-task preflight (Batch 2c R1). */
         const getEditorRecord = sessionId => editor.getSnapshot().bySession[sessionId]
+        /** Update the optional product-content presentation for one Session. */
+        const setPresentation = (sessionId, presentation) => {
+          if (sessionId === undefined) return
+          editor.update(draft => {
+            const current = draft.bySession[sessionId] === undefined ? emptyEditorRecord() : draft.bySession[sessionId]
+            draft.bySession = Object.assign({}, draft.bySession, {
+              [sessionId]: updateEditorPresentation(current, presentation),
+            })
+          })
+          scheduleSave(sessionId)
+        }
         /**
          * Persist one manual manifest immediately, before the runtime command,
          * so a reload can never lose a UID the live scene already shows. The
@@ -33344,6 +35121,7 @@ THE SOFTWARE.
             setParamValues,
             resetParamValues,
             getEditorRecord,
+            setPresentation,
             createManual,
             removeManual,
             applyEditorTransform,
@@ -33419,6 +35197,7 @@ THE SOFTWARE.
             setParamValues,
             resetParamValues,
             getEditorRecord,
+            setPresentation,
             createManual,
             removeManual,
             applyEditorTransform,

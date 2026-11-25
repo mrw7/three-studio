@@ -147,6 +147,15 @@
 - **Demo gallery:** added ONE MINUTE, a 60-second procedural Three.js film,
   plus localized English pricing and tiered sprint/configurator/workshop
   offers; README, docs and package metadata link the live gallery.
+- **Product content:** added an optional `presentation` editor record with
+  bounded manual steps and film settings, a Manual rail panel, a Film dock
+  panel with ordered shots, eased start→end camera keys, SRT captions, local
+  music muxing (Opus or video-only fallback), BOM CSV import/export, and 1080p
+  16:9/9:16/1:1/4:5 deterministic MP4 export, an AI manual proposal, and a
+  read-only manual sidebar in share links with hotspots/BOM, print-to-PDF and
+  a local QR code. The local core keeps the full authoring/share/export loop;
+  hosted collaboration, analytics, translations, 4K and batch rendering remain
+  Pro/private.
 
 ## 0.1.0 — 2026-11-13
 

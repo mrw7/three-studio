@@ -15,9 +15,44 @@ for what belongs in the public tree.
 | Desktop shell and license verification | `desktop/main.mjs`, `desktop/preload.cjs`, `desktop/license/core.mjs`, `desktop/scripts/**`, `desktop/build/**`, `desktop/license/public-key.pem` |
 | Template-pack contract | `desktop/templates/manifest.json` (empty free pack), `desktop/templates/README.md` |
 | Sales demos | `site/**` |
+| Manual and film | `client.js` presentation/manual/film UI, `index.js` manual proposal + share `/presentation`, 1080p deterministic export |
 | Tests and examples | `tests/**`, `examples/**` |
 | Public documentation | `README.md`, `README.zh.md`, `docs/**` (except internal notes) |
 | Governance | `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `DCO`, `SECURITY.md`, `GOVERNANCE.md`, `TRADEMARK.md`, `PRIVACY.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, `ROADMAP.md` |
+
+The Apache-2.0 core includes the complete local manual/film loop: the
+presentation schema, manual step authoring with BOM/hotspots, ordered film
+shots with camera keys/SRT/local music, AI manual proposals (reviewed/applied
+locally), the share viewer's manual sidebar with print-to-PDF/QR, and
+1080p/16:9/9:16/1:1/4:5 deterministic export.
+
+### Manual and film boundary
+
+**Public in the Apache-2.0 core:**
+
+- All local Manual/Film editing.
+- Ordered film shots with eased start→end camera keys and hard cuts.
+- SRT captions and sidecar export.
+- Local music attachment, preview, and Opus muxing, with a video-only fallback when the browser cannot encode audio.
+- Manual BOM and step hotspots.
+- The share viewer (manual sidebar, BOM/hotspot lists, print-to-PDF, QR).
+- 1080p/16:9/9:16/1:1/4:5 deterministic export.
+- AI manual proposals, applied only after local review.
+
+**Pro/private services (must stay outside this repository):**
+
+- Hosted publishing, comments/review, approvals, team workspaces, SSO, audit logs.
+- Hosted analytics.
+- Translation workflow.
+- Stock music/SFX libraries and managed TTS.
+- 4K/ProRes.
+- Cloud/parallel rendering queues.
+- Batch variants.
+- Brand kits and premium templates.
+
+Do not require these services for local editing, viewing or basic 1080p
+export. Do not add private imports, license checks or hosted endpoints to the
+public core.
 
 The Ed25519 **public** key is intentionally public: it is what the app uses to
 verify offline licenses. Publishing it does not let anyone issue licenses.

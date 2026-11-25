@@ -14,9 +14,41 @@ Three Studio 采用 open-core：本仓库中的本地工作台按 **Apache-2.0**
 | 桌面外壳与许可证验签 | `desktop/main.mjs`、`desktop/preload.cjs`、`desktop/license/core.mjs`、`desktop/scripts/**`、`desktop/build/**`、`desktop/license/public-key.pem` |
 | 模板包契约 | `desktop/templates/manifest.json`（空的免费包）、`desktop/templates/README.md` |
 | 销售 demo | `site/**` |
+| 说明书与影片 | `client.js` 的 presentation/manual/film UI、`index.js` 的 manual 提案与 share `/presentation`、1080p 确定性导出 |
 | 测试与示例 | `tests/**`、`examples/**` |
 | 公开文档 | `README.md`、`README.zh.md`、`docs/**`（内部笔记除外） |
 | 治理文件 | `LICENSE`、`NOTICE`、`CONTRIBUTING.md`、`DCO`、`SECURITY.md`、`GOVERNANCE.md`、`TRADEMARK.md`、`PRIVACY.md`、`CODE_OF_CONDUCT.md`、`CHANGELOG.md`、`ROADMAP.md` |
+
+Apache-2.0 核心包含完整的本地说明书/影片闭环：presentation schema、带 BOM/热点的说明书步骤编辑、带相机关键帧/SRT/本地音乐的
+有序影片镜头、AI 说明书提案（本地审核后应用）、share 查看器的说明书侧栏与
+打印到 PDF/QR，以及 1080p/16:9/9:16/1:1/4:5 确定性导出。
+
+### 说明书与影片边界
+
+**Apache-2.0 开源核心：**
+
+- 全部本地 Manual/Film 编辑。
+- 有序镜头 + 每镜起→终缓动相机关键帧 + 硬切。
+- SRT 字幕与 sidecar 导出。
+- 本地音乐附加、预览与 Opus 混流；浏览器不支持音频编码时回退纯视频。
+- Manual BOM 与步骤热点。
+- share 查看器（说明书侧栏、BOM/热点列表、打印到 PDF、QR）。
+- 1080p/16:9/9:16/1:1/4:5 确定性导出。
+- AI manual 提案（本地审核后应用）。
+
+**Pro/私有服务（必须留在本仓库之外）：**
+
+- 托管发布、评论/审批、团队空间、SSO、审计日志。
+- 托管分析。
+- 翻译工作流。
+- 音乐/音效库与托管 TTS。
+- 4K/ProRes。
+- 云端/并行渲染队列。
+- 批量变体。
+- 品牌套件与高级模板。
+
+本地编辑、查看和基础 1080p 导出不得依赖这些服务；公开核心不得引入私有 import、
+许可证检查或托管端点。
 
 Ed25519 **公钥**是刻意公开的：应用用它离线验签。公开公钥不能让任何人签发
 许可证。

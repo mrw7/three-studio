@@ -9,8 +9,8 @@ never include editor chrome, console logs, HUD text or API keys.
 | Menu item | Command | Output | Notes |
 | --- | --- | --- | --- |
 | Snapshot | `capture` | PNG | Current frame at the preview resolution |
-| Record | `record` | WebM | Real-time `MediaRecorder` capture |
-| Export MP4 | export job | MP4 | Deterministic fixed-grid frames (960×540 default) |
+| Record | `record` | WebM | Realtime `MediaRecorder` capture (not deterministic) |
+| Export MP4 | export job | MP4 | Deterministic fixed-grid frames; 960×540 by default, Film panel 1080p cuts |
 | Export GIF | export job | GIF | Same deterministic frame plan, palette-quantized |
 | Export glTF | `export-gltf` | `.glb` | Static scene, binary glTF |
 | Export animated glTF | `export-gltf` + `animated` | `.glb` | Sampled keyframe tracks with a frame cap |
@@ -20,6 +20,36 @@ never include editor chrome, console logs, HUD text or API keys.
 | Export FBX | `export-fbx` | `.fbx` | Binary FBX 7.4 (version 7400), static meshes |
 | Project ZIP | — | `.zip` | Scene, assets and editor-state archive; re-import is not implemented yet |
 | Standalone HTML | — | `.html` | Single-file scene page with the same sandbox; loads Three.js from jsDelivr and needs network access |
+
+## Film export
+
+The **Film** drawer exports the current timeline at a larger plan than the
+regular export menu:
+
+| Aspect | Pixels |
+| --- | --- |
+| 16:9 | 1920 × 1080 |
+| 9:16 | 1080 × 1920 |
+| 1:1 | 1080 × 1080 |
+| 4:5 | 1080 × 1350 |
+
+- `exportPlan(duration, fps, {width, height})` keeps 960×540 when no options are
+  supplied; the Film drawer passes an explicit plan.
+- The capture-frame protocol already supports arbitrary width/height up to
+  1920 × 1080 pixels; the cap, 60-second duration and 3,600-frame limit still
+  apply.
+- Codec probing tries H.264 High 4.2 (`avc1.64002a`), High 4.0
+  (`avc1.640028`), Baseline 3.1 (`avc1.42001f`), then VP9. A browser without a
+  supported encoder falls back to the realtime WebM recorder and says so.
+- Filenames add `-1080p`, `-vertical`, `-square` or `-4x5`.
+- The frame grid and camera path are deterministic; encoded bytes can differ
+  across GPUs and browsers. Burned-in subtitles, 4K and batch variants are not
+  in this export path yet.
+- Film shots are a hard-cut sequence with an eased start→end camera per shot.
+  Captions export a `.srt` sidecar. An attached music file is muxed as 48 kHz
+  stereo Opus when `AudioEncoder` supports it; otherwise the video exports
+  without audio and the UI says so.
+- GIF remains capped at 600 frames and is not the film-export target.
 
 ## USDZ
 

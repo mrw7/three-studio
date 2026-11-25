@@ -86,6 +86,31 @@ test('P2-2 frame plan clamps duration/fps and survives junk input', () => {
   assert.equal(plugin.__exportPlan(60, 60).frameCount, 3600)
 })
 
+test('film plans support 1080p, vertical and square cuts', () => {
+  const hd = plugin.__exportPlan(5, 30, { width: 1920, height: 1080 })
+  assert.equal(hd.width, 1920)
+  assert.equal(hd.height, 1080)
+  assert.equal(hd.frameCount, 150)
+  const vertical = plugin.__exportPlan(5, 30, { width: 1080, height: 1920 })
+  assert.equal(vertical.width, 1080)
+  assert.equal(vertical.height, 1920)
+  const square = plugin.__exportPlan(5, 30, { width: 1080, height: 1080 })
+  assert.equal(square.width, 1080)
+  assert.equal(square.height, 1080)
+  const social = plugin.__exportPlan(5, 30, { width: 1080, height: 1350 })
+  assert.equal(social.width, 1080)
+  assert.equal(social.height, 1350)
+  // Oversized or invalid options fall back to the 960x540 default rather than
+  // creating a plan the capture protocol will later refuse.
+  const oversized = plugin.__exportPlan(5, 30, { width: 3840, height: 2160 })
+  assert.equal(oversized.width, 960)
+  assert.equal(oversized.height, 540)
+  assert.equal(plugin.__exportFilename(42, 'mp4', 30, 1920, 1080), 'three-scene-42-30fps-1080p.mp4')
+  assert.equal(plugin.__exportFilename(42, 'mp4', 30, 1080, 1920), 'three-scene-42-30fps-vertical.mp4')
+  assert.equal(plugin.__exportFilename(42, 'mp4', 30, 1080, 1080), 'three-scene-42-30fps-square.mp4')
+  assert.equal(plugin.__exportFilename(42, 'mp4', 30, 1080, 1350), 'three-scene-42-30fps-4x5.mp4')
+})
+
 test('P2-2 caps refuse before frame one: 3600 frames, GIF 600, pixel cap', () => {
   const big = { width: 960, height: 540, frameCount: 3601, fps: 30, duration: 60 }
   assert.equal(plugin.__exportRefusal(big, 'mp4'), 'frames')
@@ -122,7 +147,7 @@ test('P2-2 codec preflight is H.264 then VP9 then fallback', async () => {
     seen.push(config.codec)
     return { supported: config.codec === 'vp09.00.10.08' }
   })
-  assert.deepEqual(seen, ['avc1.42001f', 'vp09.00.10.08'])
+  assert.deepEqual(seen, ['avc1.64002a', 'avc1.640028', 'avc1.42001f', 'vp09.00.10.08'])
   assert.equal(vp9.supported, true)
   assert.equal(vp9.encoderCodec, 'vp09.00.10.08')
   assert.equal(vp9.muxerCodec, 'vp9')
@@ -137,7 +162,7 @@ test('P2-2 codec preflight is H.264 then VP9 then fallback', async () => {
     seenH264.push(config.codec)
     return true
   })
-  assert.deepEqual(seenH264, ['avc1.42001f'])
+  assert.deepEqual(seenH264, ['avc1.64002a'])
   assert.equal(h264.muxerCodec, 'avc')
   assert.deepEqual(h264.encoderConfig.avc, { format: 'avc' })
   assert.equal(h264.attempts.length, 1)
@@ -147,7 +172,7 @@ test('P2-2 codec preflight is H.264 then VP9 then fallback', async () => {
     seenNone.push(config.codec)
     return false
   })
-  assert.deepEqual(seenNone, ['avc1.42001f', 'vp09.00.10.08'])
+  assert.deepEqual(seenNone, ['avc1.64002a', 'avc1.640028', 'avc1.42001f', 'vp09.00.10.08'])
   assert.equal(none.supported, false)
   assert.equal(none.encoderCodec, null)
 
@@ -156,7 +181,7 @@ test('P2-2 codec preflight is H.264 then VP9 then fallback', async () => {
     throw new Error('not supported')
   })
   assert.equal(rejected.supported, false)
-  assert.deepEqual(plugin.__EXPORT_CODECS.map(entry => entry.muxerCodec), ['avc', 'vp9'])
+  assert.deepEqual(plugin.__EXPORT_CODECS.map(entry => entry.muxerCodec), ['avc', 'avc', 'avc', 'vp9'])
 })
 
 test('P2-2 bitrate bounds and filenames/MIME carry no Session or token', () => {
@@ -316,7 +341,10 @@ test('P2-2 sandbox capabilities are unchanged and exports stay token-free', () =
   assert.match(clientSource, /blob, `three-scene-\$\{String\(recordRef\.current === null \? 0 : recordRef\.current\.revision\)\}/)
   // The export identifiers never embed a Session or preview token.
   assert.match(clientSource, /requestId: `p22-\$\{String\(exportSeqRef\.current\)\}`/)
-  assert.match(clientSource, /exportFilename\(job\.revision, format, job\.plan\.fps\)/)
+  assert.match(clientSource, /exportFilename\(job\.revision, format, job\.plan\.fps, job\.plan\.width, job\.plan\.height\)/)
+  assert.match(clientSource, /startExport\('mp4', \{[\s\S]*?filmShots: shots[\s\S]*?srt: captionsToSrt\(captions\)/)
+  assert.match(clientSource, /camera: Array\.isArray\(job\.filmShots\)/)
+  assert.match(clientSource, /muxerOptions\.audio = \{ codec: 'opus'/)
 })
 
 test('P2-2 vendor files are pinned, licensed and free of network/eval execution', async () => {

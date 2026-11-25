@@ -544,7 +544,7 @@ request ids.
 | `assets-status` | none | `assets` `action:'status'` | used |
 | `environment` | `value` (or absent/null to clear) | `mutation` | used |
 | `capture` | `purpose` set to `download` or `thumbnail` | `capture` with the same `requestId` | echoed in the reply; used to route shot thumbnails |
-| `capture-frame` | `requestId`, `index`, `time`, `fps`, `width`, `height` | `frame` or `frame-error` | required in payload |
+| `capture-frame` | `requestId`, `index`, `time`, `fps`, `width`, `height`, `camera?` | `frame` or `frame-error` | required in payload |
 | `capture-end` / `capture-cancel` | `requestId?` | `capture-session` | optional; echoed, absent becomes `''` |
 | `export-gltf` | `animated?`, `fps?`, `duration?` | `glb` or `error` | ignored |
 | `export-stl` | none | `stl` or `error` | ignored |
@@ -592,7 +592,10 @@ Command details that are easy to get wrong:
 - `capture-frame` is not the `capture` snapshot command. It belongs to a
   deterministic export session and requires a session request id in the
   payload; the parent's command helper also adds one, but the runtime uses the
-  payload value.
+  payload value. An optional `camera` object (`position`, `target`, `fov`) is
+  applied after script callbacks, pins and tracks so a Film shot sequence can
+  pin the camera for that frame; the capture session restores the live camera
+  pose on `capture-end`.
 - `export-gltf` with `animated:true` samples only enabled
   `position`/`rotation`/`scale` tracks bound to live, scene-reachable,
   non-deleted UIDs. A plan above 7,200 frames is refused with the structured
@@ -823,7 +826,7 @@ The Host registers under `/three-workbench` (`index.js:5504-5562`):
 | `/scene/restore` | POST handler | append a restored revision |
 | `/share/create` | POST handler | create a frozen share |
 | `/share/delete` | POST handler | revoke with `{id,deleteKey}` |
-| `/share/<id>`, `/share/<id>/metadata`, `/share/<id>/document` | GET/HEAD resource | constant shell, metadata attachment, document attachment |
+| `/share/<id>`, `/share/<id>/metadata`, `/share/<id>/document`, `/share/<id>/presentation` | GET/HEAD resource | constant shell, metadata/document/presentation attachments |
 
 ### 10.1 Restore
 
@@ -864,15 +867,31 @@ capability URLs. Delete and expiry therefore do not break a share; holders can
 see unreferenced Session assets. Local drafts and history revisions are never
 included. The delete key is returned once and kept only in the creating
 browser's bounded 20-entry registry. Revocation posts `{id,deleteKey}`; an
-unknown, expired or wrong-key id returns 404. The viewer has no controls, no
-token and no Session id: it auto-plays/loops the timeline, applies the frozen
-editor state, and supports OrbitControls only. Shell, metadata and document
-responses are `no-store`/`nosniff`, have no ACAO, and use
+unknown, expired or wrong-key id returns 404.
+
+`GET|HEAD /share/<id>/presentation` projects only the additive
+`editorState.presentation` field as `{ok:true, presentation}` (null when the
+record has none); it never returns the full editor state, code or Session id.
+It has its own per-id/global rate and concurrency bucket (8/min per id,
+20/min global, 1 concurrent per id, 2 global). The constant shell fetches it
+alongside metadata and the document. When `presentation.manual.steps` is
+present, the shell renders a read-only manual sidebar (title, step count, step
+title/body, parts, Previous/Next and arrow keys) with `textContent`, and drives
+the sandboxed runtime through the existing command contract: `camera`, `select`,
+`mutate` visibility ops with `transient:true` (restoring the previous step's
+hidden UIDs first) and `timeline` `seek` when `time > 0`.
+
+The viewer shell itself has no write controls, no token and no Session id: it
+auto-plays/loops the timeline, applies the frozen editor state, and supports
+OrbitControls only. Shell, metadata, document and presentation responses are
+`no-store`/`nosniff`, have no ACAO, and use
 `referrer-policy: no-referrer`, `cross-origin-resource-policy: same-origin`,
 and a constant CSP. The shell iframe is exactly the sandbox triple with
 `referrerpolicy="no-referrer"`; the document is a `text/plain` attachment with
-`content-security-policy: default-src 'none'; sandbox`. Unknown/expired ids
-return the same constant 404 body and headers for shell, metadata and document.
+`content-security-policy: default-src 'none'; sandbox`; metadata and
+presentation are JSON attachments with the same sandbox CSP. Unknown/expired
+ids return the same constant 404 body and headers for shell, metadata, document
+and presentation.
 
 ## 11. Persistence model (P3-3)
 
