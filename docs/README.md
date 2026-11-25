@@ -24,8 +24,6 @@
   exports and sharing
 - [Optional Harness plugin mode](HARNESS-PLUGIN.md) — the historical
   host-integrated build
-- [IP provenance audit](IP-PROVENANCE-AUDIT.md) — isolation from local reference
-  clones (Chinese)
 - [Plugin research](../standalone/plugins/RESEARCH.md) — capability triage for
   the marketplace
 - [Plugin configuration examples](../examples/plugin-config/README.md) —

@@ -378,7 +378,8 @@ Their licences include additional restrictions in at least one case
 (commercial use requires authorization; competing business use is prohibited).
 No source, assets, icons, templates or copy are included, and the UI, colour
 system and AI workflow are independently designed. A reproducible static
-provenance audit is recorded in `docs/IP-PROVENANCE-AUDIT.md`.
+provenance audit was performed against the local reference checkouts; it is an
+internal engineering record and is not part of this repository.
 
 ## Narrow screens and touch
 

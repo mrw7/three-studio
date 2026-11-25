@@ -232,7 +232,6 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the component contracts,
 - [Demo gallery](https://mrw7.github.io/three-studio/) ([source](site/index.html); [film](site/one-minute-demo/README.md), [agency](site/agency-demo/README.md), [configurator](site/configurator-demo/README.md), [education](site/education-demo/README.md), [motion](site/README.md), [data/space](site/README.md))
 - [Development and testing](docs/DEVELOPMENT.md)
 - [Scene/editor protocol](docs/PROTOCOL.md)
-- [IP provenance audit](docs/IP-PROVENANCE-AUDIT.md)
 - [Optional Harness plugin mode](docs/HARNESS-PLUGIN.md)
 - [Roadmap](ROADMAP.md)
 - [Contributing](CONTRIBUTING.md) ([DCO](DCO))

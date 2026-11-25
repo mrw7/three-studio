@@ -14,6 +14,7 @@ docs/BATCH-*.md
 docs/P*-*.md
 docs/DESIGN-*.md
 docs/DECISIONS.md
+docs/IP-PROVENANCE-AUDIT.md
 
 # Local editor/OS noise
 *.swp

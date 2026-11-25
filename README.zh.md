@@ -195,7 +195,6 @@ flowchart LR
 - [Demo gallery](https://mrw7.github.io/three-studio/)（[源码](site/index.html)、[短片](site/one-minute-demo/README.md)、[agency](site/agency-demo/README.md)、[配置器](site/configurator-demo/README.md)、[教育](site/education-demo/README.md)、[动效](site/README.md)、[数据/空间](site/README.md)）
 - [开发与测试](docs/DEVELOPMENT.md)
 - [场景/编辑器协议](docs/PROTOCOL.md)
-- [IP 来源审计](docs/IP-PROVENANCE-AUDIT.md)
 - [可选 Harness 插件模式](docs/HARNESS-PLUGIN.md)
 - [路线图](ROADMAP.md)
 - [贡献指南](CONTRIBUTING.md)（[DCO](DCO)）
