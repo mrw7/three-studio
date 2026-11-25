@@ -191,6 +191,46 @@ test('BOM CSV imports headers, quotes and caps and round-trips', () => {
   assert.deepEqual(plugin.__parseBomCsv(csv), parts)
 })
 
+test('local event log is allowlisted, bounded and storage-only', () => {
+  const saved = new Map()
+  const storage = {
+    getItem: key => saved.has(key) ? saved.get(key) : null,
+    setItem: (key, value) => saved.set(key, String(value)),
+    removeItem: key => saved.delete(key),
+  }
+  const first = plugin.__appendLocalEvent(storage, { type: 'film.export', ok: true, aspect: '9:16', fps: 30, n: 12 }, 1)
+  assert.equal(first.length, 1)
+  assert.deepEqual(first[0], { t: 1, type: 'film.export', n: 12, ok: true, aspect: '9:16', fps: 30 })
+
+  // Unknown types and extra fields are dropped instead of persisted.
+  const dropped = plugin.__appendLocalEvent(storage, { type: 'unknown', secret: 'user@example.com' }, 2)
+  assert.equal(dropped.length, 1)
+  assert.ok(!JSON.stringify(dropped).includes('user@example.com'))
+
+  for (let index = 0; index < plugin.__LOCAL_EVENT_MAX + 25; index += 1) {
+    plugin.__appendLocalEvent(storage, { type: 'manual.step', n: index }, 100 + index)
+  }
+  const capped = plugin.__loadLocalEvents(storage)
+  assert.equal(capped.length, plugin.__LOCAL_EVENT_MAX)
+  assert.equal(capped[0].n, 25)
+  assert.equal(capped[capped.length - 1].n, plugin.__LOCAL_EVENT_MAX + 24)
+  plugin.__clearLocalEvents(storage)
+  assert.deepEqual(plugin.__loadLocalEvents(storage), [])
+})
+
+test('local event log is wired to the log drawer with no network path', () => {
+  assert.match(clientSource, /data-three-workbench-local-events/)
+  assert.match(clientSource, /'data-three-workbench-local-event': event\.type/)
+  assert.match(clientSource, /onClearLocalEvents: studioClearLocalEvents/)
+  assert.match(clientSource, /studioRecordLocalEvent\('manual\.step'/)
+  assert.match(clientSource, /studioRecordLocalEvent\('film\.export'/)
+  const start = clientSource.indexOf('const LOCAL_EVENT_KEY')
+  const end = clientSource.indexOf('const MUSIC_DB_NAME', start)
+  assert.ok(start > 0 && end > start)
+  const helper = clientSource.slice(start, end)
+  assert.doesNotMatch(helper, /fetch\(|XMLHttpRequest|WebSocket|sendBeacon/)
+})
+
 test('editor record round-trips presentation through save/load', () => {
   const record = plugin.__emptyEditorRecord(1)
   const withPresentation = plugin.__updateEditorPresentation(record, {

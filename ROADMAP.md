@@ -81,6 +81,8 @@ services may be developed separately; the core must stay useful without them.
 - [x] Film safe-area guides and an explicit film-export failure instead of a
   realtime WebM fallback.
 - [x] Sequential local batch export of all four aspects.
+- [x] Local-only event log (browser storage, no telemetry) with a Log drawer
+  view.
 - [ ] Fades, burned-in captions and per-aspect reframing.
 - [ ] Local render worker for audio and 1080p60.
 - [ ] 4K, hosted publishing/analytics/SSO/translations (Pro/private).

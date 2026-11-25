@@ -154,7 +154,7 @@
   import/export, projected hotspot leader lines in the share viewer, 1080p
   16:9/9:16/1:1/4:5 deterministic MP4 export that fails visibly instead of
   falling back to realtime WebM, sequential batch export of all four aspects,
-  an AI manual proposal, and a
+  a local-only event log in the Log drawer, an AI manual proposal, and a
   read-only manual sidebar in share links with hotspots/BOM, print-to-PDF and
   a local QR code. The local core keeps the full authoring/share/export loop;
   hosted collaboration, analytics, translations, 4K and cloud/parallel batch

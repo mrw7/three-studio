@@ -550,6 +550,17 @@ window.__ModuleLoader__.load({
       'studio.log.title': '决策记录',
       'studio.log.empty': '应用或忽略 AI 提案后，决策会记录在这里。',
       'studio.log.count': '{n} 条决策',
+      'studio.log.local': '本地事件',
+      'studio.log.localHint': '仅保存在本浏览器，不上传',
+      'studio.log.localClear': '清空',
+      'studio.log.localEmpty': '还没有本地事件',
+      'studio.log.event.manual.step': '记录说明书步骤',
+      'studio.log.event.manual.play': '播放说明书',
+      'studio.log.event.manual.bom.import': '导入 BOM',
+      'studio.log.event.film.shot': '记录镜头',
+      'studio.log.event.film.play': '预览影片',
+      'studio.log.event.film.export': '影片导出',
+      'studio.log.event.film.export.batch': '批量导出',
       'studio.geometry.title': '几何镜头',
       'studio.geometry.vertices': '顶点',
       'studio.geometry.triangles': '三角面',
@@ -1588,6 +1599,17 @@ window.__ModuleLoader__.load({
       'studio.log.title': 'Decision log',
       'studio.log.empty': 'Applied or rejected AI proposals are recorded here.',
       'studio.log.count': '{n} decisions',
+      'studio.log.local': 'Local events',
+      'studio.log.localHint': 'Stored in this browser only; never uploaded',
+      'studio.log.localClear': 'Clear',
+      'studio.log.localEmpty': 'No local events yet',
+      'studio.log.event.manual.step': 'Manual step captured',
+      'studio.log.event.manual.play': 'Manual played',
+      'studio.log.event.manual.bom.import': 'BOM imported',
+      'studio.log.event.film.shot': 'Film shot captured',
+      'studio.log.event.film.play': 'Film previewed',
+      'studio.log.event.film.export': 'Film exported',
+      'studio.log.event.film.export.batch': 'Batch export',
       'studio.geometry.title': 'Geometry lens',
       'studio.geometry.vertices': 'Vertices',
       'studio.geometry.triangles': 'Triangles',
@@ -6894,6 +6916,79 @@ window.__ModuleLoader__.load({
       }
       // Excel needs the UTF-8 BOM to detect the encoding of Chinese part names.
       return '\uFEFF' + rows.map(row => row.map(csvCell).join(',')).join('\n') + '\n'
+    }
+
+    // ---------------------------------------------------------------------
+    // Local-only event log. This is deliberately not product analytics: it
+    // records coarse action counters in this browser's storage, never sends
+    // them anywhere, and is capped so it cannot grow without bound.
+    // ---------------------------------------------------------------------
+    const LOCAL_EVENT_KEY = 'three-workbench:events:v1'
+    const LOCAL_EVENT_MAX = 300
+    const LOCAL_EVENT_TYPES = [
+      'manual.step', 'manual.play', 'manual.bom.import',
+      'film.shot', 'film.play', 'film.export', 'film.export.batch',
+    ]
+    const normalizeLocalEvent = value => {
+      if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+      if (typeof value.type !== 'string' || !LOCAL_EVENT_TYPES.includes(value.type)) return null
+      const at = typeof value.t === 'number' && Number.isFinite(value.t) && value.t > 0 ? value.t : Date.now()
+      const next = { t: Math.min(8.64e15, at), type: value.type }
+      if (typeof value.n === 'number' && Number.isFinite(value.n)) {
+        next.n = Math.max(0, Math.min(1e9, Math.round(value.n)))
+      }
+      if (typeof value.ok === 'boolean') next.ok = value.ok
+      if (typeof value.aspect === 'string' && PRESENTATION_ASPECTS.includes(value.aspect)) next.aspect = value.aspect
+      if (typeof value.fps === 'number' && PRESENTATION_FPS.includes(value.fps)) next.fps = value.fps
+      return next
+    }
+    const localEventStorage = () => {
+      try {
+        return typeof window !== 'undefined' && window.localStorage ? window.localStorage : null
+      } catch (error) {
+        void error
+        return null
+      }
+    }
+    const loadLocalEvents = storage => {
+      if (storage === null || storage === undefined) return []
+      try {
+        const raw = storage.getItem(LOCAL_EVENT_KEY)
+        if (typeof raw !== 'string' || raw === '') return []
+        const parsed = JSON.parse(raw)
+        if (!Array.isArray(parsed)) return []
+        return parsed.map(normalizeLocalEvent).filter(event => event !== null).slice(-LOCAL_EVENT_MAX)
+      } catch (error) {
+        void error
+        return []
+      }
+    }
+    const appendLocalEvent = (storage, event, now) => {
+      const normalized = normalizeLocalEvent(Object.assign(
+        {},
+        event === null || typeof event !== 'object' ? {} : event,
+        { t: typeof now === 'number' && Number.isFinite(now) ? now : Date.now() },
+      ))
+      if (normalized === null) return loadLocalEvents(storage)
+      const events = loadLocalEvents(storage)
+      events.push(normalized)
+      const capped = events.slice(-LOCAL_EVENT_MAX)
+      if (storage !== null && storage !== undefined) {
+        try {
+          storage.setItem(LOCAL_EVENT_KEY, JSON.stringify(capped))
+        } catch (error) {
+          void error
+        }
+      }
+      return capped
+    }
+    const clearLocalEvents = storage => {
+      if (storage === null || storage === undefined) return
+      try {
+        storage.removeItem(LOCAL_EVENT_KEY)
+      } catch (error) {
+        void error
+      }
     }
 
     const MUSIC_DB_NAME = 'three-workbench-music'
@@ -20282,6 +20377,25 @@ THE SOFTWARE.
     function StudioDecisionPanel(props) {
       const t = props.t
       const decisions = Array.isArray(props.decisions) ? props.decisions : []
+      const localEvents = Array.isArray(props.localEvents) ? props.localEvents : []
+      const localEventRow = event => {
+        const detail = []
+        if (typeof event.n === 'number') detail.push('n=' + String(event.n))
+        if (typeof event.aspect === 'string') detail.push(event.aspect)
+        if (typeof event.fps === 'number') detail.push(String(event.fps) + 'fps')
+        if (typeof event.ok === 'boolean') detail.push(event.ok ? 'ok' : 'fail')
+        return h('div', {
+          key: event.t + ':' + event.type,
+          'data-three-workbench-local-event': event.type,
+          style: { display: 'flex', alignItems: 'baseline', gap: 6, padding: '3px 6px', borderRadius: 5,
+            background: 'var(--twb-fill-soft)', fontSize: 8.5 },
+        },
+        h('span', { style: { fontFamily: mono, color: STUDIO_MUTED, whiteSpace: 'nowrap' } },
+          new Date(event.t).toLocaleTimeString()),
+        h('span', { style: { flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap', color: STUDIO_TEXT } }, t('studio.log.event.' + event.type)),
+        detail.length === 0 ? null : h('span', { style: { color: STUDIO_MUTED, whiteSpace: 'nowrap' } }, detail.join(' · ')))
+      }
       const row = decision => {
         const applied = decision.status === 'applied'
         return h('div', {
@@ -20324,7 +20438,27 @@ THE SOFTWARE.
         ? h('div', { style: { flex: 1, display: 'grid', placeItems: 'center', padding: 16,
           fontSize: 10, color: STUDIO_MUTED, textAlign: 'center' } }, t('studio.log.empty'))
         : h('div', { style: { flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex',
-          flexDirection: 'column', gap: 4, padding: '6px 8px' } }, ...decisions.map(row)))
+          flexDirection: 'column', gap: 4, padding: '6px 8px' } }, ...decisions.map(row)),
+      h('div', {
+        'data-three-workbench-local-events': '',
+        style: { flex: '0 0 auto', maxHeight: 180, minHeight: 72, display: 'flex', flexDirection: 'column',
+          borderTop: '1px solid ' + STUDIO_LINE, background: 'var(--twb-panel-3)' },
+      },
+      h('div', { style: { flex: '0 0 auto', display: 'flex', alignItems: 'center', gap: 5, padding: '5px 8px' } },
+        h('span', { style: { fontSize: 9, letterSpacing: '.08em', textTransform: 'uppercase', color: STUDIO_MUTED } },
+          t('studio.log.local')),
+        h('span', { style: { fontSize: 8, color: STUDIO_MUTED } }, t('studio.log.localHint')),
+        h('span', { style: { flex: 1 } }),
+        h('button', {
+          type: 'button', disabled: localEvents.length === 0, onClick: props.onClearLocalEvents,
+          style: { height: 22, padding: '0 7px', borderRadius: 5, cursor: localEvents.length === 0 ? 'not-allowed' : 'pointer',
+            fontSize: 8.5, border: '1px solid ' + STUDIO_LINE, background: 'var(--twb-fill)', color: STUDIO_TEXT,
+            opacity: localEvents.length === 0 ? .4 : 1 },
+        }, t('studio.log.localClear'))),
+      localEvents.length === 0
+        ? h('div', { style: { padding: '2px 8px 10px', fontSize: 9, color: STUDIO_MUTED } }, t('studio.log.localEmpty'))
+        : h('div', { style: { minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column',
+          gap: 3, padding: '0 8px 8px' } }, ...localEvents.slice().reverse().map(localEventRow))))
     }
 
     /** Geometry lens: read-only metrics plus direct edits for primitives. */
@@ -22358,6 +22492,7 @@ THE SOFTWARE.
       const [studioTaskBusy, setStudioTaskBusy] = React.useState(false)
       const [studioTaskError, setStudioTaskError] = React.useState('')
       const [studioMeta, setStudioMeta] = React.useState(() => loadStudioMeta(sessionId))
+      const [studioLocalEvents, setStudioLocalEvents] = React.useState(() => loadLocalEvents(localEventStorage()))
       const studioMetaRef = React.useRef(studioMeta)
       const [studioProposalStatus, setStudioProposalStatus] = React.useState({})
       const [studioDismissedSuggestions, setStudioDismissedSuggestions] = React.useState([])
@@ -22515,6 +22650,16 @@ THE SOFTWARE.
         setStudioMeta(next)
         saveStudioMeta(sessionId, next)
         return next
+      }
+      const studioRecordLocalEvent = (type, data) => {
+        setStudioLocalEvents(appendLocalEvent(
+          localEventStorage(),
+          Object.assign({ type }, data === null || typeof data !== 'object' ? {} : data),
+        ))
+      }
+      const studioClearLocalEvents = () => {
+        clearLocalEvents(localEventStorage())
+        setStudioLocalEvents([])
       }
       const beginStudioResize = (kind, event) => {
         if (event.button !== undefined && event.button !== 0) return
@@ -28218,6 +28363,7 @@ THE SOFTWARE.
         }
         const steps = studioManualSteps()
         if (steps.length === 0) return
+        studioRecordLocalEvent('manual.play', { n: steps.length })
         studioManualPlayingRef.current = true
         setStudioManualPlaying(true)
         let index = 0
@@ -28262,6 +28408,7 @@ THE SOFTWARE.
         }
         commitPresentation({ manual: studioManualWithSteps(steps.concat([step])) })
         setStudioManualSelected(step.id)
+        studioRecordLocalEvent('manual.step', { n: steps.length + 1 })
       }
       const studioUpdateManualStep = (id, patch) => {
         const steps = studioManualSteps().map(step => step.id === id ? Object.assign({}, step, patch) : step)
@@ -28368,6 +28515,7 @@ THE SOFTWARE.
         if (added === 0) return
         commitPresentation({ manual: studioManualWithParts(parts) })
         setProtocolNotice(t('studio.manual.bomImported', { n: added }))
+        studioRecordLocalEvent('manual.bom.import', { n: added })
       }
       const studioDownloadManualBomCsv = () => {
         const parts = studioManualParts()
@@ -28439,6 +28587,7 @@ THE SOFTWARE.
         }
         commitPresentation({ film: studioFilmWithShots(shots.concat([shot])) })
         setStudioFilmSelected(shot.id)
+        studioRecordLocalEvent('film.shot', { n: shots.length + 1 })
       }
       const studioUpdateFilmShot = (id, patch) => {
         const shots = studioFilmShots().map(shot => shot.id === id ? Object.assign({}, shot, patch) : shot)
@@ -28503,6 +28652,7 @@ THE SOFTWARE.
         if (shots.length === 0) return
         const total = filmShotsDuration(shots)
         if (total <= 0) return
+        studioRecordLocalEvent('film.play', { n: shots.length })
         studioFilmPlayingRef.current = true
         setStudioFilmPlaying(true)
         const started = performance.now()
@@ -28551,7 +28701,9 @@ THE SOFTWARE.
           filmShots: shots, music: settings.music || null,
           srt: captionsToSrt(captions),
         })
-        return exportCompletedRef.current > before
+        const ok = exportCompletedRef.current > before
+        studioRecordLocalEvent('film.export', { ok, aspect, fps: settings.fps })
+        return ok
       }
       const studioExportFilm = settings => {
         const captions = Array.isArray(settings.captions) ? settings.captions : []
@@ -28586,6 +28738,9 @@ THE SOFTWARE.
           studioFilmBatchRef.current = false
           setStudioFilmBatch(false)
         }
+        studioRecordLocalEvent('film.export.batch', {
+          n: done, ok: done === PRESENTATION_ASPECTS.length,
+        })
         if (done === PRESENTATION_ASPECTS.length) {
           setProtocolNotice(t('studio.film.exportAllDone', { n: done }))
         } else if (done > 0) {
@@ -32670,7 +32825,11 @@ THE SOFTWARE.
               onMeasureSelection: studioMeasureSelection, onDelete: studioDeleteMeasure,
             })
             : studioDockTab === 'log'
-              ? h(StudioDecisionPanel, { t, decisions: studioMeta.decisions })
+              ? h(StudioDecisionPanel, {
+                t, decisions: studioMeta.decisions,
+                localEvents: studioLocalEvents,
+                onClearLocalEvents: studioClearLocalEvents,
+              })
               : h(StudioGeometryPanel, {
               t, node: selectedNode, explode: studioMeta.explode,
               onExplode: studioSetExplode,
@@ -34252,6 +34411,10 @@ THE SOFTWARE.
       __parseSrt: parseSrt,
       __parseBomCsv: parseBomCsv,
       __bomToCsv: bomToCsv,
+      __LOCAL_EVENT_MAX: LOCAL_EVENT_MAX,
+      __loadLocalEvents: loadLocalEvents,
+      __appendLocalEvent: appendLocalEvent,
+      __clearLocalEvents: clearLocalEvents,
       __exportSrtFilename: exportSrtFilename,
       __renderMusicBuffer: renderMusicBuffer,
       __encodeOpusChunks: encodeOpusChunks,

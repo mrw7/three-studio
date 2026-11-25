@@ -91,6 +91,14 @@ text, step parts/hotspots, BOM and a QR code for the share URL. Choose "Save as
 PDF" in the print dialog. The QR is generated locally from the vendored MIT
 `qrcode-generator`; no external QR service is called.
 
+## Local event log
+
+The Log drawer keeps a bounded, browser-local log of coarse manual/film actions
+(step or shot capture, BOM import, playback, exports). Entries contain counts
+and enums only — never scene code, user text or asset content — are capped at
+300 and can be cleared from the drawer. The log never leaves the browser: there
+is no telemetry, upload or hosted dashboard in the open core.
+
 ## Limits
 
 - Manual/film metadata is browser-local editor state, like camera overrides and
@@ -113,7 +121,8 @@ PDF" in the print dialog. The QR is generated locally from the vendored MIT
   markup). Hotspots are a sidebar list with Focus; the sandboxed scene runtime
   draws the projected leader lines, and the share shell still never listens to
   scene messages.
-- No analytics in the open core.
+- The local event log is browser-only; hosted analytics and dashboards are Pro
+  services.
 
 ## Open core and Pro
 

@@ -21,10 +21,11 @@ for what belongs in the public tree.
 | Governance | `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `DCO`, `SECURITY.md`, `GOVERNANCE.md`, `TRADEMARK.md`, `PRIVACY.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, `ROADMAP.md` |
 
 The Apache-2.0 core includes the complete local manual/film loop: the
-presentation schema, manual step authoring with BOM/hotspots, ordered film
-shots with camera keys/SRT/local music, AI manual proposals (reviewed/applied
-locally), the share viewer's manual sidebar with print-to-PDF/QR, and
-1080p/16:9/9:16/1:1/4:5 deterministic export.
+presentation schema, manual step authoring with BOM/hotspots, BOM CSV
+import/export, ordered film shots with camera keys/SRT/local music, AI manual
+proposals (reviewed/applied locally), the share viewer's manual sidebar with
+print-to-PDF/QR and projected hotspot leader lines, and
+1080p/16:9/9:16/1:1/4:5 deterministic or sequential four-aspect export.
 
 ### Manual and film boundary
 
@@ -34,20 +35,23 @@ locally), the share viewer's manual sidebar with print-to-PDF/QR, and
 - Ordered film shots with eased start→end camera keys and hard cuts.
 - SRT captions and sidecar export.
 - Local music attachment, preview, and Opus muxing, with a video-only fallback when the browser cannot encode audio.
-- Manual BOM and step hotspots.
-- The share viewer (manual sidebar, BOM/hotspot lists, print-to-PDF, QR).
-- 1080p/16:9/9:16/1:1/4:5 deterministic export.
+- Manual BOM and step hotspots, with BOM CSV import/export.
+- The share viewer (manual sidebar, BOM/hotspot lists, projected leader lines,
+  print-to-PDF, QR).
+- 1080p/16:9/9:16/1:1/4:5 deterministic export and sequential local batch
+  export of the four aspects.
+- A local-only event log: coarse action counters in browser storage, no
+  network calls, no telemetry and no hosted dashboards.
 - AI manual proposals, applied only after local review.
 
 **Pro/private services (must stay outside this repository):**
 
 - Hosted publishing, comments/review, approvals, team workspaces, SSO, audit logs.
-- Hosted analytics.
+- Hosted analytics and dashboards (the open core only keeps a local event log).
 - Translation workflow.
 - Stock music/SFX libraries and managed TTS.
 - 4K/ProRes.
-- Cloud/parallel rendering queues.
-- Batch variants.
+- Cloud/parallel rendering queues and batch rendering.
 - Brand kits and premium templates.
 
 Do not require these services for local editing, viewing or basic 1080p
