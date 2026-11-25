@@ -104,6 +104,13 @@ function animate() {
   for (const callback of frameCallbacks) callback({ time: elapsed, delta })
 
   const view = sampleCamera(progress)
+  // The hero headline owns the left half of the page, so frame the watch right
+  // of centre by sliding camera and target together: that keeps the viewing
+  // angle (and therefore the reflections) while moving the subject on screen.
+  // The offset fades out as soon as the first chapter panel takes over.
+  const heroShift = 1.45 * (1 - clamp(progress / 0.11))
+  view.position[0] -= heroShift
+  view.target[0] -= heroShift
   if (mobileView) {
     view.position[1] += 1.0
     view.position[2] += 2.4

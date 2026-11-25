@@ -75,11 +75,79 @@ grid.material.transparent = true
 grid.material.opacity = 0.3
 scene.add(grid)
 
-const placeholder = new THREE.Mesh(
-  new THREE.BoxGeometry(1.2, 1.2, 1.2),
-  new THREE.MeshStandardMaterial({ color: 0x6f8dff, wireframe: true, transparent: true, opacity: 0.55 }),
+// Step 01 shows the empty stage the lesson starts from. A bare wireframe cube
+// read as a black frame on the gallery card, so the stage shows the scaffolding
+// the code actually creates: a camera frustum, light-rig markers and the origin
+// gizmo. The ground grid it sits on is the shared `grid` above. This is a
+// composition, not a placeholder box.
+const placeholder = new THREE.Group()
+
+const frustumGeo = new THREE.BufferGeometry()
+{
+  // A camera gizmo at the origin: a 42° frustum pointing down -Z with a short
+  // throw. Drawing the rays from the real eye position (8.5, 6.2, 10.5) put a
+  // stray line across the whole stage, so the gizmo is compact and local.
+  const halfV = Math.tan((42 * Math.PI) / 180 / 2)
+  const halfH = halfV * (16 / 10)
+  const points = []
+  const near = 0.55
+  const far = 1.5
+  const quad = distance => {
+    const v = distance * halfV
+    const h = distance * halfH
+    return [
+      [-h, v, -distance], [h, v, -distance],
+      [h, -v, -distance], [-h, -v, -distance],
+    ]
+  }
+  const nearQuad = quad(near)
+  const farQuad = quad(far)
+  const push = (a, b) => { points.push(...a, ...b) }
+  for (let i = 0; i < 4; i += 1) {
+    push([0, 0, 0], farQuad[i])
+    push(nearQuad[i], nearQuad[(i + 1) % 4])
+    push(farQuad[i], farQuad[(i + 1) % 4])
+  }
+  frustumGeo.setAttribute('position', new THREE.Float32BufferAttribute(points, 3))
+}
+const frustum = new THREE.LineSegments(
+  frustumGeo,
+  new THREE.LineBasicMaterial({ color: 0x6f8dff, transparent: true, opacity: 0.5 }),
 )
-placeholder.position.y = 0
+frustum.position.set(0, 1.1, 0)
+frustum.rotation.y = -0.6
+placeholder.add(frustum)
+
+// Light rig markers: a small sun-coloured dot for the hemisphere + directional
+// pair the first lesson adds, tied to the same spots the code uses.
+for (const [x, y, z, colour] of [[6, 9, 6, 0xffd08a], [-7, 4, -5, 0x6f8dff]]) {
+  const marker = new THREE.Mesh(
+    new THREE.SphereGeometry(0.11, 16, 12),
+    new THREE.MeshBasicMaterial({ color: colour }),
+  )
+  marker.position.set(x, y, z)
+  placeholder.add(marker)
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(0.24, 16, 12),
+    new THREE.MeshBasicMaterial({ color: colour, transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending }),
+  )
+  halo.position.copy(marker.position)
+  placeholder.add(halo)
+}
+
+// Origin gizmo so the empty stage still has a centre of gravity.
+const axes = new THREE.AxesHelper(1.1)
+axes.material.transparent = true
+axes.material.opacity = 0.7
+placeholder.add(axes)
+
+const target = new THREE.Mesh(
+  new THREE.TorusGeometry(0.42, 0.012, 8, 64),
+  new THREE.MeshBasicMaterial({ color: 0xffd08a, transparent: true, opacity: 0.55 }),
+)
+target.rotation.x = Math.PI / 2
+placeholder.add(target)
+
 scene.add(placeholder)
 
 const sunGroup = new THREE.Group()

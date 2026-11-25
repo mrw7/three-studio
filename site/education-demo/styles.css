@@ -75,7 +75,9 @@ button { font: inherit; color: inherit; }
 }
 .steps h1 {
   margin: 0; font-family: var(--serif); font-weight: 400;
-  font-size: clamp(34px, 2.9vw, 50px); line-height: 1.02; letter-spacing: -0.04em;
+  /* The left column is ~300px wide at 1440px, so a 50px headline overflowed the
+     panel and clipped mid-word. Scale to the column, not the viewport. */
+  font-size: clamp(26px, 2.1vw, 34px); line-height: 1.08; letter-spacing: -0.035em;
 }
 .steps h1 em { color: var(--sun); white-space: nowrap; }
 .lede { margin: 20px 0 24px; color: var(--muted); font-size: 12.5px; line-height: 1.8; }

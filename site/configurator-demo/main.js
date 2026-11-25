@@ -102,7 +102,10 @@ const metalMat = new THREE.MeshPhysicalMaterial({
   clearcoat: 0.55,
   clearcoatRoughness: 0.22,
   envMapIntensity: 1.25,
-  side: THREE.DoubleSide,
+  // FrontSide only. A double-sided highly reflective shell makes its own inner
+  // wall mirror the outer one, which is what produced the moiré bands on the
+  // shade; the inner surface is now a separate matte cone.
+  side: THREE.FrontSide,
 })
 const bulbMat = new THREE.MeshStandardMaterial({
   color: 0xfff1d0,
@@ -141,74 +144,175 @@ const lamp = new THREE.Group()
 lamp.position.y = 0.02
 scene.add(lamp)
 
-const base = new THREE.Mesh(new THREE.CylinderGeometry(1.3, 1.44, 0.22, 64), metalMat)
-base.position.y = 0.11
-base.castShadow = true
-base.receiveShadow = true
+// The product is a lathe-turned metal lamp: every part is a profile revolved
+// around Y, so the body has a real chamfer, lip and wall thickness instead of
+// stacked cylinders. `metalMat` carries the configurable finish; `innerMat` is
+// the matt white reflector and must never take the body finish.
+const innerMat = new THREE.MeshStandardMaterial({
+  color: 0xf6efe2,
+  metalness: 0.0,
+  roughness: 0.92,
+  envMapIntensity: 0.5,
+  side: THREE.DoubleSide,
+})
+
+function lathe(profile, material, segments = 96) {
+  const points = profile.map(([radius, height]) => new THREE.Vector2(radius, height))
+  const mesh = new THREE.Mesh(new THREE.LatheGeometry(points, segments), material)
+  mesh.castShadow = true
+  mesh.receiveShadow = true
+  return mesh
+}
+
+// Cast base: flat underside, chamfered edge, domed top rising into a collar.
+const base = lathe([
+  [0.00, 0.00], [1.34, 0.00], [1.44, 0.035], [1.45, 0.090],
+  [1.41, 0.150], [1.30, 0.196], [1.10, 0.226], [0.84, 0.242],
+  [0.62, 0.258], [0.46, 0.310], [0.34, 0.372], [0.22, 0.404],
+  [0.13, 0.414], [0.00, 0.414],
+], metalMat)
 lamp.add(base)
 
-const baseRing = new THREE.Mesh(new THREE.TorusGeometry(1.25, 0.012, 8, 96), darkMat)
+// Turned collar the stem screws into, plus a dark seam ring for definition.
+const collar = lathe([
+  [0.000, 0.400], [0.150, 0.400], [0.150, 0.452], [0.128, 0.470],
+  [0.104, 0.470], [0.098, 0.452], [0.098, 0.400], [0.000, 0.400],
+], metalMat)
+lamp.add(collar)
+
+const baseRing = new THREE.Mesh(new THREE.TorusGeometry(0.60, 0.010, 8, 96), darkMat)
 baseRing.rotation.x = Math.PI / 2
-baseRing.position.y = 0.225
+baseRing.position.y = 0.262
 lamp.add(baseRing)
 
-const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.095, 2.05, 24), metalMat)
-stem.position.y = 1.22
-stem.castShadow = true
-stem.receiveShadow = true
+// Stem: slight taper, a knurled band, and a machined shoulder at the top.
+const stem = lathe([
+  [0.000, 0.440], [0.094, 0.440], [0.088, 0.470], [0.080, 1.90],
+  [0.086, 1.96], [0.096, 2.02], [0.104, 2.10], [0.104, 2.16],
+  [0.086, 2.20], [0.000, 2.20],
+], metalMat)
 lamp.add(stem)
 
-const joint = new THREE.Mesh(new THREE.SphereGeometry(0.16, 24, 16), metalMat)
-joint.position.y = 2.23
+const knurl = new THREE.Mesh(new THREE.CylinderGeometry(0.088, 0.088, 0.10, 32, 1, true), darkMat)
+knurl.position.y = 1.02
+lamp.add(knurl)
+
+// Shoulder + pivot joint.
+const shoulder = lathe([
+  [0.000, 2.16], [0.104, 2.16], [0.140, 2.20], [0.150, 2.26],
+  [0.132, 2.31], [0.060, 2.325], [0.000, 2.325],
+], metalMat)
+lamp.add(shoulder)
+
+const joint = new THREE.Mesh(new THREE.SphereGeometry(0.145, 32, 20), metalMat)
+joint.position.y = 2.335
 joint.castShadow = true
 lamp.add(joint)
 
+const jointPin = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.038, 0.36, 20), darkMat)
+jointPin.rotation.z = Math.PI / 2
+jointPin.position.y = 2.335
+lamp.add(jointPin)
+
 const armPivot = new THREE.Group()
-armPivot.position.set(0, 2.23, 0)
+armPivot.position.set(0, 2.335, 0)
 armPivot.rotation.z = -0.28
 lamp.add(armPivot)
 
-const arm = new THREE.Mesh(new THREE.BoxGeometry(1.55, 0.085, 0.12), metalMat)
-arm.position.x = 0.775
+// Tapered arm with a counterweight behind the pivot, which is what makes a
+// balanced task lamp read as a real mechanism rather than a floating stick.
+const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.070, 1.52, 24), metalMat)
+arm.rotation.z = Math.PI / 2
+arm.position.x = 0.76
 arm.castShadow = true
 arm.receiveShadow = true
 armPivot.add(arm)
 
+const armEnd = new THREE.Mesh(new THREE.SphereGeometry(0.082, 24, 16), metalMat)
+armEnd.position.x = 1.52
+armEnd.castShadow = true
+armPivot.add(armEnd)
+
+// Counterweight behind the pivot. The lathe profile revolves around Y, so it is
+// rotated to sit on the arm's -X axis; without the z spin its cap faced sideways
+// and the weight read as a floating disc rather than a turned knob.
+const weight = lathe([
+  [0.000, 0.000], [0.118, 0.000], [0.118, 0.052], [0.104, 0.074],
+  [0.064, 0.086], [0.000, 0.086],
+], darkMat, 48)
+weight.rotation.z = Math.PI / 2
+weight.position.set(-0.30, 0, 0)
+armPivot.add(weight)
+
 const shadeGroup = new THREE.Group()
-shadeGroup.position.set(1.55, 0, 0)
-shadeGroup.rotation.z = 0.28
+shadeGroup.position.set(1.52, 0, 0)
+shadeGroup.rotation.z = 0.175
 armPivot.add(shadeGroup)
 
-const coneShade = new THREE.Mesh(new THREE.CylinderGeometry(0.23, 0.6, 0.62, 64, 1, true), metalMat)
-coneShade.position.y = -0.31
-coneShade.castShadow = true
-coneShade.receiveShadow = true
+const shadeNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.135, 0.16, 28), metalMat)
+shadeNeck.position.y = 0.05
+shadeNeck.castShadow = true
+shadeGroup.add(shadeNeck)
+
+// Conical shade: outer metal shell + inner matte reflector, 30 mm apart.
+//
+// Two failed attempts are worth recording. A single closed lathe rendered as
+// concentric moiré rings, because the metal is double-sided and highly
+// reflective, so the inner and outer walls reflected each other. Two shells
+// only 2 mm apart still z-fought. The shade is therefore an open outer cone
+// (metal, front faces) plus a separate open inner cone (matte white, back
+// faces) with a full 30 mm of air between them — which is also how a real lamp
+// shade is built.
+const SHADE_WALL = 0.030
+const coneOuter = [
+  [0.170, 0.020], [0.300, -0.120], [0.430, -0.280], [0.545, -0.450], [0.596, -0.575],
+]
+const coneShade = lathe(coneOuter, metalMat)
 shadeGroup.add(coneShade)
 
-const coneRim = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.018, 10, 64), darkMat)
+const coneInner = lathe(
+  coneOuter.map(([radius, height]) => [radius - SHADE_WALL, height + SHADE_WALL * 0.5]),
+  innerMat,
+)
+shadeGroup.add(coneInner)
+
+const coneRim = new THREE.Mesh(new THREE.TorusGeometry(0.583, 0.014, 10, 96), darkMat)
 coneRim.rotation.x = Math.PI / 2
-coneRim.position.y = -0.62
+coneRim.position.y = -0.586
 shadeGroup.add(coneRim)
 
-const domeShade = new THREE.Mesh(
-  new THREE.SphereGeometry(0.6, 48, 24, 0, Math.PI * 2, 0, Math.PI / 2),
-  metalMat,
-)
-domeShade.position.y = -0.6
-domeShade.castShadow = true
-domeShade.receiveShadow = true
+// Dome shade: the same two-shell construction, hemispherical.
+const domeOuter = [
+  [0.590, -0.600], [0.582, -0.500], [0.552, -0.360], [0.472, -0.200],
+  [0.342, -0.060], [0.186, 0.030],
+]
+const domeShade = lathe(domeOuter, metalMat)
 domeShade.visible = false
 shadeGroup.add(domeShade)
 
-const domeRim = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.018, 10, 64), darkMat)
+const domeInner = lathe(
+  domeOuter.map(([radius, height]) => [radius - SHADE_WALL, height + SHADE_WALL * 0.5]),
+  innerMat,
+)
+domeInner.visible = false
+shadeGroup.add(domeInner)
+
+const domeRim = new THREE.Mesh(new THREE.TorusGeometry(0.560, 0.014, 10, 96), darkMat)
 domeRim.rotation.x = Math.PI / 2
-domeRim.position.y = -0.6
+domeRim.position.y = -0.598
 domeRim.visible = false
 shadeGroup.add(domeRim)
 
-const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.15, 24, 16), bulbMat)
+// Bulb sits behind a frosted diffuser disc so the light source has a body and
+// the glow sprite is not the only thing reading.
+const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.135, 28, 20), bulbMat)
 bulb.position.y = -0.38
 shadeGroup.add(bulb)
+
+const diffuser = new THREE.Mesh(new THREE.CircleGeometry(0.175, 40), innerMat)
+diffuser.rotation.x = -Math.PI / 2
+diffuser.position.y = -0.30
+shadeGroup.add(diffuser)
 
 const glow = new THREE.Mesh(new THREE.CircleGeometry(0.52, 48), glowMat)
 glow.rotation.x = Math.PI / 2
@@ -338,12 +442,18 @@ function applyFinish() {
 
 function applyShade() {
   const dome = config.shade === 'dome'
+  // Each shade is an outer metal cone plus an inner matte cone; all four meshes
+  // and both rims have to follow the switch, or the hidden shade keeps drawing.
   coneShade.visible = !dome
+  coneInner.visible = !dome
   coneRim.visible = !dome
   domeShade.visible = dome
+  domeInner.visible = dome
   domeRim.visible = dome
   bulb.position.y = dome ? -0.48 : -0.38
-  glow.position.y = dome ? -0.6 : -0.6
+  diffuser.position.y = dome ? -0.40 : -0.30
+  diffuser.rotation.x = dome ? Math.PI / 2 : -Math.PI / 2
+  glow.position.y = -0.6
   lampLight.position.y = dome ? -0.48 : -0.38
 }
 

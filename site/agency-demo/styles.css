@@ -183,13 +183,15 @@ main { position: relative; z-index: 2; }
   pointer-events: none;
   background: linear-gradient(90deg, rgba(5, 7, 11, 0.9) 0%, rgba(5, 7, 11, 0.62) 36%, rgba(5, 7, 11, 0) 64%);
 }
-.hero-copy { position: relative; z-index: 2; max-width: 640px; }
+.hero-copy { position: relative; z-index: 2; max-width: 560px; }
 .hero h1 {
   margin: 0;
   font-family: var(--serif);
   font-weight: 400;
-  font-size: clamp(56px, 8.6vw, 126px);
-  line-height: 0.9;
+  /* The watch is framed to the right of the headline; a 126px line would run
+     under it, so the display size caps lower and the copy column narrows. */
+  font-size: clamp(46px, 6.2vw, 88px);
+  line-height: 0.94;
   letter-spacing: -0.045em;
 }
 .hero h1 em {
