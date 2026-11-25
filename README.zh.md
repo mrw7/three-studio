@@ -28,9 +28,9 @@ Three.js demo：一分钟动画短片、agency 互动页、产品配置器、教
   动画、蒙皮、贴图、PBR 通道与顶点色不随行（FBX 以米为单位，`UnitScaleFactor=100`，
   与 Blender 米制输出一致）
 - **一份场景，两种交付**：把机位/选择、BOM 和热点记录为交互说明书；按顺序编排影片
-  镜头，支持缓动机位、SRT 字幕和本地音乐轨；导出 1080p 16:9/9:16/1:1/4:5 MP4；
-  分享只读说明书，支持打印到 PDF 和 QR 码。AI 可把说明书步骤作为可审核提案草拟
-  出来。
+  镜头，支持缓动机位、安全框、SRT 字幕和本地音乐轨；导出 1080p
+  16:9/9:16/1:1/4:5 MP4（不回退实时 WebM）；分享只读说明书，支持打印到 PDF 和
+  QR 码。AI 可把说明书步骤作为可审核提案草拟出来。
 - **沙箱执行**：模型代码仅在 opaque-origin `srcDoc` iframe 中运行
   （`allow-scripts allow-pointer-lock allow-downloads`，绝不 `allow-same-origin`，
   不可作为 URL 导航）

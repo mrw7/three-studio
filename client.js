@@ -521,6 +521,9 @@ window.__ModuleLoader__.load({
       'studio.film.musicFailed': '音频读取失败。',
       'studio.film.audioUnsupported': '当前浏览器不支持音频编码，已导出纯视频。',
       'studio.film.durationCap': '影片最长 60 秒；请缩短镜头时长。',
+      'studio.film.exportUnsupported': '当前浏览器不支持 MP4 编码（H.264/VP9），影片导出已取消；请改用 Chrome/Edge 后重试。',
+      'studio.film.safeArea': '安全框',
+      'studio.film.safeAreaHint': '视口显示 90% 标题安全区和 80% 动作安全区',
       'studio.drawer.film': '影片',
       'studio.proposal.kind.manual': '说明书步骤',
       'studio.proposal.manualHint': '这些步骤不会自动应用；先预览，再应用到当前场景。',
@@ -1552,6 +1555,9 @@ window.__ModuleLoader__.load({
       'studio.film.musicFailed': 'Could not read that audio file.',
       'studio.film.audioUnsupported': 'Audio encoding is unavailable in this browser; exported video only.',
       'studio.film.durationCap': 'Films are limited to 60 seconds; shorten the shot durations.',
+      'studio.film.exportUnsupported': 'This browser cannot encode MP4 (H.264/VP9); the film export was cancelled. Use Chrome/Edge and try again.',
+      'studio.film.safeArea': 'Safe area',
+      'studio.film.safeAreaHint': 'Viewport guides show 90% title-safe and 80% action-safe areas',
       'studio.drawer.film': 'Film',
       'studio.proposal.kind.manual': 'Manual steps',
       'studio.proposal.manualHint': 'These steps are not applied automatically. Preview them, then apply to the current scene.',
@@ -25388,6 +25394,7 @@ THE SOFTWARE.
           sessionId,
           revision: current.revision,
           format,
+          film: options !== null && typeof options === 'object' && options.film === true,
           plan,
           expectedIndex: 0,
           captured: 0,
@@ -25417,6 +25424,12 @@ THE SOFTWARE.
           if (job.finished === true) return
           const code = error !== null && typeof error === 'object' ? error.code : undefined
           if (code === 'fallback') {
+            // Film export is deterministic and aspect-aware; a realtime WebM
+            // capture would silently produce a different file, so fail visibly.
+            if (job.film === true) {
+              await abortExportJob(job, t('studio.film.exportUnsupported'))
+              return
+            }
             await abortExportJob(job, null)
             setProtocolNotice(t('export.fallback'))
             // Keep the existing realtime recorder as the documented fallback;
@@ -28417,7 +28430,7 @@ THE SOFTWARE.
         const captions = Array.isArray(settings.captions) ? settings.captions : []
         studioUpdateFilm({ aspect: settings.aspect, fps: settings.fps, captions })
         void startExport('mp4', {
-          width: size[0], height: size[1], fps: settings.fps, duration,
+          width: size[0], height: size[1], fps: settings.fps, duration, film: true,
           filmShots: shots, music: settings.music || null,
           srt: captionsToSrt(captions),
         })
@@ -32254,6 +32267,51 @@ THE SOFTWARE.
           color: STUDIO_ACCENT, fontSize: 10, pointerEvents: 'none' } },
         h(StudioGlyph, { name: 'plus', size: 13 }), t('studio.shelf.dragHint')))
         : null
+      const studioFilmSafeArea = studioOn && mode !== 'code' && studioDockTab === 'film'
+        ? (() => {
+          const aspect = filmSettings !== null && filmSettings !== undefined
+            && PRESENTATION_ASPECTS.includes(filmSettings.aspect) ? filmSettings.aspect : '16:9'
+          const size = PRESENTATION_ASPECT_SIZES[aspect]
+          const width = size[0]
+          const height = size[1]
+          const titleX = width * 0.05
+          const titleY = height * 0.05
+          const titleW = width * 0.9
+          const titleH = height * 0.9
+          const actionX = width * 0.1
+          const actionY = height * 0.1
+          const actionW = width * 0.8
+          const actionH = height * 0.8
+          return h('div', {
+            'data-three-workbench-film-safe': aspect,
+            style: { position: 'absolute', inset: 0, zIndex: 4, pointerEvents: 'none' },
+          },
+          h('svg', {
+            viewBox: `0 0 ${width} ${height}`,
+            preserveAspectRatio: 'xMidYMid meet',
+            style: { position: 'absolute', inset: 0, width: '100%', height: '100%', display: 'block' },
+          },
+          h('path', {
+            d: `M0 0H${width}V${height}H0Z M${titleX} ${titleY}H${titleX + titleW}V${titleY + titleH}H${titleX}Z`,
+            fillRule: 'evenodd',
+            fill: 'rgba(0,0,0,.38)',
+          }),
+          h('rect', {
+            x: titleX, y: titleY, width: titleW, height: titleH, fill: 'none',
+            stroke: 'rgba(255,255,255,.55)', strokeWidth: 1.5, strokeDasharray: '6 5',
+          }),
+          h('rect', {
+            x: actionX, y: actionY, width: actionW, height: actionH, fill: 'none',
+            stroke: 'rgba(255,255,255,.3)', strokeWidth: 1.5, strokeDasharray: '4 6',
+          })),
+          h('div', {
+            title: t('studio.film.safeAreaHint'),
+            style: { position: 'absolute', left: 8, bottom: 6, padding: '2px 6px', borderRadius: 5,
+              fontSize: 9, color: 'var(--twb-hud-text)', background: 'var(--twb-hud-bg)',
+              border: '1px solid ' + STUDIO_LINE, opacity: .88 },
+          }, t('studio.film.safeArea') + ' · ' + aspect + ' · 90% / 80%'))
+        })()
+        : null
       const studioStageOverlays = studioOn
         ? h(React.Fragment, null, studioActionStrip, studioShelfDropShield)
         : null
@@ -32855,6 +32913,7 @@ THE SOFTWARE.
               sandbox: 'allow-scripts allow-pointer-lock allow-downloads',
               style: { flex: 1, width: '100%', minWidth: 0, border: 0, background: 'var(--twb-code-bg)', display: 'block', minHeight: 0 },
             }),
+            studioFilmSafeArea,
             studioStageOverlays),
             mode === 'code'
               ? h('div', { style: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', background: 'var(--twb-code-bg)', color: 'var(--twb-text-2)' } },

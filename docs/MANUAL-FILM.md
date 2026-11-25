@@ -67,6 +67,11 @@ Open **Film** in the bottom dock.
 - H.264 High profile level 4.0/4.2 candidates are probed first, then the
   960 × 540 baseline profile, then VP9. The capture protocol still caps a plan
   at 1920 × 1080 pixels, 60 seconds and 3,600 frames.
+- **Safe-area guides** — while the Film dock is open, the viewport dims outside
+  the selected aspect and overlays a 90% title-safe and 80% action-safe frame.
+- A film export never falls back to the realtime WebM recorder: when no
+  deterministic MP4 encoder is available the export cancels with a notice, so
+  the file always matches the shot plan.
 
 Each shot interpolates from its start camera to its end camera with a smooth
 ease; cuts between shots are hard. Arbitrary multi-key camera curves, fades and
@@ -90,6 +95,8 @@ PDF" in the print dialog. The QR is generated locally from the vendored MIT
   state).
 - Film duration is the sum of shot durations, or the current timeline when no
   shots exist, capped at 60 seconds / 3,600 frames.
+- Film export requires a deterministic MP4 encoder; it cancels with a notice
+  instead of falling back to realtime WebM.
 - Camera paths are one eased start→end pose per shot with hard cuts. There are
   no arbitrary multi-key curves, fades, 4K, batch variants or cloud rendering.
 - SRT and Opus audio muxing are best-effort browser features. Safari playback

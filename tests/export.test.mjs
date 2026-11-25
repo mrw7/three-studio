@@ -391,6 +391,7 @@ test('P2-2 GIF/cap errors map to translated notices and no download', () => {
   assert.match(clientSource, /t\('export\.gifTiming', \{[\s\S]{0,180}playbackSeconds/)
   assert.match(clientSource, /code === 'frame-timeout'[\s\S]{0,180}t\('export\.timeout', \{ index: job\.expectedIndex \}\)/)
   assert.match(clientSource, /t\('export\.encodeFailed', \{/)
-  assert.match(clientSource, /code === 'fallback'[\s\S]{0,360}t\('export\.fallback'\)/)
+  assert.match(clientSource, /code === 'fallback'[\s\S]{0,700}setProtocolNotice\(t\('export\.fallback'\)\)/)
+  assert.match(clientSource, /job\.film === true[\s\S]{0,120}studio\.film\.exportUnsupported/)
   assert.match(clientSource, /blob = format === 'gif' \? await encodeGifExport\(job\) : await encodeMp4Export\(job\)/)
 })

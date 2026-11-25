@@ -233,6 +233,16 @@ test('manual proposal bridge accepts wrapper and bare payloads', () => {
   assert.equal(plugin.__normalizeStudioProposal({ kind: 'manual', payload: { manual: manual([]) } }, null), null)
 })
 
+test('film export stays deterministic and taps only render safe-area guides', () => {
+  assert.match(clientSource, /film: true,\n\s+filmShots: shots/)
+  assert.match(clientSource, /if \(job\.film === true\) \{\n\s+await abortExportJob\(job, t\('studio\.film\.exportUnsupported'\)\)/)
+  assert.match(clientSource, /data-three-workbench-film-safe/)
+  assert.match(clientSource, /preserveAspectRatio: 'xMidYMid meet'/)
+  for (const key of ["'studio.film.safeArea'", "'studio.film.safeAreaHint'", "'studio.film.exportUnsupported'"]) {
+    assert.ok((clientSource.match(new RegExp(key, 'g')) || []).length >= 2, key)
+  }
+})
+
 test('Manual and Film panels are wired with bilingual copy', () => {
   assert.match(clientSource, /data-three-workbench-drawer': 'manual'/)
   assert.match(clientSource, /data-three-workbench-drawer': 'film'/)
