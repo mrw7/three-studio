@@ -8837,6 +8837,7 @@ const SHARE_SHELL_HTML = `<!doctype html>
     bar.hidden = false
     status.textContent = UNAVAILABLE
     manualEl.hidden = true
+    postCommand({ command: 'anchor-watch', lines: [] })
     frame.removeAttribute('srcdoc')
   }
   const injectMeta = text => {
@@ -8982,12 +8983,43 @@ const SHARE_SHELL_HTML = `<!doctype html>
     postCommand({ command: 'select', uids: [uid], primary: uid })
     postCommand({ command: 'focus', uid })
   }
+  // Leader lines are drawn by the sandboxed runtime, not the shell: the shell
+  // only posts geometry one way, so it never accepts messages from the scene.
+  const syncLeaderLines = () => {
+    if (manualData === null || manualEl.hidden) {
+      postCommand({ command: 'anchor-watch', lines: [] })
+      return
+    }
+    const step = manualData.steps[stepIndex]
+    if (step === undefined || step === null) {
+      postCommand({ command: 'anchor-watch', lines: [] })
+      return
+    }
+    const frameRect = frame.getBoundingClientRect()
+    if (frameRect.width <= 0 || frameRect.height <= 0) return
+    const lines = []
+    for (const row of hotspotsListEl.querySelectorAll('li[data-hotspot-uid]')) {
+      const uid = row.getAttribute('data-hotspot-uid')
+      if (typeof uid !== 'string' || uid === '') continue
+      const rect = row.getBoundingClientRect()
+      lines.push({
+        uid,
+        x: Math.min(1, Math.max(0, (rect.left - frameRect.left) / frameRect.width)),
+        y: Math.min(1, Math.max(0, (rect.top + rect.height / 2 - frameRect.top) / frameRect.height)),
+      })
+      if (lines.length >= 24) break
+    }
+    postCommand({ command: 'anchor-watch', lines })
+  }
+  window.addEventListener('resize', syncLeaderLines)
+  manualEl.addEventListener('scroll', syncLeaderLines)
   const renderHotspots = (step, labels) => {
     hotspotsLabelEl.textContent = labels.hotspots
     hotspotsLabelEl.hidden = step.hotspots.length === 0
     hotspotsListEl.textContent = ''
     for (const hotspot of step.hotspots) {
       const item = document.createElement('li')
+      item.setAttribute('data-hotspot-uid', hotspot.uid)
       item.textContent = hotspot.label + ' '
       const button = document.createElement('button')
       button.type = 'button'
@@ -9148,6 +9180,7 @@ const SHARE_SHELL_HTML = `<!doctype html>
         postCommand({ command: 'select', uids: [step.highlight], primary: step.highlight })
       }
       if (step.time > 0) postCommand({ command: 'timeline', action: 'seek', time: step.time })
+      syncLeaderLines()
     }
     previousHidden = step.hidden.slice()
   }

@@ -151,9 +151,9 @@
   bounded manual steps and film settings, a Manual rail panel, a Film dock
   panel with ordered shots, eased start→end camera keys, safe-area guides, SRT
   captions, local music muxing (Opus or video-only fallback), BOM CSV
-  import/export, and 1080p 16:9/9:16/1:1/4:5 deterministic MP4 export that
-  fails visibly instead of falling back to realtime WebM, an AI manual
-  proposal, and a
+  import/export, projected hotspot leader lines in the share viewer, and 1080p
+  16:9/9:16/1:1/4:5 deterministic MP4 export that fails visibly instead of
+  falling back to realtime WebM, an AI manual proposal, and a
   read-only manual sidebar in share links with hotspots/BOM, print-to-PDF and
   a local QR code. The local core keeps the full authoring/share/export loop;
   hosted collaboration, analytics, translations, 4K and batch rendering remain

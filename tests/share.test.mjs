@@ -1551,3 +1551,20 @@ test('share shell renders manual BOM/hotspots, print-to-PDF and a local QR', () 
   assert.match(shell, /sandbox="allow-scripts allow-pointer-lock allow-downloads"/)
   assert.ok(!shell.includes('allow-same-origin'))
 })
+
+test('share shell projects watched hotspot anchors into runtime-drawn leader lines', () => {
+  const shell = host.shellHtml
+  assert.match(shell, /data-hotspot-uid/)
+  assert.match(shell, /command: 'anchor-watch'/)
+  assert.match(shell, /syncLeaderLines/)
+  assert.match(shell, /window\.addEventListener\('resize', syncLeaderLines\)/)
+  // The shell keeps its one-way contract: it never listens to scene messages.
+  assert.ok(!shell.includes("addEventListener('message'"))
+  // The sandboxed runtime projects the watched UIDs and draws the lines.
+  assert.match(clientSource, /data\.command === 'anchor-watch'/)
+  assert.match(clientSource, /data-three-workbench-anchor-leaders/)
+  assert.match(clientSource, /createElementNS\(ANCHOR_LEADER_NS, 'line'\)/)
+  assert.match(clientSource, /createElementNS\(ANCHOR_LEADER_NS, 'circle'\)/)
+  assert.match(clientSource, /anchorLines = lines/)
+  assert.match(clientSource, /lines\.length >= 24/)
+})

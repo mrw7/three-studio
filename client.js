@@ -12001,41 +12001,114 @@ try {
   // cheap to send and let the host overlay stay correct at any stage size.
   let anchorLastStamp = 0
   let anchorLast = { uid: null, x: 0, y: 0, visible: false }
+  let anchorWatch = []
+  let anchorPointsLast = ''
+  let anchorLines = []
+  let anchorLeaderSvg = null
+  const ANCHOR_LEADER_NS = 'http://www.w3.org/2000/svg'
+  const ensureAnchorLeaderSvg = () => {
+    if (anchorLeaderSvg !== null) return anchorLeaderSvg
+    const svg = document.createElementNS(ANCHOR_LEADER_NS, 'svg')
+    svg.setAttribute('data-three-workbench-anchor-leaders', '')
+    svg.style.position = 'fixed'
+    svg.style.inset = '0'
+    svg.style.width = '100%'
+    svg.style.height = '100%'
+    svg.style.pointerEvents = 'none'
+    svg.style.zIndex = '5'
+    document.body.appendChild(svg)
+    anchorLeaderSvg = svg
+    return svg
+  }
+  const drawAnchorLeaders = points => {
+    const svg = ensureAnchorLeaderSvg()
+    svg.textContent = ''
+    if (anchorLines.length === 0) return
+    const width = window.innerWidth || 1
+    const height = window.innerHeight || 1
+    const projected = new Map()
+    for (const point of points) projected.set(point.uid, point)
+    for (const line of anchorLines) {
+      const point = projected.get(line.uid)
+      if (point === undefined || point.visible !== true) continue
+      const x1 = line.x * width
+      const y1 = line.y * height
+      const x2 = point.x * width
+      const y2 = point.y * height
+      const segment = document.createElementNS(ANCHOR_LEADER_NS, 'line')
+      segment.setAttribute('x1', String(x1))
+      segment.setAttribute('y1', String(y1))
+      segment.setAttribute('x2', String(x2))
+      segment.setAttribute('y2', String(y2))
+      segment.setAttribute('stroke', 'rgba(110,150,255,.7)')
+      segment.setAttribute('stroke-width', '1.5')
+      segment.setAttribute('stroke-dasharray', '5 4')
+      svg.appendChild(segment)
+      const ring = document.createElementNS(ANCHOR_LEADER_NS, 'circle')
+      ring.setAttribute('cx', String(x2))
+      ring.setAttribute('cy', String(y2))
+      ring.setAttribute('r', '10')
+      ring.setAttribute('fill', 'none')
+      ring.setAttribute('stroke', 'rgba(110,150,255,.35)')
+      ring.setAttribute('stroke-width', '1')
+      svg.appendChild(ring)
+      const dot = document.createElementNS(ANCHOR_LEADER_NS, 'circle')
+      dot.setAttribute('cx', String(x2))
+      dot.setAttribute('cy', String(y2))
+      dot.setAttribute('r', '4.5')
+      dot.setAttribute('fill', 'rgba(110,150,255,.95)')
+      dot.setAttribute('stroke', 'rgba(255,255,255,.85)')
+      dot.setAttribute('stroke-width', '1.5')
+      svg.appendChild(dot)
+    }
+  }
+  const projectAnchor = uid => {
+    const object = uid === null || uid === undefined ? undefined : uidObjects.get(uid)
+    if (object === undefined || object === null || object.visible === false) return null
+    const box = new THREE.Box3().setFromObject(object)
+    if (box.isEmpty()) return null
+    const point = new THREE.Vector3(
+      (box.min.x + box.max.x) / 2,
+      box.max.y,
+      (box.min.z + box.max.z) / 2,
+    )
+    point.project(activeCamera())
+    return {
+      uid,
+      x: Math.round((point.x + 1) / 2 * 1e4) / 1e4,
+      y: Math.round((1 - point.y) / 2 * 1e4) / 1e4,
+      visible: point.z > -1 && point.z < 1
+        && Math.abs(point.x) <= 1.1 && Math.abs(point.y) <= 1.1,
+    }
+  }
   const reportAnchor = stamp => {
     if (stamp - anchorLastStamp < 120) return
     anchorLastStamp = stamp
     const uid = selectedUids.size === 1 ? primarySelectedUid : null
-    const object = uid === null ? undefined : uidObjects.get(uid)
-    let next = { uid: null, x: 0, y: 0, visible: false }
-    if (object !== undefined && object !== null && object.visible !== false) {
-      const box = new THREE.Box3().setFromObject(object)
-      if (!box.isEmpty()) {
-        const point = new THREE.Vector3(
-          (box.min.x + box.max.x) / 2,
-          box.max.y,
-          (box.min.z + box.max.z) / 2,
-        )
-        point.project(activeCamera())
-        const visible = point.z > -1 && point.z < 1
-          && Math.abs(point.x) <= 1.1 && Math.abs(point.y) <= 1.1
-        next = {
-          uid,
-          x: Math.round((point.x + 1) / 2 * 1e4) / 1e4,
-          y: Math.round((1 - point.y) / 2 * 1e4) / 1e4,
-          visible,
-        }
-      }
+    const projected = projectAnchor(uid)
+    const next = projected === null
+      ? { uid: null, x: 0, y: 0, visible: false }
+      : { uid, x: projected.x, y: projected.y, visible: projected.visible }
+    const points = []
+    for (const watched of anchorWatch) {
+      const point = projectAnchor(watched)
+      if (point !== null) points.push(point)
     }
+    drawAnchorLeaders(points)
+    const signature = JSON.stringify(points)
     const changed = next.uid !== anchorLast.uid || next.visible !== anchorLast.visible
       || Math.abs(next.x - anchorLast.x) > 0.002 || Math.abs(next.y - anchorLast.y) > 0.002
+      || signature !== anchorPointsLast
     if (!changed) return
     anchorLast = next
+    anchorPointsLast = signature
     send({
       type: 'three-workbench:anchor',
       uid: next.uid,
       x: next.x,
       y: next.y,
       visible: next.visible,
+      points,
     })
   }
 
@@ -13635,6 +13708,36 @@ try {
           message: String(error && error.message ? error.message : error),
         })
       }
+    }
+    if (data.command === 'anchor-watch') {
+      const lines = []
+      if (Array.isArray(data.lines)) {
+        for (const entry of data.lines) {
+          if (entry === null || typeof entry !== 'object') continue
+          if (typeof entry.uid !== 'string' || entry.uid === '') continue
+          const x = Number(entry.x)
+          const y = Number(entry.y)
+          if (!Number.isFinite(x) || !Number.isFinite(y)) continue
+          lines.push({
+            uid: entry.uid,
+            x: Math.min(1, Math.max(0, x)),
+            y: Math.min(1, Math.max(0, y)),
+          })
+          if (lines.length >= 24) break
+        }
+      }
+      anchorLines = lines
+      const watched = []
+      const source = lines.length > 0 ? lines.map(line => line.uid)
+        : (Array.isArray(data.uids) ? data.uids : [])
+      for (const uid of source) {
+        if (typeof uid === 'string' && uid !== '' && !watched.includes(uid)) watched.push(uid)
+        if (watched.length >= 24) break
+      }
+      anchorWatch = watched
+      anchorLastStamp = 0
+      anchorPointsLast = ''
+      if (anchorLeaderSvg !== null) anchorLeaderSvg.textContent = ''
     }
     if (data.command === 'pause') { timeline.playing = false; sendTimeline() }
     if (data.command === 'play') { timeline.playing = true; timeline.last = performance.now(); sendTimeline() }

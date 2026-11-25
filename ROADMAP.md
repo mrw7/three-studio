@@ -75,8 +75,8 @@ services may be developed separately; the core must stay useful without them.
 - [x] Read-only manual sidebar in share links via `/share/<id>/presentation`.
 - [x] Ordered film shots with eased start→end camera keys, hard cuts, SRT
   sidecar and local music with Opus mux or a video-only fallback.
-- [x] Manual hotspots (sidebar Focus) and a parts/BOM table; share print-to-PDF
-  and a local QR code.
+- [x] Manual hotspots (sidebar Focus), projected hotspot leader lines in the
+  share viewer, and a parts/BOM table; share print-to-PDF and a local QR code.
 - [x] BOM CSV import/export for the parts list.
 - [x] Film safe-area guides and an explicit film-export failure instead of a
   realtime WebM fallback.

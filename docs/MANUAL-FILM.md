@@ -14,8 +14,9 @@ Open **Manual** from the left rail.
 - Edit the step title and body, re-apply the current camera, highlight the
   selection, reorder or delete steps, and play the sequence.
 - **Hotspots** add a named anchor to the selected object per step. The share
-  viewer lists them with a Focus action; projected 3D leader lines are not
-  implemented yet.
+  viewer lists them with a Focus action and draws a projected leader line from
+  each list row to the object while the scene runtime reports its screen
+  position. The editor lists hotspots without projected lines.
 - **Parts / BOM** stores part number, name, quantity and an optional object
   UID at the manual level. The share viewer and print view list the BOM.
   **Import CSV** appends rows from a `number,name,qty` table (English or
@@ -104,8 +105,9 @@ PDF" in the print dialog. The QR is generated locally from the vendored MIT
   file with a notice.
 - PDF is browser print-to-PDF; the open core does not bundle a PDF library.
 - The manual viewer uses text only for user content (`textContent`, never
-  markup). Hotspots are a sidebar list with Focus, not projected 3D leader
-  lines.
+  markup). Hotspots are a sidebar list with Focus; the sandboxed scene runtime
+  draws the projected leader lines, and the share shell still never listens to
+  scene messages.
 - No analytics in the open core.
 
 ## Open core and Pro
