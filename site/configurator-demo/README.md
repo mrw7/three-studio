@@ -16,7 +16,11 @@ Shared vendored Three.js r186 + `OrbitControls` + `GLTFExporter` live in
 
 ## What it demonstrates
 
-- Procedural desk lamp: no external models or textures
+- Desk lamp built from lathe-turned profiles: chamfered cast base, turned
+  collar, knurled band, machined shoulder, pivot pin, tapered arm with a
+  counterweight and a frosted diffuser — no external models or textures
+- Shades are an open metal cone plus a separate matte inner cone 30 mm apart,
+  which is what stops a double-sided reflective shell from mirroring itself
 - Four finishes, two shade shapes, three light temperatures
 - Real-time price update and configuration JSON
 - GLB download through the real three.js `GLTFExporter`

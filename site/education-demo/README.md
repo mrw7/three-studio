@@ -16,6 +16,9 @@ Shared vendored Three.js r186 + `OrbitControls` live in `site/runtime/`.
 ## What it demonstrates
 
 - Four guided steps: stage → sun → orbits → moon
+- Step 01 shows the scaffolding the first lesson actually creates — a camera
+  frustum gizmo, the two light-rig markers and the origin axes over the ground
+  grid — instead of an empty frame
 - Live scene that changes with each step
 - Matching code snippet and teaching tip per step
 - Copy-code action, progress bar, play/pause and responsive layout

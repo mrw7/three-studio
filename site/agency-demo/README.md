@@ -20,6 +20,8 @@ r186 module and its MIT license.
 - A sticky real-time WebGL scene behind long-form marketing copy
 - Scroll-driven camera path with smooth interpolation and mouse parallax
 - Four live material variants (Azure / Graphite / Champagne / Ember)
+- A split hero: the camera slides right of centre while the headline holds the
+  left column, then recentres itself once the first chapter panel takes over
 - Responsive panels for desktop and mobile
 - Reduced-motion handling, loading state and a scroll progress bar
 - All geometry and textures are procedural; no external assets/models
