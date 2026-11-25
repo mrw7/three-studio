@@ -73,6 +73,10 @@ Open **Film** in the bottom dock.
 - A film export never falls back to the realtime WebM recorder: when no
   deterministic MP4 encoder is available the export cancels with a notice, so
   the file always matches the shot plan.
+- **Export all aspects** runs 16:9, 9:16, 1:1 and 4:5 sequentially with the
+  same shots, captions and music. Each file carries its aspect suffix; a failed
+  or cancelled variant stops the batch and the notice reports how many files
+  completed.
 
 Each shot interpolates from its start camera to its end camera with a smooth
 ease; cuts between shots are hard. Arbitrary multi-key camera curves, fades and
@@ -99,7 +103,8 @@ PDF" in the print dialog. The QR is generated locally from the vendored MIT
 - Film export requires a deterministic MP4 encoder; it cancels with a notice
   instead of falling back to realtime WebM.
 - Camera paths are one eased start→end pose per shot with hard cuts. There are
-  no arbitrary multi-key curves, fades, 4K, batch variants or cloud rendering.
+  no arbitrary multi-key curves, fades, 4K or cloud rendering; local batch
+  export covers the four aspects and runs one deterministic job at a time.
 - SRT and Opus audio muxing are best-effort browser features. Safari playback
   of Opus-in-MP4 is limited; unsupported audio encoders produce a video-only
   file with a notice.
@@ -117,8 +122,8 @@ the share viewer, 1080p deterministic export, and the AI manual proposal.
 
 Hosted manual publishing, comments/review/approvals, team permissions, SSO,
 audit logs, hosted analytics, translation workflow, managed AI/TTS, stock
-music/SFX libraries, 4K/ProRes, cloud render queues, batch variants, brand kits
-and premium templates belong in separate Pro services or private repositories. The local core stays fully functional
+music/SFX libraries, 4K/ProRes, cloud/parallel batch rendering, brand kits and
+premium templates belong in separate Pro services or private repositories. The local core stays fully functional
 without a license, and basic 1080p export is not paywalled.
 
 See [`OPEN-CORE.md`](OPEN-CORE.md) for the boundary and

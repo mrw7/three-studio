@@ -243,6 +243,18 @@ test('film export stays deterministic and taps only render safe-area guides', ()
   }
 })
 
+test('film batch export runs every aspect sequentially', () => {
+  assert.match(clientSource, /const studioExportFilmBatch = async settings => \{/)
+  assert.match(clientSource, /for \(const aspect of PRESENTATION_ASPECTS\) \{/)
+  assert.match(clientSource, /await studioExportFilmVariant\(settings, aspect\)/)
+  assert.match(clientSource, /exportCompletedRef\.current > before/)
+  assert.match(clientSource, /onExportAll: studioExportFilmBatch/)
+  assert.match(clientSource, /studioFilmBatchRef\.current = true/)
+  for (const key of ["'studio.film.exportAll'", "'studio.film.exportAllProgress'", "'studio.film.exportAllDone'", "'studio.film.exportAllPartial'"]) {
+    assert.ok((clientSource.match(new RegExp(key, 'g')) || []).length >= 2, key)
+  }
+})
+
 test('Manual and Film panels are wired with bilingual copy', () => {
   assert.match(clientSource, /data-three-workbench-drawer': 'manual'/)
   assert.match(clientSource, /data-three-workbench-drawer': 'film'/)

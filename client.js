@@ -494,6 +494,10 @@ window.__ModuleLoader__.load({
       'studio.film.fps': '帧率',
       'studio.film.resolution': '分辨率',
       'studio.film.export': '导出 1080p MP4',
+      'studio.film.exportAll': '导出全部画幅',
+      'studio.film.exportAllProgress': '批量导出：已完成 {n}/{total} 个画幅…',
+      'studio.film.exportAllDone': '批量导出完成：{n} 个画幅。',
+      'studio.film.exportAllPartial': '批量导出部分完成：已导出 {n} 个画幅，其余未导出。',
       'studio.film.exportHint': '最长 60 秒 · 确定性逐帧',
       'studio.film.shots': '{n} 个镜头',
       'studio.film.settings': '影片设置',
@@ -1528,6 +1532,10 @@ window.__ModuleLoader__.load({
       'studio.film.fps': 'FPS',
       'studio.film.resolution': 'Resolution',
       'studio.film.export': 'Export 1080p MP4',
+      'studio.film.exportAll': 'Export all aspects',
+      'studio.film.exportAllProgress': 'Batch export: {n}/{total} aspects done…',
+      'studio.film.exportAllDone': 'Batch export finished: {n} aspects.',
+      'studio.film.exportAllPartial': 'Batch export stopped after {n} aspects.',
       'studio.film.exportHint': 'Up to 60s · deterministic frames',
       'studio.film.shots': '{n} shots',
       'studio.film.settings': 'Film settings',
@@ -20779,6 +20787,8 @@ THE SOFTWARE.
       },
       h('span', { style: { flex: 1, fontSize: 8.5, color: STUDIO_MUTED } },
         shots.length === 0 ? t('studio.film.noShots') : t('studio.film.sequenceHint', { n: shots.length })),
+      chip(t('studio.film.exportAll'), () => props.onExportAll(Object.assign({}, film, { captions: parseSrt(srtDraft) })),
+        { disabled: exporting || duration <= 0 }),
       chip(exporting ? t('studio.film.exporting') : t('studio.film.export'), () => props.onExport(Object.assign({}, film, { captions: parseSrt(srtDraft) })),
         { accent: true, disabled: exporting || duration <= 0 }))
       return h('div', {
@@ -22294,7 +22304,9 @@ THE SOFTWARE.
       const studioManualHiddenRef = React.useRef([])
       const [studioFilmSelected, setStudioFilmSelected] = React.useState(null)
       const [studioFilmPlaying, setStudioFilmPlaying] = React.useState(false)
+      const [studioFilmBatch, setStudioFilmBatch] = React.useState(false)
       const studioFilmPlayingRef = React.useRef(false)
+      const studioFilmBatchRef = React.useRef(false)
       const studioFilmTimerRef = React.useRef(null)
       const [studioFilmMusicUrl, setStudioFilmMusicUrl] = React.useState(null)
       const studioFilmMusicUrlRef = React.useRef(null)
@@ -23638,6 +23650,7 @@ THE SOFTWARE.
       // frame index the parent expects next.
       const exportRef = React.useRef(null)
       const exportSeqRef = React.useRef(0)
+      const exportCompletedRef = React.useRef(0)
       const frameWaitersRef = React.useRef(new Map())
       const captureAckWaitersRef = React.useRef(new Map())
       const recordingRef = React.useRef(false)
@@ -25564,6 +25577,7 @@ THE SOFTWARE.
             exportSrtFilename(job.revision, job.plan.fps, job.plan.width, job.plan.height),
           )
         }
+        exportCompletedRef.current += 1
         setProtocolNotice(job.audioSkipped === true
           ? t('export.success', {
             format: format === 'gif' ? 'GIF' : 'MP4',
@@ -28525,18 +28539,58 @@ THE SOFTWARE.
           record === null ? 0 : record.revision, plan.fps, plan.width, plan.height,
         ))
       }
-      const studioExportFilm = settings => {
-        const size = PRESENTATION_ASPECT_SIZES[settings.aspect] === undefined
-          ? PRESENTATION_ASPECT_SIZES['16:9'] : PRESENTATION_ASPECT_SIZES[settings.aspect]
+      const studioExportFilmVariant = async (settings, aspect) => {
+        const size = PRESENTATION_ASPECT_SIZES[aspect] === undefined
+          ? PRESENTATION_ASPECT_SIZES['16:9'] : PRESENTATION_ASPECT_SIZES[aspect]
         const shots = studioFilmShots()
         const duration = shots.length > 0 ? filmShotsDuration(shots) : timelineRef.current.duration
         const captions = Array.isArray(settings.captions) ? settings.captions : []
-        studioUpdateFilm({ aspect: settings.aspect, fps: settings.fps, captions })
-        void startExport('mp4', {
+        const before = exportCompletedRef.current
+        await startExport('mp4', {
           width: size[0], height: size[1], fps: settings.fps, duration, film: true,
           filmShots: shots, music: settings.music || null,
           srt: captionsToSrt(captions),
         })
+        return exportCompletedRef.current > before
+      }
+      const studioExportFilm = settings => {
+        const captions = Array.isArray(settings.captions) ? settings.captions : []
+        studioUpdateFilm({ aspect: settings.aspect, fps: settings.fps, captions })
+        void studioExportFilmVariant(settings, settings.aspect)
+      }
+      const studioExportFilmBatch = async settings => {
+        if (studioFilmBatchRef.current) return
+        if (exportRef.current !== null) {
+          setProtocolNotice(t('export.busy'))
+          return
+        }
+        const captions = Array.isArray(settings.captions) ? settings.captions : []
+        studioFilmBatchRef.current = true
+        setStudioFilmBatch(true)
+        studioUpdateFilm({
+          aspect: settings.aspect, fps: settings.fps, captions,
+        })
+        let done = 0
+        try {
+          for (const aspect of PRESENTATION_ASPECTS) {
+            if (done > 0) {
+              setProtocolNotice(t('studio.film.exportAllProgress', {
+                n: done, total: PRESENTATION_ASPECTS.length,
+              }))
+            }
+            const ok = await studioExportFilmVariant(settings, aspect)
+            if (!ok) break
+            done += 1
+          }
+        } finally {
+          studioFilmBatchRef.current = false
+          setStudioFilmBatch(false)
+        }
+        if (done === PRESENTATION_ASPECTS.length) {
+          setProtocolNotice(t('studio.film.exportAllDone', { n: done }))
+        } else if (done > 0) {
+          setProtocolNotice(t('studio.film.exportAllPartial', { n: done }))
+        }
       }
       const studioAttachFilmMusic = async file => {
         if (file === null || file === undefined || typeof file.arrayBuffer !== 'function') return
@@ -32570,8 +32624,8 @@ THE SOFTWARE.
             film: filmSettings,
             selectedId: studioFilmSelectedId,
             playing: studioFilmPlaying,
-            disabled: viewingHistory || exportJob !== null,
-            exporting: exportJob !== null,
+            disabled: viewingHistory || exportJob !== null || studioFilmBatch,
+            exporting: exportJob !== null || studioFilmBatch,
             timelineDuration: timeline.duration,
             musicUrl: studioFilmMusicUrl,
             onUpdate: studioUpdateFilm,
@@ -32585,6 +32639,7 @@ THE SOFTWARE.
             onSetStart: studioSetFilmStart,
             onSetEnd: studioSetFilmEnd,
             onExport: studioExportFilm,
+            onExportAll: studioExportFilmBatch,
             onDownloadSrt: studioDownloadSrt,
             onAttachMusic: studioAttachFilmMusic,
             onRemoveMusic: studioRemoveFilmMusic,

@@ -80,8 +80,9 @@ services may be developed separately; the core must stay useful without them.
 - [x] BOM CSV import/export for the parts list.
 - [x] Film safe-area guides and an explicit film-export failure instead of a
   realtime WebM fallback.
+- [x] Sequential local batch export of all four aspects.
 - [ ] Fades, burned-in captions and per-aspect reframing.
-- [ ] Sequential batch variants and a local render worker (audio, 1080p60).
+- [ ] Local render worker for audio and 1080p60.
 - [ ] 4K, hosted publishing/analytics/SSO/translations (Pro/private).
 
 ## Later / separate services
