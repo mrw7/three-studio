@@ -494,7 +494,7 @@ window.__ModuleLoader__.load({
       'studio.film.aspect': '画幅',
       'studio.film.fps': '帧率',
       'studio.film.resolution': '分辨率',
-      'studio.film.export': '导出 1080p MP4',
+      'studio.film.export': '导出 MP4',
       'studio.film.exportAll': '导出全部画幅',
       'studio.film.exportAllProgress': '批量导出：已完成 {n}/{total} 个画幅…',
       'studio.film.exportAllDone': '批量导出完成：{n} 个画幅。',
@@ -1544,7 +1544,7 @@ window.__ModuleLoader__.load({
       'studio.film.aspect': 'Aspect',
       'studio.film.fps': 'FPS',
       'studio.film.resolution': 'Resolution',
-      'studio.film.export': 'Export 1080p MP4',
+      'studio.film.export': 'Export MP4',
       'studio.film.exportAll': 'Export all aspects',
       'studio.film.exportAllProgress': 'Batch export: {n}/{total} aspects done…',
       'studio.film.exportAllDone': 'Batch export finished: {n} aspects.',
@@ -3069,6 +3069,16 @@ self.onmessage = async event => {
       return plan.width * plan.height > EXPORT_HD_PIXELS
         ? EXPORT_4K_FRAME_TIMEOUT_MS
         : EXPORT_FRAME_TIMEOUT_MS
+    }
+
+    /**
+     * Worker acknowledgement budget. Software 4K encoders can legitimately
+     * need minutes per frame, so this is a hang detector, not a performance
+     * target: 1080p keeps 30 s, 4K gets 300 s.
+     */
+    function exportWorkerFrameTimeout(plan) {
+      if (plan === null || typeof plan !== 'object') return 30000
+      return plan.width * plan.height > EXPORT_HD_PIXELS ? 300000 : 30000
     }
 
     /**
@@ -20918,6 +20928,7 @@ THE SOFTWARE.
       const chip = (label, onClick, options = {}) => h('button', {
         type: 'button', className: 'twb-studio-chip', disabled: disabled || options.disabled === true,
         onClick,
+        ...(options.data === undefined ? {} : options.data),
         style: { height: 24, padding: '0 8px', borderRadius: 6,
           cursor: disabled || options.disabled === true ? 'not-allowed' : 'pointer', fontSize: 9,
           border: '1px solid ' + (options.accent === true ? STUDIO_ACCENT_LINE : STUDIO_LINE),
@@ -20925,8 +20936,9 @@ THE SOFTWARE.
           color: options.accent === true ? STUDIO_ACCENT : STUDIO_TEXT,
           opacity: disabled || options.disabled === true ? .4 : 1, whiteSpace: 'nowrap' },
       }, label)
-      const select = (value, options, onChange) => h('select', {
+      const select = (value, options, onChange, data) => h('select', {
         value, disabled, onChange: event => onChange(event.target.value),
+        ...(data === undefined ? {} : data),
         style: { height: 24, padding: '0 6px', borderRadius: 5, border: '1px solid ' + STUDIO_LINE,
           background: 'var(--twb-fill)', color: STUDIO_TEXT, fontSize: 9 },
       }, ...options.map(option => h('option', { key: option, value: option }, option)))
@@ -20947,18 +20959,26 @@ THE SOFTWARE.
         t('studio.film.title')),
       h('span', { style: { fontSize: 8.5, color: STUDIO_MUTED } }, t('studio.film.shots', { n: shots.length })),
       h('span', { style: { flex: 1 } }),
-      chip(t('studio.film.take'), props.onTake, { accent: true, disabled: shots.length >= 24 }),
+      chip(t('studio.film.take'), props.onTake, {
+        accent: true, disabled: shots.length >= 24,
+        data: { 'data-three-workbench-film-take': '' },
+      }),
       chip(props.playing === true ? t('studio.film.stop') : t('studio.film.play'), props.onPlay,
         { accent: props.playing === true, disabled: shots.length === 0 }))
       const settingsRow = h('div', {
         style: { flex: '0 0 auto', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 6,
           padding: '6px 8px', borderBottom: '1px solid ' + STUDIO_LINE, fontSize: 8.5, color: STUDIO_MUTED },
       },
-      h('span', null, t('studio.film.aspect')), select(film.aspect, PRESENTATION_ASPECTS, value => update({ aspect: value })),
-      h('span', null, t('studio.film.fps')), select(String(film.fps), PRESENTATION_FPS.map(String), value => update({ fps: Number(value) })),
+      h('span', null, t('studio.film.aspect')),
+      select(film.aspect, PRESENTATION_ASPECTS, value => update({ aspect: value }),
+        { 'data-three-workbench-film-aspect': '' }),
+      h('span', null, t('studio.film.fps')),
+      select(String(film.fps), PRESENTATION_FPS.map(String), value => update({ fps: Number(value) }),
+        { 'data-three-workbench-film-fps': '' }),
       h('span', null, t('studio.film.resolution')),
       select(film.resolution === '4k' ? '4K' : '1080p', ['1080p', '4K'],
-        value => update({ resolution: value === '4K' ? '4k' : '1080p' })),
+        value => update({ resolution: value === '4K' ? '4k' : '1080p' }),
+        { 'data-three-workbench-film-resolution': '' }),
       h('span', null, t('studio.film.duration') + ' ' + duration.toFixed(1) + 's'),
       h('span', { style: { flex: 1 } }),
       h('span', null, t('studio.film.exportHint')))
@@ -21064,9 +21084,9 @@ THE SOFTWARE.
       h('span', { style: { flex: 1, fontSize: 8.5, color: STUDIO_MUTED } },
         shots.length === 0 ? t('studio.film.noShots') : t('studio.film.sequenceHint', { n: shots.length })),
       chip(t('studio.film.exportAll'), () => props.onExportAll(Object.assign({}, film, { captions: parseSrt(srtDraft) })),
-        { disabled: exporting || duration <= 0 }),
+        { disabled: exporting || duration <= 0, data: { 'data-three-workbench-film-export-all': '' } }),
       chip(exporting ? t('studio.film.exporting') : t('studio.film.export'), () => props.onExport(Object.assign({}, film, { captions: parseSrt(srtDraft) })),
-        { accent: true, disabled: exporting || duration <= 0 }))
+        { accent: true, disabled: exporting || duration <= 0, data: { 'data-three-workbench-film-export': '' } }))
       return h('div', {
         'data-three-workbench-drawer': 'film',
         style: { flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', color: STUDIO_TEXT, overflow: 'hidden' },
@@ -25832,22 +25852,38 @@ THE SOFTWARE.
           await captureExportFrames(job, async (pixels, index) => {
             if (fatal !== null) throw fatal
             if (job.cancelled === true) throw exportCancelledError()
-            const buffer = pixels.buffer
+            // captureExportFrame already resolves a transferred ArrayBuffer
+            // (the in-line path hands it straight to VideoFrame), so an
+            // unconditional `.buffer` would transfer `undefined` here.
+            const buffer = pixels instanceof ArrayBuffer ? pixels : pixels.buffer
             const ack = new Promise((resolve, reject) => {
               const timer = setTimeout(() => {
                 frameWaiters.delete(index)
                 reject(exportFailure('worker-frame-timeout', 'export worker frame timed out'))
-              }, 30000)
+              }, exportWorkerFrameTimeout(job.plan))
               frameWaiters.set(index, { resolve, reject, timer })
             })
-            worker.postMessage({
-              type: 'frame',
-              index,
-              buffer,
-              timestampUs: exportFrameTimestamp(index, job.plan.fps),
-              durationUs: job.plan.frameDurationUs,
-              keyFrame: index % Math.max(1, Math.round(job.plan.fps)) === 0,
-            }, [buffer])
+            try {
+              worker.postMessage({
+                type: 'frame',
+                index,
+                buffer,
+                timestampUs: exportFrameTimestamp(index, job.plan.fps),
+                durationUs: job.plan.frameDurationUs,
+                keyFrame: index % Math.max(1, Math.round(job.plan.fps)) === 0,
+              }, [buffer])
+            } catch (postError) {
+              // A rejected post leaves the ack promise unawaited; settle and
+              // drop it here so it can never surface as an unhandled rejection.
+              const waiter = frameWaiters.get(index)
+              if (waiter !== undefined) {
+                clearTimeout(waiter.timer)
+                frameWaiters.delete(index)
+              }
+              void ack.catch(() => {})
+              void postError
+              throw exportFailure('worker-frame', 'could not hand the frame to the encode worker')
+            }
             await ack
           })
           if (job.cancelled === true || job.finished === true) throw exportCancelledError()
@@ -34756,6 +34792,7 @@ THE SOFTWARE.
       __exportMime: exportMime,
       __exportBitrate: exportBitrate,
       __exportFrameTimeout: exportFrameTimeout,
+      __exportWorkerFrameTimeout: exportWorkerFrameTimeout,
       __exportCodecCandidates: exportCodecCandidates,
       __selectMp4Codec: selectMp4Codec,
       __EXPORT_WORKER_SOURCE: EXPORT_WORKER_SOURCE,

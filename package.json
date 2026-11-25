@@ -28,6 +28,7 @@
     "test:e2e": "node tests/e2e/run.mjs",
     "test:e2e:standalone": "node tests/e2e/standalone.mjs",
     "test:e2e:exports": "node tests/e2e/exports.mjs",
+    "test:e2e:film-4k": "node tests/e2e/film-4k.mjs",
     "test:e2e:plugins": "node tests/e2e/plugins.mjs"
   },
   "exports": {

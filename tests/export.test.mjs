@@ -426,12 +426,18 @@ test('P2-2 GIF/cap errors map to translated notices and no download', () => {
 test('4K export uses a longer frame timeout and a local encode worker', () => {
   assert.equal(plugin.__exportFrameTimeout(plugin.__exportPlan(5, 30, { width: 1920, height: 1080 })), 5000)
   assert.equal(plugin.__exportFrameTimeout(plugin.__exportPlan(5, 30, { width: 3840, height: 2160 })), 12000)
+  // Worker acks are a hang detector: software 4K encoders are much slower.
+  assert.equal(plugin.__exportWorkerFrameTimeout(plugin.__exportPlan(5, 30, { width: 1920, height: 1080 })), 30000)
+  assert.equal(plugin.__exportWorkerFrameTimeout(plugin.__exportPlan(5, 30, { width: 3840, height: 2160 })), 300000)
   assert.match(plugin.__EXPORT_WORKER_SOURCE, /new VideoEncoder/)
   assert.match(plugin.__EXPORT_WORKER_SOURCE, /new VideoFrame/)
   assert.match(plugin.__EXPORT_WORKER_SOURCE, /import\(data\.muxerUrl\)/)
   assert.match(plugin.__EXPORT_WORKER_SOURCE, /type: 'frame-done'/)
   assert.doesNotMatch(plugin.__EXPORT_WORKER_SOURCE, /fetch\(|XMLHttpRequest|WebSocket|sendBeacon/)
   assert.match(clientSource, /encodeMp4ExportInWorker/)
+  // The capture path resolves an ArrayBuffer, not a Uint8Array view; a plain
+  // `.buffer` would transfer `undefined` and break the worker handoff.
+  assert.match(clientSource, /const buffer = pixels instanceof ArrayBuffer \? pixels : pixels\.buffer/)
   assert.match(clientSource, /new Worker\(blobUrl, \{ type: 'module' \}\)/)
   assert.match(clientSource, /typeof Worker === 'function'/)
   assert.match(clientSource, /worker: null/)
