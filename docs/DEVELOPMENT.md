@@ -93,8 +93,14 @@ The documentation screenshots in `docs/screenshots/` were captured at
 1600×1000 from the standalone app. They show the seeded `examples/scene-watch.js`
 scene, the model settings view and the plugin market.
 
-Screenshots are committed as PNG (roughly 400–500 KiB each). Keep UI changes
-consistent with them, or replace them when a surface changes materially.
+`06`–`10` are demo frames rendered from the example scenes rather than app
+chrome: `06` is `examples/scene-engine.js` at the default camera, and `07`–`10`
+are frames pulled from `examples/scene-lamplighter.js` at the storyboard
+timestamps (8 s, 26.9 s, 39.6 s, 57.5 s).
+
+Screenshots are committed as PNG (roughly 400–500 KiB each; the demo frames are
+smaller because they are mostly flat night sky). Keep UI changes consistent with
+them, or replace them when a surface changes materially.
 
 ## Adding a UI surface
 

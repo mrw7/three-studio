@@ -86,6 +86,52 @@ Screenshots use the Chrono Watch example (`examples/scene-watch.js`). Use the
 **Sessions** tab to switch sessions and the header clock to browse revision
 history.
 
+## Demos
+
+Two complete, self-contained pieces ship in `examples/`. Both are plain scene
+scripts for the sandbox plus a product-content JSON document, so they run
+offline with no assets.
+
+### Turbofan manual
+
+A procedurally built high-bypass turbofan (inlet lip, 22-blade fan, nacelle
+with thrust-reverser grilles, five-stage compressor, annular combustor,
+three-stage turbine, nozzle, pylon) plus an eight-step interactive manual with a
+seven-part BOM, per-step cameras, hidden parts, highlights and hotspots.
+
+![Turbofan engine](docs/screenshots/06-demo-turbofan.png)
+
+```sh
+examples/scene-engine.js        # scene
+examples/turbofan-manual.json   # 8 steps, 7 BOM parts, hotspots
+```
+
+### The Lamplighter · 点灯人
+
+A 60-second, ten-shot short film. A small robot that lives on the bulb in its
+chest walks a foggy street, climbs a lamp post, falls, climbs again, and screws
+its own light into the socket — then goes dark so the whole street can glow.
+Ten hard cuts, a procedural gait, a mid-climb fall with camera shake, two
+dying flickers, a delayed street-light cascade and a title card.
+
+| Walk (shot 2) | The fall (shot 5) |
+| --- | --- |
+| ![Lamplighter walking](docs/screenshots/07-demo-lamplighter-walk.png) | ![Lamplighter falling](docs/screenshots/08-demo-lamplighter-fall.png) |
+
+| First light (shot 7) | Title (shot 10) |
+| --- | --- |
+| ![First lamp lit](docs/screenshots/09-demo-lamplighter-first-light.png) | ![Title card](docs/screenshots/10-demo-lamplighter-title.png) |
+
+```sh
+examples/scene-lamplighter.js   # scene, 10 hard-cut shots
+examples/lamplighter-film.json  # film settings + 10 SRT captions
+```
+
+Both are verified by `tests/examples.test.mjs`: the manual passes the host
+`workbench_proposal` validation, every UID it references exists in the scene,
+and the scene scripts stay inside the documented sandbox globals. See
+[`examples/README.md`](examples/README.md) for how each shot and step is built.
+
 ## Quick start
 
 Requirements: **Node.js 24+** and a modern browser. No package install is needed

@@ -222,3 +222,34 @@ test('example docs stay documented where users look for them', async () => {
   assert.match(clientSource, /__normalizePresentationManual/)
   assert.match(indexSource, /const PROPOSAL_MANUAL_STEPS_MAX/)
 })
+
+test('both READMEs showcase the demos with committed screenshots', async () => {
+  const rootReadme = await readFile(new URL('README.md', repoRoot), 'utf8')
+  const zhReadme = await readFile(new URL('README.zh.md', repoRoot), 'utf8')
+  const demoShots = [
+    'docs/screenshots/06-demo-turbofan.png',
+    'docs/screenshots/07-demo-lamplighter-walk.png',
+    'docs/screenshots/08-demo-lamplighter-fall.png',
+    'docs/screenshots/09-demo-lamplighter-first-light.png',
+    'docs/screenshots/10-demo-lamplighter-title.png',
+  ]
+  for (const readme of [rootReadme, zhReadme]) {
+    // Every screenshot the README embeds must exist in the repository.
+    const embedded = [...readme.matchAll(/!\[[^\]]*\]\((docs\/screenshots\/[^)]+)\)/g)].map(match => match[1])
+    assert.ok(embedded.length >= 10, 'README embeds the app screenshots plus the demo frames')
+    for (const path of embedded) {
+      const body = await readFile(new URL(path, repoRoot)).catch(() => null)
+      assert.ok(body !== null && body.length > 4096, 'screenshot exists and is non-trivial: ' + path)
+      assert.equal(body.subarray(1, 4).toString('latin1'), 'PNG', 'screenshot is a PNG: ' + path)
+    }
+    for (const shot of demoShots) {
+      assert.ok(embedded.includes(shot), 'README embeds ' + shot)
+    }
+    // The demos section names the scene scripts and the content documents.
+    for (const file of ['examples/scene-engine.js', 'examples/scene-lamplighter.js',
+      'examples/turbofan-manual.json', 'examples/lamplighter-film.json']) {
+      assert.ok(readme.includes(file), 'README points at ' + file)
+    }
+    assert.ok(readme.includes('examples/README.md'), 'README links the examples guide')
+  }
+})

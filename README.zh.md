@@ -62,6 +62,49 @@ Three.js demo：一分钟动画短片、agency 互动页、产品配置器、教
 截图使用 Chrono Watch 示例场景（`examples/scene-watch.js`）。通过 **会话** tab
 切换会话，通过顶部时钟回放版本历史。
 
+## Demo
+
+`examples/` 里有两件完整作品：沙箱场景脚本 + 产品内容 JSON，全部离线运行、
+不依赖任何外部资源。
+
+### 涡扇发动机说明书
+
+程序化建模的高涵道比涡扇（进气唇口、22 片风扇叶片、带反推格栅的短舱、五级
+压气机、环形燃烧室、三级涡轮、尾喷管、吊挂），配一份八步交互说明书：七项
+BOM 零件、每步独立机位、可隐藏部件、可高亮对象与热点。
+
+![涡扇发动机](docs/screenshots/06-demo-turbofan.png)
+
+```sh
+examples/scene-engine.js        # 场景
+examples/turbofan-manual.json   # 8 步、7 项 BOM、热点
+```
+
+### 《点灯人》The Lamplighter
+
+60 秒十镜短片：一个靠胸口灯泡活着的小机器人，在雾夜的街道上跋涉、爬灯柱、
+失手坠落、再爬上去，把自己胸口的灯拧进灯座——然后熄灭，让整条街亮起来。
+十次硬切、程序化步态、攀爬中段的坠落与镜头震动、两次将熄的闪烁、逐盏传递的
+街灯与最后的标题卡。
+
+| 涉水前行（第 2 镜） | 坠落（第 5 镜） |
+| --- | --- |
+| ![点灯人涉水](docs/screenshots/07-demo-lamplighter-walk.png) | ![点灯人坠落](docs/screenshots/08-demo-lamplighter-fall.png) |
+
+| 第一盏灯（第 7 镜） | 标题（第 10 镜） |
+| --- | --- |
+| ![第一盏灯亮](docs/screenshots/09-demo-lamplighter-first-light.png) | ![标题卡](docs/screenshots/10-demo-lamplighter-title.png) |
+
+```sh
+examples/scene-lamplighter.js   # 场景，10 个硬切镜头
+examples/lamplighter-film.json  # 影片设置 + 10 条 SRT 字幕
+```
+
+两者都由 `tests/examples.test.mjs` 校验：说明书能通过 Host 侧
+`workbench_proposal` 校验，引用的每个 UID 都存在于场景中，场景脚本只使用
+文档允许的沙箱全局。每个镜头的实现细节见
+[`examples/README.md`](examples/README.md)。
+
 ## 快速开始
 
 需要 **Node.js 24+** 和现代浏览器；独立版无需 `npm install`，React 与
