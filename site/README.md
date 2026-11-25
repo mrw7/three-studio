@@ -17,12 +17,17 @@ in `runtime/`.
 
 - [`one-minute-demo/`](one-minute-demo/README.md) — ONE MINUTE, a 60-second
   procedural film with a six-chapter timeline and playback controls
+- [`lamplighter-demo/`](lamplighter-demo/README.md) — THE LAMPLIGHTER 点灯人, a
+  60-second ten-shot film with hard cuts, a procedural character, SRT captions
+  and a deep-linkable player
 - [`agency-demo/`](agency-demo/README.md) — AUREL scroll-driven 3D product page
   for the agency/marketing offer
 - [`configurator-demo/`](configurator-demo/README.md) — LUMEN real-time product
   configurator with materials, light temperature, price rules and GLB export
 - [`education-demo/`](education-demo/README.md) — ORBIT LAB four-step solar
   system workshop with code snippets
+- [`engine-demo/`](engine-demo/README.md) — TURBOFAN eight-step digital manual
+  over a procedural turbofan, with a BOM, per-step cameras and hotspots
 - [`nebula-demo/`](nebula-demo/README.md) — 120K-particle galaxy with a custom
   GLSL shader, three palettes and live FPS
 - [`kinetic-demo/`](kinetic-demo/README.md) — animated torus-knot sculpture with
@@ -35,6 +40,21 @@ in `runtime/`.
   scroll/drag camera walkthrough
 
 All demos are procedural, responsive, and free of external fonts/CDNs/assets.
+
+## Generated demo sources
+
+`engine-demo/` and `lamplighter-demo/` are built from the sandbox scenes under
+`examples/`, so the gallery and the Studio never diverge:
+
+```sh
+node site/scripts/generate-demos.mjs
+```
+
+It writes `*/scene.js` (the example body wrapped with the globals the preview
+provides), `engine-demo/manual.js`, `lamplighter-demo/film.js` and leaves the
+hand-written `index.html`, `main.js`, `styles.css` and `README.md` alone. The
+`preview.png` frames are captured from the running pages; see each demo's README
+for the deep link used.
 
 English prices on the gallery are localized USD list prices, not a symbol-swapped
 copy of the CNY prices.

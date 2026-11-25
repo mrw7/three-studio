@@ -15,10 +15,10 @@ remains available as an optional legacy mode.
 
 [English](README.md) · [简体中文](README.zh.md)
 
-**Live demos:** <https://mrw7.github.io/three-studio/> — nine runnable Three.js
-demos: a one-minute procedural film, agency page, product configurator,
-education workshop, motion studies, audio/data visualizations and a spatial
-walkthrough.
+**Live demos:** <https://mrw7.github.io/three-studio/> — eleven runnable Three.js
+demos: two one-minute procedural films (ONE MINUTE and The Lamplighter), a
+turbofan digital manual, agency page, product configurator, education workshop,
+motion studies, audio/data visualizations and a spatial walkthrough.
 
 ![Three Studio overview](docs/screenshots/01-studio-overview.png)
 
@@ -275,7 +275,7 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the component contracts,
 - [Plugin trust boundaries](docs/TRUST-BOUNDARIES.md) ([中文](docs/TRUST-BOUNDARIES.zh.md))
 - [Plugin configuration examples](examples/plugin-config/README.md)
 - [Desktop alpha](desktop/README.md)
-- [Demo gallery](https://mrw7.github.io/three-studio/) ([source](site/index.html); [film](site/one-minute-demo/README.md), [agency](site/agency-demo/README.md), [configurator](site/configurator-demo/README.md), [education](site/education-demo/README.md), [motion](site/README.md), [data/space](site/README.md))
+- [Demo gallery](https://mrw7.github.io/three-studio/) ([source](site/index.html); [ONE MINUTE](site/one-minute-demo/README.md), [The Lamplighter](site/lamplighter-demo/README.md), [turbofan manual](site/engine-demo/README.md), [agency](site/agency-demo/README.md), [configurator](site/configurator-demo/README.md), [education](site/education-demo/README.md), [motion](site/README.md), [data/space](site/README.md))
 - [Development and testing](docs/DEVELOPMENT.md)
 - [Scene/editor protocol](docs/PROTOCOL.md)
 - [Optional Harness plugin mode](docs/HARNESS-PLUGIN.md)

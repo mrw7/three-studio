@@ -11,9 +11,9 @@ React 外壳。原 Harness 插件模式作为可选旧版保留。
 
 [English](README.md) · [简体中文](README.zh.md)
 
-**在线 Demo：** <https://mrw7.github.io/three-studio/> —— 九个可直接运行的
-Three.js demo：一分钟动画短片、agency 互动页、产品配置器、教育工作坊、动效、
-音频/数据可视化与空间漫游。
+**在线 Demo：** <https://mrw7.github.io/three-studio/> —— 十一个可直接运行的
+Three.js demo：两段一分钟动画短片（ONE MINUTE 与《点灯人》）、涡扇发动机数字说明书、
+agency 互动页、产品配置器、教育工作坊、动效、音频/数据可视化与空间漫游。
 
 ![Three Studio 总览](docs/screenshots/01-studio-overview.png)
 
@@ -235,7 +235,7 @@ flowchart LR
 - [插件信任边界](docs/TRUST-BOUNDARIES.zh.md)（[English](docs/TRUST-BOUNDARIES.md)）
 - [插件配置示例](examples/plugin-config/README.zh.md)
 - [桌面 alpha](desktop/README.md)
-- [Demo gallery](https://mrw7.github.io/three-studio/)（[源码](site/index.html)、[短片](site/one-minute-demo/README.md)、[agency](site/agency-demo/README.md)、[配置器](site/configurator-demo/README.md)、[教育](site/education-demo/README.md)、[动效](site/README.md)、[数据/空间](site/README.md)）
+- [Demo gallery](https://mrw7.github.io/three-studio/)（[源码](site/index.html)、[ONE MINUTE](site/one-minute-demo/README.md)、《[点灯人](site/lamplighter-demo/README.md)》、[发动机说明书](site/engine-demo/README.md)、[agency](site/agency-demo/README.md)、[配置器](site/configurator-demo/README.md)、[教育](site/education-demo/README.md)、[动效](site/README.md)、[数据/空间](site/README.md)）
 - [开发与测试](docs/DEVELOPMENT.md)
 - [场景/编辑器协议](docs/PROTOCOL.md)
 - [可选 Harness 插件模式](docs/HARNESS-PLUGIN.md)

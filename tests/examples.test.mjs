@@ -253,3 +253,113 @@ test('both READMEs showcase the demos with committed screenshots', async () => {
     assert.ok(readme.includes('examples/README.md'), 'README links the examples guide')
   }
 })
+
+test('gallery demos are wired, generated and reachable from the index', async () => {
+  const gallery = await readFile(new URL('site/index.html', repoRoot), 'utf8')
+  const siteReadme = await readFile(new URL('site/README.md', repoRoot), 'utf8')
+
+  for (const demo of ['engine-demo', 'lamplighter-demo']) {
+    // The gallery links the demo and embeds its preview card image.
+    assert.ok(gallery.includes('./' + demo + '/'), 'site/index.html links ' + demo)
+    assert.ok(gallery.includes('./' + demo + '/preview.png'), 'site/index.html shows the ' + demo + ' preview')
+    assert.ok(siteReadme.includes(demo + '/'), 'site/README.md lists ' + demo)
+
+    const files = {
+      'index.html': null,
+      'main.js': null,
+      'styles.css': null,
+      'README.md': null,
+      'preview.png': null,
+      'scene.js': null,
+    }
+    for (const name of Object.keys(files)) {
+      const body = await readFile(new URL('site/' + demo + '/' + name, repoRoot)).catch(() => null)
+      assert.ok(body !== null, 'site/' + demo + '/' + name + ' exists')
+      files[name] = body
+    }
+    // The preview is a real PNG the gallery can crop.
+    assert.equal(files['preview.png'].subarray(1, 4).toString('latin1'), 'PNG', demo + ' preview is a PNG')
+    assert.ok(files['preview.png'].length > 32 * 1024, demo + ' preview is non-trivial')
+
+    // The page loads its own main.js and the shared i18n layer, and the import
+    // map points at the vendored runtime rather than a CDN.
+    const html = files['index.html'].toString('utf8')
+    assert.match(html, /<script type="module" src="\.\/main\.js">/)
+    assert.match(html, /"three": "\.\.\/runtime\/three\.module\.js"/)
+    // No external asset host. The only absolute URLs allowed are the SVG XML
+    // namespace inside the inline favicon and the repository link in the footer.
+    const allowedHosts = /^https?:\/\/(www\.w3\.org\/2000\/svg|github\.com\/mrw7)/
+    for (const match of html.matchAll(/https?:\/\/[^\s"')]+/g)) {
+      assert.match(match[0], allowedHosts, demo + ' html references an external host: ' + match[0])
+    }
+
+    // Generated files must carry their banner so nobody hand-edits them.
+    const scene = files['scene.js'].toString('utf8')
+    assert.match(scene, /generated from examples\/scene-/, demo + ' scene.js is generated')
+    assert.match(scene, /export function createStage/, demo + ' scene.js exports createStage')
+    // The wrapper must not re-implement the example: the body is spliced in.
+    assert.match(scene, /---- begin examples\/scene-/, demo + ' scene.js splices the example')
+    assert.match(scene, /---- end examples\/scene-/, demo + ' scene.js closes the example body')
+
+    // Hand-written modules stay clean of network and dynamic code.
+    const main = files['main.js'].toString('utf8')
+    assert.doesNotMatch(main, /\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon/, demo + ' main.js has no network calls')
+    assert.doesNotMatch(main, /\beval\(|new Function\b/, demo + ' main.js has no dynamic code')
+    assert.match(main, /from '\.\/scene\.js'/, demo + ' main.js imports the generated stage')
+  }
+
+  // The generator exists and is referenced where contributors will look.
+  const generator = await readFile(new URL('site/scripts/generate-demos.mjs', repoRoot), 'utf8')
+  assert.match(generator, /examples\/scene-engine\.js/)
+  assert.match(generator, /examples\/scene-lamplighter\.js/)
+  assert.match(generator, /examples\/turbofan-manual\.json/)
+  assert.match(generator, /examples\/lamplighter-film\.json/)
+  assert.ok(siteReadme.includes('site/scripts/generate-demos.mjs'), 'site/README.md documents the generator')
+})
+
+test('gallery demo modules stay in sync with the examples they wrap', async () => {
+  // The generated scene.js must contain the example body verbatim: regenerating
+  // from examples/ is the only supported way to change a gallery demo scene, so
+  // a hand edit here would silently fork the source of truth.
+  const pairs = [
+    ['examples/scene-engine.js', 'site/engine-demo/scene.js'],
+    ['examples/scene-lamplighter.js', 'site/lamplighter-demo/scene.js'],
+  ]
+  for (const [examplePath, generatedPath] of pairs) {
+    const example = await readFile(new URL(examplePath, repoRoot), 'utf8')
+    const generated = await readFile(new URL(generatedPath, repoRoot), 'utf8')
+    const begin = '// ---- begin ' + examplePath + ' ----\n'
+    const end = '\n// ---- end ' + examplePath + ' ----'
+    const from = generated.indexOf(begin)
+    const to = generated.indexOf(end)
+    assert.ok(from >= 0 && to > from, generatedPath + ' has the example markers')
+    const spliced = generated.slice(from + begin.length, to)
+    assert.equal(spliced, example, generatedPath + ' embeds ' + examplePath + ' verbatim')
+  }
+
+  // The content modules mirror the JSON documents they are generated from.
+  const manual = JSON.parse(await readFile(new URL('examples/turbofan-manual.json', repoRoot), 'utf8')).manual
+  const manualModule = await readFile(new URL('site/engine-demo/manual.js', repoRoot), 'utf8')
+  const emitted = JSON.parse(manualModule.slice(manualModule.indexOf('{'), manualModule.lastIndexOf('}') + 1))
+  assert.equal(emitted.title, manual.title)
+  assert.equal(emitted.steps.length, manual.steps.length)
+  assert.equal(emitted.parts.length, manual.parts.length)
+  emitted.steps.forEach((step, index) => {
+    assert.equal(step.id, manual.steps[index].id)
+    assert.deepEqual(step.camera, manual.steps[index].camera)
+    assert.deepEqual(step.hidden, manual.steps[index].hidden)
+    assert.equal(step.highlight, manual.steps[index].highlight)
+  })
+
+  const film = JSON.parse(await readFile(new URL('examples/lamplighter-film.json', repoRoot), 'utf8')).film
+  const filmModule = await readFile(new URL('site/lamplighter-demo/film.js', repoRoot), 'utf8')
+  const filmEmitted = JSON.parse(filmModule.slice(filmModule.indexOf('{'), filmModule.lastIndexOf('}') + 1))
+  assert.equal(filmEmitted.title, film.title)
+  assert.equal(filmEmitted.fps, film.fps)
+  assert.deepEqual(filmEmitted.captions, film.captions)
+  // The storyboard covers the whole 60 seconds in ten shots.
+  assert.equal(filmEmitted.shots.length, 10)
+  assert.equal(filmEmitted.shots[0].at, 0)
+  assert.equal(filmEmitted.shots[9].at, 54)
+  assert.equal(filmEmitted.duration, 60)
+})

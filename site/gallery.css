@@ -72,6 +72,15 @@ main { padding: 0 5vw; }
   gap: 18px;
   padding: 12px 0 30px;
 }
+/* The fourth work demo is a product manual, so it gets the wide treatment. */
+.demos .demos-wide {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.9fr);
+}
+.demos .demos-wide .demo-media { aspect-ratio: 16 / 10; height: 100%; }
+.demos .demos-wide .demo-body { padding: 24px; }
+.demos .demos-wide .demo-body h2 { font-size: 28px; }
 .demo-card {
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -121,6 +130,7 @@ main { padding: 0 5vw; }
 .space-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
 
 .film { padding: 54px 0 34px; border-top: 1px solid var(--line); }
+.film .film-card + .film-card { margin-top: 18px; }
 .film-card { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.9fr); }
 .film-card .demo-media { aspect-ratio: 16 / 10; height: 100%; }
 .film-card .demo-body { padding: 24px; }
@@ -188,6 +198,9 @@ main { padding: 0 5vw; }
   .film-card .demo-media { aspect-ratio: 16 / 10; height: auto; }
   .film-card .demo-body { padding: 18px; }
   .film-card .demo-body h2 { font-size: 26px; }
+  .demos .demos-wide { grid-template-columns: 1fr; }
+  .demos .demos-wide .demo-body { padding: 18px; }
+  .demos .demos-wide .demo-body h2 { font-size: 24px; }
 }
 @media (max-width: 760px) {
   .topbar { height: 60px; padding: 0 18px; gap: 12px; }
