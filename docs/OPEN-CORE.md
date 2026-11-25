@@ -15,7 +15,7 @@ for what belongs in the public tree.
 | Desktop shell and license verification | `desktop/main.mjs`, `desktop/preload.cjs`, `desktop/license/core.mjs`, `desktop/scripts/**`, `desktop/build/**`, `desktop/license/public-key.pem` |
 | Template-pack contract | `desktop/templates/manifest.json` (empty free pack), `desktop/templates/README.md` |
 | Sales demos | `site/**` |
-| Manual and film | `client.js` presentation/manual/film UI, `index.js` manual proposal + share `/presentation`, 1080p deterministic export |
+| Manual and film | `client.js` presentation/manual/film UI, `index.js` manual proposal + share `/presentation`, 1080p/4K deterministic export |
 | Tests and examples | `tests/**`, `examples/**` |
 | Public documentation | `README.md`, `README.zh.md`, `docs/**` (except internal notes) |
 | Governance | `LICENSE`, `NOTICE`, `CONTRIBUTING.md`, `DCO`, `SECURITY.md`, `GOVERNANCE.md`, `TRADEMARK.md`, `PRIVACY.md`, `CODE_OF_CONDUCT.md`, `CHANGELOG.md`, `ROADMAP.md` |
@@ -25,7 +25,8 @@ presentation schema, manual step authoring with BOM/hotspots, BOM CSV
 import/export, ordered film shots with camera keys/SRT/local music, AI manual
 proposals (reviewed/applied locally), the share viewer's manual sidebar with
 print-to-PDF/QR and projected hotspot leader lines, and
-1080p/16:9/9:16/1:1/4:5 deterministic or sequential four-aspect export.
+1080p/4K 16:9/9:16/1:1/4:5 deterministic export or sequential four-aspect
+export, including the local 4K encode worker.
 
 ### Manual and film boundary
 
@@ -38,8 +39,8 @@ print-to-PDF/QR and projected hotspot leader lines, and
 - Manual BOM and step hotspots, with BOM CSV import/export.
 - The share viewer (manual sidebar, BOM/hotspot lists, projected leader lines,
   print-to-PDF, QR).
-- 1080p/16:9/9:16/1:1/4:5 deterministic export and sequential local batch
-  export of the four aspects.
+- 1080p/4K 16:9/9:16/1:1/4:5 deterministic export, the local 4K encode worker
+  and sequential local batch export of the four aspects.
 - A local-only event log: coarse action counters in browser storage, no
   network calls, no telemetry and no hosted dashboards.
 - AI manual proposals, applied only after local review.
@@ -50,11 +51,11 @@ print-to-PDF/QR and projected hotspot leader lines, and
 - Hosted analytics and dashboards (the open core only keeps a local event log).
 - Translation workflow.
 - Stock music/SFX libraries and managed TTS.
-- 4K/ProRes.
+- ProRes and cloud/parallel 4K rendering.
 - Cloud/parallel rendering queues and batch rendering.
 - Brand kits and premium templates.
 
-Do not require these services for local editing, viewing or basic 1080p
+Do not require these services for local editing, viewing or basic 1080p/4K
 export. Do not add private imports, license checks or hosted endpoints to the
 public core.
 

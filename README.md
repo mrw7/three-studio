@@ -39,10 +39,10 @@ walkthrough.
   metre-unit output).
 - **Manual and film from one scene** — capture camera/selection steps and
   BOM/hotspots as an interactive manual; order film shots with eased camera
-  moves, safe-area guides, SRT captions and a local music track; export 1080p
-  16:9/9:16/1:1/4:5 MP4 (no silent WebM fallback) or batch-export all four
-  aspects; share a read-only manual with print-to-PDF and a QR code. The AI
-  drafts manual steps as reviewable proposals.
+  moves, safe-area guides, SRT captions and a local music track; export
+  1080p/4K 16:9/9:16/1:1/4:5 MP4 (no silent WebM fallback) or batch-export all
+  four aspects; share a read-only manual with print-to-PDF and a QR code. The
+  AI drafts manual steps as reviewable proposals.
 - **Sandboxed execution** — model-written code runs only inside an opaque-origin
   `srcDoc` iframe (`allow-scripts allow-pointer-lock allow-downloads`, never
   `allow-same-origin`, never navigable).

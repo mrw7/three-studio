@@ -122,6 +122,13 @@ test('film settings normalize aspect, fps and bounded shots', () => {
   assert.equal(normalized.shots[0].duration, 2)
   assert.equal(normalized.captions.length, 1)
   assert.equal(normalized.music.name, 'Bed')
+  assert.equal(normalized.resolution, '1080p')
+  const uhd = plugin.__normalizePresentationFilm(Object.assign(film(), { resolution: '4k', aspect: '1:1' }), null)
+  assert.equal(uhd.resolution, '4k')
+  assert.equal(uhd.aspect, '1:1')
+  assert.deepEqual(plugin.__presentationAspectSize('1080p', '9:16'), [1080, 1920])
+  assert.deepEqual(plugin.__presentationAspectSize('4k', '16:9'), [3840, 2160])
+  assert.deepEqual(plugin.__presentationAspectSize('4k', '4:5'), [2160, 2700])
 
   const fallback = plugin.__normalizePresentationFilm({
     v: 1, aspect: 'nope', fps: 99, shots: [],
@@ -303,6 +310,9 @@ test('Manual and Film panels are wired with bilingual copy', () => {
   assert.match(clientSource, /setPresentation,/)
   assert.match(clientSource, /onImportBom: studioImportManualBomCsv/)
   assert.match(clientSource, /onExportBom: studioDownloadManualBomCsv/)
+  assert.match(clientSource, /'studio\.film\.resolution'/)
+  assert.match(clientSource, /PRESENTATION_4K_ASPECT_SIZES/)
+  assert.match(clientSource, /resolution: value === '4K' \? '4k' : '1080p'/)
   for (const key of ["'studio.manual.take'", "'studio.film.export'", "'studio.drawer.film'"]) {
     assert.ok((clientSource.match(new RegExp(key, 'g')) || []).length >= 2, key)
   }

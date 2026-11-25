@@ -53,21 +53,25 @@ Open **Film** in the bottom dock.
   48 kHz stereo Opus track when the browser supports `AudioEncoder`; otherwise
   the video exports without audio and the UI says so. Safari playback of
   Opus-in-MP4 is limited.
-- **Export 1080p MP4** renders the shot sequence through the existing capture
-  protocol:
+- **Export MP4** renders the shot sequence through the existing capture
+  protocol. Choose 1080p (default) or 4K in the resolution selector:
 
-  | Aspect | Pixels |
-  | --- | --- |
-  | 16:9 | 1920 × 1080 |
-  | 9:16 | 1080 × 1920 |
-  | 1:1 | 1080 × 1080 |
-  | 4:5 | 1080 × 1350 |
+  | Aspect | 1080p | 4K |
+  | --- | --- | --- |
+  | 16:9 | 1920 × 1080 | 3840 × 2160 |
+  | 9:16 | 1080 × 1920 | 2160 × 3840 |
+  | 1:1 | 1080 × 1080 | 2160 × 2160 |
+  | 4:5 | 1080 × 1350 | 2160 × 2700 |
 
 - The normal export menu keeps the 960 × 540 default; the Film drawer requests
   the larger plan explicitly.
-- H.264 High profile level 4.0/4.2 candidates are probed first, then the
-  960 × 540 baseline profile, then VP9. The capture protocol still caps a plan
-  at 1920 × 1080 pixels, 60 seconds and 3,600 frames.
+- 4K probes H.264 High 5.2/5.1/5.0 first, then High 4.2 and VP9; 1080p keeps
+  High 4.2 → High 4.0 → Baseline → VP9. The capture protocol caps a plan at
+  3840 × 2160 pixels, 60 seconds and 3,600 frames. The bitrate policy tops out
+  at 40 Mbps.
+- 4K encode and mux run in a local module worker that owns `VideoEncoder` and
+  `mp4-muxer`; 1080p keeps the in-line path. A 4K export needs a browser with
+  WebCodecs and enough GPU memory; 4K60 is not guaranteed.
 - **Safe-area guides** — while the Film dock is open, the viewport dims outside
   the selected aspect and overlays a 90% title-safe and 80% action-safe frame.
 - A film export never falls back to the realtime WebM recorder: when no
@@ -111,8 +115,8 @@ is no telemetry, upload or hosted dashboard in the open core.
 - Film export requires a deterministic MP4 encoder; it cancels with a notice
   instead of falling back to realtime WebM.
 - Camera paths are one eased start→end pose per shot with hard cuts. There are
-  no arbitrary multi-key curves, fades, 4K or cloud rendering; local batch
-  export covers the four aspects and runs one deterministic job at a time.
+  no arbitrary multi-key curves, fades or cloud rendering; local batch export
+  covers the four aspects and 4K runs as a best-effort local job, one at a time.
 - SRT and Opus audio muxing are best-effort browser features. Safari playback
   of Opus-in-MP4 is limited; unsupported audio encoders produce a video-only
   file with a notice.
@@ -127,13 +131,13 @@ is no telemetry, upload or hosted dashboard in the open core.
 ## Open core and Pro
 
 The Apache-2.0 core includes the presentation schema, manual/film authoring,
-the share viewer, 1080p deterministic export, and the AI manual proposal.
+the share viewer, 1080p/4K deterministic export, and the AI manual proposal.
 
 Hosted manual publishing, comments/review/approvals, team permissions, SSO,
 audit logs, hosted analytics, translation workflow, managed AI/TTS, stock
-music/SFX libraries, 4K/ProRes, cloud/parallel batch rendering, brand kits and
+music/SFX libraries, ProRes and cloud/parallel 4K rendering, brand kits and
 premium templates belong in separate Pro services or private repositories. The local core stays fully functional
-without a license, and basic 1080p export is not paywalled.
+without a license, and basic 1080p/4K export is not paywalled.
 
 See [`OPEN-CORE.md`](OPEN-CORE.md) for the boundary and
 [`EXPORTS.md`](EXPORTS.md) for export details.

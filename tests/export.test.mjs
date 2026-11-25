@@ -100,15 +100,25 @@ test('film plans support 1080p, vertical and square cuts', () => {
   const social = plugin.__exportPlan(5, 30, { width: 1080, height: 1350 })
   assert.equal(social.width, 1080)
   assert.equal(social.height, 1350)
-  // Oversized or invalid options fall back to the 960x540 default rather than
-  // creating a plan the capture protocol will later refuse.
-  const oversized = plugin.__exportPlan(5, 30, { width: 3840, height: 2160 })
+  const uhd = plugin.__exportPlan(5, 30, { width: 3840, height: 2160 })
+  assert.equal(uhd.width, 3840)
+  assert.equal(uhd.height, 2160)
+  assert.equal(plugin.__exportPlan(5, 30, { width: 2160, height: 3840 }).height, 3840)
+  assert.equal(plugin.__exportPlan(5, 30, { width: 2160, height: 2160 }).width, 2160)
+  assert.equal(plugin.__exportPlan(5, 30, { width: 2160, height: 2700 }).height, 2700)
+  // Above the 4K cap fall back to the 960x540 default rather than creating a
+  // plan the capture protocol will later refuse.
+  const oversized = plugin.__exportPlan(5, 30, { width: 7680, height: 4320 })
   assert.equal(oversized.width, 960)
   assert.equal(oversized.height, 540)
   assert.equal(plugin.__exportFilename(42, 'mp4', 30, 1920, 1080), 'three-scene-42-30fps-1080p.mp4')
   assert.equal(plugin.__exportFilename(42, 'mp4', 30, 1080, 1920), 'three-scene-42-30fps-vertical.mp4')
   assert.equal(plugin.__exportFilename(42, 'mp4', 30, 1080, 1080), 'three-scene-42-30fps-square.mp4')
   assert.equal(plugin.__exportFilename(42, 'mp4', 30, 1080, 1350), 'three-scene-42-30fps-4x5.mp4')
+  assert.equal(plugin.__exportFilename(42, 'mp4', 30, 3840, 2160), 'three-scene-42-30fps-4k.mp4')
+  assert.equal(plugin.__exportFilename(42, 'mp4', 30, 2160, 3840), 'three-scene-42-30fps-4k-vertical.mp4')
+  assert.equal(plugin.__exportFilename(42, 'mp4', 30, 2160, 2160), 'three-scene-42-30fps-4k-square.mp4')
+  assert.equal(plugin.__exportFilename(42, 'mp4', 30, 2160, 2700), 'three-scene-42-30fps-4k-4x5.mp4')
 })
 
 test('P2-2 caps refuse before frame one: 3600 frames, GIF 600, pixel cap', () => {
@@ -118,12 +128,15 @@ test('P2-2 caps refuse before frame one: 3600 frames, GIF 600, pixel cap', () =>
   const gifTooLong = { width: 960, height: 540, frameCount: 601, fps: 30, duration: 20 }
   assert.equal(plugin.__exportRefusal(gifTooLong, 'mp4'), null)
   assert.equal(plugin.__exportRefusal(gifTooLong, 'gif'), 'gif-frames')
-  const huge = { width: 2000, height: 1200, frameCount: 10 }
+  const huge = { width: 7680, height: 4320, frameCount: 10 }
   assert.equal(plugin.__exportRefusal(huge, 'mp4'), 'pixels')
   assert.equal(plugin.__exportRefusal(null, 'mp4'), 'pixels')
   assert.equal(plugin.__exportRefusal(plugin.__exportPlan(5, 30), 'mp4'), null)
   assert.equal(plugin.__exportRefusal(plugin.__exportPlan(21, 30), 'gif'), 'gif-frames')
-  assert.equal(plugin.__EXPORT_MAX_PIXELS, 1920 * 1080)
+  const uhd = { width: 3840, height: 2160, frameCount: 10 }
+  assert.equal(plugin.__exportRefusal(uhd, 'mp4'), null)
+  assert.equal(plugin.__exportRefusal(uhd, 'gif'), 'gif-pixels')
+  assert.equal(plugin.__EXPORT_MAX_PIXELS, 3840 * 2160)
 })
 
 test('P2-2 GIF delays are quantized to centiseconds and documented', () => {
@@ -181,13 +194,25 @@ test('P2-2 codec preflight is H.264 then VP9 then fallback', async () => {
     throw new Error('not supported')
   })
   assert.equal(rejected.supported, false)
-  assert.deepEqual(plugin.__EXPORT_CODECS.map(entry => entry.muxerCodec), ['avc', 'avc', 'avc', 'vp9'])
+  assert.deepEqual(plugin.__EXPORT_CODECS.map(entry => entry.muxerCodec),
+    ['avc', 'avc', 'avc', 'avc', 'avc', 'avc', 'vp9'])
+
+  // Above 1080p the preflight starts at High 5.2 and never probes Baseline.
+  const seen4k = []
+  const uhd = await plugin.__selectMp4Codec(3840, 2160, 30, async config => {
+    seen4k.push(config.codec)
+    return config.codec === 'avc1.640032'
+  })
+  assert.deepEqual(seen4k, ['avc1.640034', 'avc1.640033', 'avc1.640032'])
+  assert.equal(uhd.encoderCodec, 'avc1.640032')
+  assert.equal(uhd.encoderConfig.bitrate, plugin.__exportBitrate(3840, 2160, 30))
 })
 
 test('P2-2 bitrate bounds and filenames/MIME carry no Session or token', () => {
   assert.equal(plugin.__exportBitrate(1, 1, 1), 800_000)
   assert.equal(plugin.__exportBitrate(960, 540, 30), 1_866_240)
-  assert.equal(plugin.__exportBitrate(3840, 2160, 60), 12_000_000)
+  assert.equal(plugin.__exportBitrate(3840, 2160, 60), 40_000_000)
+  assert.equal(plugin.__EXPORT_MAX_BITRATE, 40_000_000)
   assert.equal(plugin.__exportMime('mp4'), 'video/mp4')
   assert.equal(plugin.__exportMime('gif'), 'image/gif')
   const mp4 = plugin.__exportFilename(42, 'mp4', 30)
@@ -382,7 +407,9 @@ test('P2-2 vendor files are pinned, licensed and free of network/eval execution'
   assert.ok(runtimeStart > 0 && runtimeEnd > runtimeStart)
   const runtimeSource = clientSource.slice(runtimeStart, runtimeEnd)
   assert.doesNotMatch(runtimeSource, /vendor\/mp4-muxer|vendor\/gifenc/)
-  assert.equal((clientSource.match(/\/vendor\/mp4-muxer\.js/g) || []).length, 1)
+  // The parent imports the muxer once for the inline path and once inside the
+  // 4K worker source; neither may leak into the generated srcDoc.
+  assert.equal((clientSource.match(/\/vendor\/mp4-muxer\.js/g) || []).length, 2)
   assert.equal((clientSource.match(/\/vendor\/gifenc\.js/g) || []).length, 1)
 })
 
@@ -394,4 +421,18 @@ test('P2-2 GIF/cap errors map to translated notices and no download', () => {
   assert.match(clientSource, /code === 'fallback'[\s\S]{0,700}setProtocolNotice\(t\('export\.fallback'\)\)/)
   assert.match(clientSource, /job\.film === true[\s\S]{0,120}studio\.film\.exportUnsupported/)
   assert.match(clientSource, /blob = format === 'gif' \? await encodeGifExport\(job\) : await encodeMp4Export\(job\)/)
+})
+
+test('4K export uses a longer frame timeout and a local encode worker', () => {
+  assert.equal(plugin.__exportFrameTimeout(plugin.__exportPlan(5, 30, { width: 1920, height: 1080 })), 5000)
+  assert.equal(plugin.__exportFrameTimeout(plugin.__exportPlan(5, 30, { width: 3840, height: 2160 })), 12000)
+  assert.match(plugin.__EXPORT_WORKER_SOURCE, /new VideoEncoder/)
+  assert.match(plugin.__EXPORT_WORKER_SOURCE, /new VideoFrame/)
+  assert.match(plugin.__EXPORT_WORKER_SOURCE, /import\(data\.muxerUrl\)/)
+  assert.match(plugin.__EXPORT_WORKER_SOURCE, /type: 'frame-done'/)
+  assert.doesNotMatch(plugin.__EXPORT_WORKER_SOURCE, /fetch\(|XMLHttpRequest|WebSocket|sendBeacon/)
+  assert.match(clientSource, /encodeMp4ExportInWorker/)
+  assert.match(clientSource, /new Worker\(blobUrl, \{ type: 'module' \}\)/)
+  assert.match(clientSource, /typeof Worker === 'function'/)
+  assert.match(clientSource, /worker: null/)
 })

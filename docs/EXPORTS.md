@@ -10,7 +10,7 @@ never include editor chrome, console logs, HUD text or API keys.
 | --- | --- | --- | --- |
 | Snapshot | `capture` | PNG | Current frame at the preview resolution |
 | Record | `record` | WebM | Realtime `MediaRecorder` capture (not deterministic) |
-| Export MP4 | export job | MP4 | Deterministic fixed-grid frames; 960×540 by default, Film panel 1080p cuts |
+| Export MP4 | export job | MP4 | Deterministic fixed-grid frames; 960×540 by default, Film panel 1080p or 4K cuts |
 | Export GIF | export job | GIF | Same deterministic frame plan, palette-quantized |
 | Export glTF | `export-gltf` | `.glb` | Static scene, binary glTF |
 | Export animated glTF | `export-gltf` + `animated` | `.glb` | Sampled keyframe tracks with a frame cap |
@@ -24,27 +24,37 @@ never include editor chrome, console logs, HUD text or API keys.
 ## Film export
 
 The **Film** drawer exports the current timeline at a larger plan than the
-regular export menu:
+regular export menu. Its resolution selector offers 1080p (default) and 4K:
 
-| Aspect | Pixels |
-| --- | --- |
-| 16:9 | 1920 × 1080 |
-| 9:16 | 1080 × 1920 |
-| 1:1 | 1080 × 1080 |
-| 4:5 | 1080 × 1350 |
+| Aspect | 1080p | 4K |
+| --- | --- | --- |
+| 16:9 | 1920 × 1080 | 3840 × 2160 |
+| 9:16 | 1080 × 1920 | 2160 × 3840 |
+| 1:1 | 1080 × 1080 | 2160 × 2160 |
+| 4:5 | 1080 × 1350 | 2160 × 2700 |
 
 - `exportPlan(duration, fps, {width, height})` keeps 960×540 when no options are
   supplied; the Film drawer passes an explicit plan.
-- The capture-frame protocol already supports arbitrary width/height up to
-  1920 × 1080 pixels; the cap, 60-second duration and 3,600-frame limit still
-  apply.
-- Codec probing tries H.264 High 4.2 (`avc1.64002a`), High 4.0
-  (`avc1.640028`), Baseline 3.1 (`avc1.42001f`), then VP9. A browser without a
-  supported encoder falls back to the realtime WebM recorder and says so.
-- Filenames add `-1080p`, `-vertical`, `-square` or `-4x5`.
-- The frame grid and camera path are deterministic; encoded bytes can differ
-  across GPUs and browsers. Burned-in subtitles, 4K and batch variants are not
-  in this export path yet.
+- The capture-frame protocol supports up to 3840 × 2160 pixels; the 60-second
+  duration and 3,600-frame limits still apply. GIF stays at ≤1920 × 1080 and
+  ≤600 frames.
+- Codec probing above 1080p tries H.264 High 5.2 (`avc1.640034`), High 5.1
+  (`avc1.640033`), High 5.0 (`avc1.640032`), High 4.2 (`avc1.64002a`), then
+  VP9. At 1080p it keeps High
+  4.2 → High 4.0 (`avc1.640028`) → Baseline 3.1 (`avc1.42001f`) → VP9. A browser
+  without a supported encoder fails the film export explicitly instead of
+  falling back to realtime WebM.
+- The bitrate policy is `min(40 Mbps, max(800 kbps, pixels × fps × 0.12))`;
+  4K30 is about 30 Mbps and 1080p30 about 7.5 Mbps.
+- 4K capture and encode keep the deterministic frame grid. A local module
+  worker owns `VideoEncoder` + `mp4-muxer` and receives transferred RGBA
+  frames; 1080p keeps the in-line path. The worker keeps the encoder queue at
+  most four frames deep, and the per-frame timeout is 12 s at 4K (5 s at
+  1080p).
+- Filenames add `-4k`, `-4k-vertical`, `-4k-square`, `-4k-4x5`, or the 1080p
+  suffixes.
+- 4K is best-effort and hardware-dependent; 4K60 is not guaranteed. Chunked
+  capture, ProRes and cloud/parallel rendering are outside this path.
 - Film shots are a hard-cut sequence with an eased start→end camera per shot.
   Captions export a `.srt` sidecar. An attached music file is muxed as 48 kHz
   stereo Opus when `AudioEncoder` supports it; otherwise the video exports

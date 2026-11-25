@@ -68,7 +68,7 @@ services may be developed separately; the core must stay useful without them.
 - [x] Optional `presentation` editor record with bounded manual steps, parts,
   hidden UIDs, highlights and film settings.
 - [x] Manual rail panel: capture camera/selection, edit, reorder, delete, play.
-- [x] Film dock panel: shots, 16:9/9:16/1:1/4:5, 24/30/60 fps, 1080p MP4.
+- [x] Film dock panel: shots, 16:9/9:16/1:1/4:5, 24/30/60 fps, 1080p/4K MP4.
 - [x] Deterministic export plans up to 1920x1080 and H.264 High 4.0/4.2
   probing; Film filenames carry the cut.
 - [x] AI `workbench_proposal` kind `manual`; proposals stay inert until applied.
@@ -84,8 +84,11 @@ services may be developed separately; the core must stay useful without them.
 - [x] Local-only event log (browser storage, no telemetry) with a Log drawer
   view.
 - [ ] Fades, burned-in captions and per-aspect reframing.
-- [ ] Local render worker for audio and 1080p60.
-- [ ] 4K, hosted publishing/analytics/SSO/translations (Pro/private).
+- [x] Opt-in local 4K export with a dedicated encode/mux worker (H.264 High
+  5.2/5.1/5.0 probing, 40 Mbps policy, best-effort).
+- [ ] Scene render worker and a 1080p60 guarantee.
+- [ ] ProRes and cloud/parallel 4K rendering (Pro/private).
+- [ ] Hosted publishing/analytics/SSO/translations (Pro/private).
 
 ## Later / separate services
 

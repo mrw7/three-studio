@@ -55,6 +55,7 @@ window.__ModuleLoader__.load({
       'export.timeout': '等待第 {index} 帧超时，导出已取消，未下载任何文件。',
       'export.encodeFailed': '编码失败：{message}。导出已取消，未下载任何文件。',
       'export.cap': '超出导出上限（最多 {frames} 帧，960×540）；请缩短时长或降低帧率。',
+      'export.gifPixels': 'GIF 导出最多 1920×1080；请改选 1080p 画幅或导出 MP4。',
       'export.gifTiming': 'GIF 计时按 10 毫秒取整：{fps} fps 的 {count} 帧约播放 {seconds} 秒，而非 {duration} 秒。',
       'export.cancelled': '导出已取消，未下载任何文件。',
       'export.notReady': '预览尚未就绪，请稍后再导出。',
@@ -1104,6 +1105,7 @@ window.__ModuleLoader__.load({
       'export.timeout': 'Timed out waiting for frame {index}. The export was cancelled and nothing was downloaded.',
       'export.encodeFailed': 'Encoding failed: {message}. The export was cancelled and nothing was downloaded.',
       'export.cap': 'Export exceeds the limit (at most {frames} frames at 960×540). Shorten the duration or lower the frame rate.',
+      'export.gifPixels': 'GIF export is limited to 1920×1080; choose a 1080p cut or export MP4.',
       'export.gifTiming': 'GIF delays are quantized to 10 ms: {count} frames at {fps} fps play for about {seconds} s, not {duration} s.',
       'export.cancelled': 'Export cancelled. Nothing was downloaded.',
       'export.notReady': 'The preview is not ready yet. Try exporting again in a moment.',
@@ -2774,18 +2776,126 @@ window.__ModuleLoader__.load({
     const EXPORT_MAX_FPS = 60
     const EXPORT_MAX_FRAMES = 3600
     const EXPORT_GIF_MAX_FRAMES = 600
-    const EXPORT_MAX_PIXELS = 1920 * 1080
+    const EXPORT_HD_PIXELS = 1920 * 1080
+    const EXPORT_MAX_PIXELS = 3840 * 2160
+    const EXPORT_MAX_BITRATE = 40_000_000
     const EXPORT_FRAME_TIMEOUT_MS = 5000
+    const EXPORT_4K_FRAME_TIMEOUT_MS = 12000
     const EXPORT_ACK_TIMEOUT_MS = 2000
     const EXPORT_QUEUE_LIMIT = 8
     const LATE_CAPTURE_SLACK_MS = 1500
     const LATE_CAPTURE_FALLBACK_MS = 6500
     const EXPORT_CODECS = [
+      { encoderCodec: 'avc1.640034', muxerCodec: 'avc', avc: true },
+      { encoderCodec: 'avc1.640033', muxerCodec: 'avc', avc: true },
+      { encoderCodec: 'avc1.640032', muxerCodec: 'avc', avc: true },
       { encoderCodec: 'avc1.64002a', muxerCodec: 'avc', avc: true },
       { encoderCodec: 'avc1.640028', muxerCodec: 'avc', avc: true },
       { encoderCodec: 'avc1.42001f', muxerCodec: 'avc', avc: true },
       { encoderCodec: 'vp09.00.10.08', muxerCodec: 'vp9', avc: false },
     ]
+    /** Prefer 4K-capable levels only when the plan exceeds 1080p. */
+    const exportCodecCandidates = (width, height) => {
+      const order = width * height > EXPORT_HD_PIXELS
+        ? ['avc1.640034', 'avc1.640033', 'avc1.640032', 'avc1.64002a', 'vp09.00.10.08']
+        : ['avc1.64002a', 'avc1.640028', 'avc1.42001f', 'vp09.00.10.08']
+      return order
+        .map(codec => EXPORT_CODECS.find(candidate => candidate.encoderCodec === codec))
+        .filter(candidate => candidate !== undefined)
+    }
+
+    // The 4K encode/mux worker. It is a same-origin module worker; the only
+    // import is the vendored mp4-muxer URL passed by the parent. RGBA frame
+    // buffers are transferred in, so the parent never blocks on VideoFrame or
+    // muxer work.
+    const EXPORT_WORKER_SOURCE = `
+'use strict'
+let encoder = null
+let muxer = null
+let target = null
+let width = 0
+let height = 0
+const fail = (stage, error) => self.postMessage({
+  type: 'error',
+  stage,
+  message: String(error && error.message ? error.message : error),
+})
+self.onmessage = async event => {
+  const data = event.data
+  if (data === null || typeof data !== 'object') return
+  if (data.type === 'init') {
+    try {
+      const lib = await import(data.muxerUrl)
+      target = new lib.ArrayBufferTarget()
+      const options = {
+        target,
+        video: { codec: data.muxerCodec, width: data.width, height: data.height, frameRate: data.fps },
+        fastStart: 'in-memory',
+      }
+      muxer = new lib.Muxer(options)
+      width = data.width
+      height = data.height
+      encoder = new VideoEncoder({
+        output: (chunk, meta) => {
+          try {
+            muxer.addVideoChunk(chunk, meta)
+          } catch (error) {
+            fail('mux', error)
+          }
+        },
+        error: error => fail('encoder', error),
+      })
+      encoder.configure(data.encoderConfig)
+      self.postMessage({ type: 'ready' })
+    } catch (error) {
+      fail('init', error)
+    }
+    return
+  }
+  if (data.type === 'audio') {
+    try {
+      for (const chunk of data.chunks || []) muxer.addAudioChunk(chunk)
+      self.postMessage({ type: 'audio-done' })
+    } catch (error) {
+      fail('audio', error)
+    }
+    return
+  }
+  if (data.type === 'frame') {
+    try {
+      const frame = new VideoFrame(data.buffer, {
+        format: 'RGBA',
+        codedWidth: width,
+        codedHeight: height,
+        timestamp: data.timestampUs,
+        duration: data.durationUs,
+      })
+      try {
+        encoder.encode(frame, { keyFrame: data.keyFrame === true })
+      } finally {
+        frame.close()
+      }
+      while (encoder.encodeQueueSize > 4) {
+        await new Promise(resolve => setTimeout(resolve, 4))
+      }
+      self.postMessage({ type: 'frame-done', index: data.index })
+    } catch (error) {
+      fail('frame', error)
+    }
+    return
+  }
+  if (data.type === 'finish') {
+    try {
+      await encoder.flush()
+      muxer.finalize()
+      const buffer = target.buffer
+      self.postMessage({ type: 'done', buffer }, [buffer])
+    } catch (error) {
+      fail('finish', error)
+    }
+  }
+}
+`
 
     /**
      * Clamp the live timeline duration/fps onto the deterministic frame grid.
@@ -2838,6 +2948,7 @@ window.__ModuleLoader__.load({
     function exportRefusal(plan, format) {
       if (plan === null || typeof plan !== 'object') return 'pixels'
       if (plan.width * plan.height > EXPORT_MAX_PIXELS) return 'pixels'
+      if (format === 'gif' && plan.width * plan.height > EXPORT_HD_PIXELS) return 'gif-pixels'
       if (plan.frameCount > EXPORT_MAX_FRAMES) return 'frames'
       if (format === 'gif' && plan.frameCount > EXPORT_GIF_MAX_FRAMES) return 'gif-frames'
       return null
@@ -2849,11 +2960,15 @@ window.__ModuleLoader__.load({
       const rate = typeof fps === 'number' && Number.isFinite(fps) && fps > 0 ? fps : EXPORT_MIN_FPS
       const extension = format === 'gif' ? 'gif' : 'mp4'
       const cut = width === 960 && height === 540 ? ''
-        : width === 1920 && height === 1080 ? '-1080p'
-          : width === 1080 && height === 1920 ? '-vertical'
-            : width === 1080 && height === 1080 ? '-square'
-              : width === 1080 && height === 1350 ? '-4x5'
-                : typeof width === 'number' && typeof height === 'number' ? `-${String(width)}x${String(height)}` : ''
+        : width === 3840 && height === 2160 ? '-4k'
+          : width === 2160 && height === 3840 ? '-4k-vertical'
+            : width === 2160 && height === 2160 ? '-4k-square'
+              : width === 2160 && height === 2700 ? '-4k-4x5'
+                : width === 1920 && height === 1080 ? '-1080p'
+                  : width === 1080 && height === 1920 ? '-vertical'
+                    : width === 1080 && height === 1080 ? '-square'
+                      : width === 1080 && height === 1350 ? '-4x5'
+                        : typeof width === 'number' && typeof height === 'number' ? `-${String(width)}x${String(height)}` : ''
       return `three-scene-${String(rev)}-${String(rate)}fps${cut}.${extension}`
     }
 
@@ -2945,7 +3060,15 @@ window.__ModuleLoader__.load({
 
     /** Bitrate policy shared by preflight and VideoEncoder.configure. */
     function exportBitrate(width, height, fps) {
-      return Math.min(12_000_000, Math.max(800_000, Math.round(width * height * fps * 0.12)))
+      return Math.min(EXPORT_MAX_BITRATE, Math.max(800_000, Math.round(width * height * fps * 0.12)))
+    }
+
+    /** 4K readback and encode take longer than 1080p; keep the same floor. */
+    function exportFrameTimeout(plan) {
+      if (plan === null || typeof plan !== 'object') return EXPORT_FRAME_TIMEOUT_MS
+      return plan.width * plan.height > EXPORT_HD_PIXELS
+        ? EXPORT_4K_FRAME_TIMEOUT_MS
+        : EXPORT_FRAME_TIMEOUT_MS
     }
 
     /**
@@ -2955,7 +3078,7 @@ window.__ModuleLoader__.load({
     async function selectMp4Codec(width, height, fps, isConfigSupported) {
       const bitrate = exportBitrate(width, height, fps)
       const attempts = []
-      for (const candidate of EXPORT_CODECS) {
+      for (const candidate of exportCodecCandidates(width, height)) {
         attempts.push(candidate.encoderCodec)
         if (typeof isConfigSupported !== 'function') continue
         const probe = {
@@ -6557,6 +6680,17 @@ window.__ModuleLoader__.load({
       '1:1': [1080, 1080],
       '4:5': [1080, 1350],
     }
+    const PRESENTATION_4K_ASPECT_SIZES = {
+      '16:9': [3840, 2160],
+      '9:16': [2160, 3840],
+      '1:1': [2160, 2160],
+      '4:5': [2160, 2700],
+    }
+    const PRESENTATION_RESOLUTIONS = ['1080p', '4k']
+    const presentationAspectSize = (resolution, aspect) => {
+      const table = resolution === '4k' ? PRESENTATION_4K_ASPECT_SIZES : PRESENTATION_ASPECT_SIZES
+      return table[aspect] === undefined ? table['16:9'] : table[aspect]
+    }
     const PRESENTATION_FPS = [24, 30, 60]
     const PRESENTATION_UID_RE = /^[sml]:[A-Za-z0-9_-]+$/
     const presentationText = (value, max) => typeof value === 'string'
@@ -6754,7 +6888,7 @@ window.__ModuleLoader__.load({
         v: 1,
         title: presentationText(value.title, 120),
         aspect: PRESENTATION_ASPECTS.includes(value.aspect) ? value.aspect : '16:9',
-        resolution: '1080p',
+        resolution: value.resolution === '4k' ? '4k' : '1080p',
         fps: PRESENTATION_FPS.includes(value.fps) ? value.fps : 30,
         shots,
         captions,
@@ -8380,7 +8514,7 @@ let recording = false
 // capture-end/capture-cancel even when a frame threw.
 let captureSession = null
 let explodeSaved = []
-const CAPTURE_MAX_PIXELS = 1920 * 1080
+const CAPTURE_MAX_PIXELS = 3840 * 2160
 const CAPTURE_MAX_FRAMES = 3600
 let clock
 const timeline = { playing: true, time: 0, speed: 1, loop: true, duration: 10, last: 0 }
@@ -12789,6 +12923,12 @@ try {
   }
 
   const resizeForCapture = session => {
+    const maxSize = renderer.capabilities !== undefined
+      && typeof renderer.capabilities.maxTextureSize === 'number'
+      ? renderer.capabilities.maxTextureSize : 0
+    if (maxSize > 0 && (session.width > maxSize || session.height > maxSize)) {
+      throw new Error('capture-too-large')
+    }
     renderer.setPixelRatio(1)
     renderer.setSize(session.width, session.height, false)
     camera.aspect = session.width / session.height
@@ -20768,7 +20908,7 @@ THE SOFTWARE.
       const disabled = props.disabled === true
       const exporting = props.exporting === true
       const [srtDraft, setSrtDraft] = React.useState(() => captionsToSrt(captions))
-      const update = patch => props.onUpdate(Object.assign({}, film, patch, { v: 1, resolution: '1080p' }))
+      const update = patch => props.onUpdate(Object.assign({}, film, patch, { v: 1 }))
       const updateShot = patch => {
         if (selected !== null) props.onUpdateShot(selected.id, patch)
       }
@@ -20816,7 +20956,9 @@ THE SOFTWARE.
       },
       h('span', null, t('studio.film.aspect')), select(film.aspect, PRESENTATION_ASPECTS, value => update({ aspect: value })),
       h('span', null, t('studio.film.fps')), select(String(film.fps), PRESENTATION_FPS.map(String), value => update({ fps: Number(value) })),
-      h('span', null, '1080p'),
+      h('span', null, t('studio.film.resolution')),
+      select(film.resolution === '4k' ? '4K' : '1080p', ['1080p', '4K'],
+        value => update({ resolution: value === '4K' ? '4k' : '1080p' })),
       h('span', null, t('studio.film.duration') + ' ' + duration.toFixed(1) + 's'),
       h('span', { style: { flex: 1 } }),
       h('span', null, t('studio.film.exportHint')))
@@ -25167,6 +25309,11 @@ THE SOFTWARE.
       const exportFallback = () => exportFailure('fallback', 'mp4 encoder unavailable')
 
       const closeExportEncoder = job => {
+        const worker = job.worker
+        job.worker = null
+        if (worker !== null && worker !== undefined) {
+          try { worker.terminate() } catch (error) { void error }
+        }
         const encoder = job.encoder
         job.encoder = null
         if (encoder === null) return
@@ -25378,7 +25525,7 @@ THE SOFTWARE.
         const timer = setTimeout(() => {
           frameWaitersRef.current.delete(index)
           reject(exportFailure('frame-timeout', 'frame timeout'))
-        }, EXPORT_FRAME_TIMEOUT_MS)
+        }, exportFrameTimeout(job.plan))
         frameWaitersRef.current.set(index, { resolve, reject, timer })
         try {
           frame.contentWindow.postMessage({
@@ -25477,6 +25624,16 @@ THE SOFTWARE.
         }
         job.vp9 = selection.muxerCodec === 'vp9'
         publishExportJob(job)
+        // 4K runs encode+mux in a local module worker; a worker-init failure
+        // before capture falls back to the in-line path below.
+        if (job.plan.width * job.plan.height > EXPORT_HD_PIXELS && typeof Worker === 'function') {
+          try {
+            return await encodeMp4ExportInWorker(job, selection, audioChunks)
+          } catch (error) {
+            const code = error !== null && typeof error === 'object' ? error.code : undefined
+            if (code !== 'worker-init') throw error
+          }
+        }
         let muxer
         let encoder
         let target = null
@@ -25558,6 +25715,157 @@ THE SOFTWARE.
         closeExportEncoder(job)
         job.muxer = null
         return new Blob([buffer], { type: exportMime('mp4') })
+      }
+
+      /**
+       * 4K encode/mux path. The worker owns VideoEncoder + mp4-muxer; RGBA
+       * buffers are transferred in and the finished MP4 comes back once.
+       * A worker-init failure is safe to fall back from because no frame has
+       * been captured and audio chunks are only sent after `ready`.
+       */
+      const encodeMp4ExportInWorker = async (job, selection, audioChunks) => {
+        let blobUrl = null
+        try {
+          blobUrl = URL.createObjectURL(new Blob([EXPORT_WORKER_SOURCE], { type: 'text/javascript' }))
+        } catch (error) {
+          void error
+          throw exportFailure('worker-init', 'export worker unavailable')
+        }
+        let worker = null
+        try {
+          worker = new Worker(blobUrl, { type: 'module' })
+        } catch (error) {
+          void error
+          URL.revokeObjectURL(blobUrl)
+          throw exportFailure('worker-init', 'export worker unavailable')
+        }
+        URL.revokeObjectURL(blobUrl)
+        job.worker = worker
+        let phase = 'init'
+        let fatal = null
+        let initTimer = 0
+        let resolveInit
+        let rejectInit
+        const initReady = new Promise((resolve, reject) => { resolveInit = resolve; rejectInit = reject })
+        let resolveAudio
+        let rejectAudio
+        const audioReady = new Promise((resolve, reject) => { resolveAudio = resolve; rejectAudio = reject })
+        let resolveDone
+        let rejectDone
+        const doneReady = new Promise((resolve, reject) => { resolveDone = resolve; rejectDone = reject })
+        const frameWaiters = new Map()
+        const failAll = error => {
+          for (const waiter of frameWaiters.values()) {
+            clearTimeout(waiter.timer)
+            waiter.reject(error)
+          }
+          frameWaiters.clear()
+          if (phase === 'init') rejectInit(error)
+          else if (phase === 'audio') rejectAudio(error)
+          else if (phase === 'finish') rejectDone(error)
+          else fatal = error
+        }
+        worker.onmessage = event => {
+          const data = event.data
+          if (data === null || typeof data !== 'object') return
+          if (data.type === 'ready') {
+            resolveInit()
+            return
+          }
+          if (data.type === 'audio-done') {
+            resolveAudio()
+            return
+          }
+          if (data.type === 'frame-done') {
+            const waiter = frameWaiters.get(data.index)
+            if (waiter !== undefined) {
+              clearTimeout(waiter.timer)
+              frameWaiters.delete(data.index)
+              waiter.resolve()
+            }
+            return
+          }
+          if (data.type === 'done') {
+            resolveDone(data.buffer)
+            return
+          }
+          if (data.type === 'error') {
+            const code = data.stage === 'init'
+              ? 'worker-init' : 'worker-' + String(data.stage || 'error')
+            failAll(exportFailure(code, String(data.message || 'export worker failed')))
+          }
+        }
+        worker.onerror = event => {
+          failAll(exportFailure('worker-error',
+            event !== null && event !== undefined && typeof event.message === 'string'
+              ? event.message : 'export worker crashed'))
+        }
+        try {
+          const muxerUrl = new URL(`${RUNTIME_BASE}/vendor/mp4-muxer.js`, location.href).href
+          initTimer = setTimeout(
+            () => failAll(exportFailure('worker-init', 'export worker init timed out')),
+            5000,
+          )
+          worker.postMessage({
+            type: 'init',
+            muxerUrl,
+            width: job.plan.width,
+            height: job.plan.height,
+            fps: job.plan.fps,
+            encoderConfig: selection.encoderConfig,
+            muxerCodec: selection.muxerCodec,
+          })
+          await initReady
+          clearTimeout(initTimer)
+          if (audioChunks.length > 0) {
+            phase = 'audio'
+            const audioTimer = setTimeout(
+              () => failAll(exportFailure('worker-audio', 'export worker audio timed out')),
+              15000,
+            )
+            // EncodedAudioChunk is structured-cloneable but not transferable.
+            worker.postMessage({ type: 'audio', chunks: audioChunks })
+            await audioReady
+            clearTimeout(audioTimer)
+          }
+          phase = 'capture'
+          await captureExportFrames(job, async (pixels, index) => {
+            if (fatal !== null) throw fatal
+            if (job.cancelled === true) throw exportCancelledError()
+            const buffer = pixels.buffer
+            const ack = new Promise((resolve, reject) => {
+              const timer = setTimeout(() => {
+                frameWaiters.delete(index)
+                reject(exportFailure('worker-frame-timeout', 'export worker frame timed out'))
+              }, 30000)
+              frameWaiters.set(index, { resolve, reject, timer })
+            })
+            worker.postMessage({
+              type: 'frame',
+              index,
+              buffer,
+              timestampUs: exportFrameTimestamp(index, job.plan.fps),
+              durationUs: job.plan.frameDurationUs,
+              keyFrame: index % Math.max(1, Math.round(job.plan.fps)) === 0,
+            }, [buffer])
+            await ack
+          })
+          if (job.cancelled === true || job.finished === true) throw exportCancelledError()
+          await endCaptureExport(job)
+          if (job.cancelled === true || job.finished === true) throw exportCancelledError()
+          phase = 'finish'
+          worker.postMessage({ type: 'finish' })
+          const buffer = await doneReady
+          if (!(buffer instanceof ArrayBuffer) || buffer.byteLength === 0) {
+            throw exportFailure('muxer-empty', 'muxer produced an empty MP4')
+          }
+          closeExportEncoder(job)
+          return new Blob([buffer], { type: exportMime('mp4') })
+        } catch (error) {
+          clearTimeout(initTimer)
+          closeExportEncoder(job)
+          throw error
+        }
       }
 
       const encodeGifExport = async job => {
@@ -25644,9 +25952,11 @@ THE SOFTWARE.
         )
         const refusal = exportRefusal(plan, format)
         if (refusal !== null) {
-          setProtocolNotice(t('export.cap', {
-            frames: refusal === 'gif-frames' ? EXPORT_GIF_MAX_FRAMES : EXPORT_MAX_FRAMES,
-          }))
+          setProtocolNotice(refusal === 'gif-pixels'
+            ? t('export.gifPixels')
+            : t('export.cap', {
+              frames: refusal === 'gif-frames' ? EXPORT_GIF_MAX_FRAMES : EXPORT_MAX_FRAMES,
+            }))
           return
         }
         exportSeqRef.current += 1
@@ -25666,6 +25976,7 @@ THE SOFTWARE.
           abortPromise: null,
           queueAbort: null,
           encoder: null,
+          worker: null,
           encoderError: null,
           muxer: null,
           vp9: false,
@@ -28556,12 +28867,15 @@ THE SOFTWARE.
       const studioFilmSelectedId = studioFilmSelected !== null
         && studioFilmShots().some(shot => shot.id === studioFilmSelected)
         ? studioFilmSelected : (studioFilmShots()[0] === undefined ? null : studioFilmShots()[0].id)
+      const studioFilmResolution = () => filmSettings !== null && filmSettings !== undefined
+        && filmSettings.resolution === '4k' ? '4k' : '1080p'
       const studioFilmWithShots = shots => Object.assign({
         v: 1, title: '', aspect: '16:9', resolution: '1080p', fps: 30, captions: [], music: null,
-      }, filmSettings === null ? {} : filmSettings, { v: 1, resolution: '1080p', shots })
+      }, filmSettings === null ? {} : filmSettings, { v: 1, resolution: studioFilmResolution(), shots })
       const studioUpdateFilm = patch => {
         const next = Object.assign({ v: 1, title: '', aspect: '16:9', resolution: '1080p', fps: 30, shots: [] },
-          filmSettings === null ? {} : filmSettings, patch, { v: 1, resolution: '1080p' })
+          filmSettings === null ? {} : filmSettings, patch, { v: 1 })
+        next.resolution = next.resolution === '4k' ? '4k' : '1080p'
         commitPresentation({ film: next })
       }
       const studioTakeFilmShot = () => {
@@ -28690,8 +29004,7 @@ THE SOFTWARE.
         ))
       }
       const studioExportFilmVariant = async (settings, aspect) => {
-        const size = PRESENTATION_ASPECT_SIZES[aspect] === undefined
-          ? PRESENTATION_ASPECT_SIZES['16:9'] : PRESENTATION_ASPECT_SIZES[aspect]
+        const size = presentationAspectSize(settings.resolution === '4k' ? '4k' : '1080p', aspect)
         const shots = studioFilmShots()
         const duration = shots.length > 0 ? filmShotsDuration(shots) : timelineRef.current.duration
         const captions = Array.isArray(settings.captions) ? settings.captions : []
@@ -32583,7 +32896,9 @@ THE SOFTWARE.
         ? (() => {
           const aspect = filmSettings !== null && filmSettings !== undefined
             && PRESENTATION_ASPECTS.includes(filmSettings.aspect) ? filmSettings.aspect : '16:9'
-          const size = PRESENTATION_ASPECT_SIZES[aspect]
+          const resolution = filmSettings !== null && filmSettings !== undefined
+            && filmSettings.resolution === '4k' ? '4k' : '1080p'
+          const size = presentationAspectSize(resolution, aspect)
           const width = size[0]
           const height = size[1]
           const titleX = width * 0.05
@@ -34396,6 +34711,8 @@ THE SOFTWARE.
       __normalizeEditorPresentationField: normalizeEditorPresentationField,
       __normalizePresentationManual: normalizePresentationManual,
       __normalizePresentationFilm: normalizePresentationFilm,
+      __presentationAspectSize: presentationAspectSize,
+      __PRESENTATION_4K_ASPECT_SIZES: PRESENTATION_4K_ASPECT_SIZES,
       __updateEditorPresentation: updateEditorPresentation,
       __PRESENTATION_MANUAL_STEPS_MAX: PRESENTATION_MANUAL_STEPS_MAX,
       __PRESENTATION_MANUAL_PARTS_MAX: PRESENTATION_MANUAL_PARTS_MAX,
@@ -34438,7 +34755,11 @@ THE SOFTWARE.
       __exportFilename: exportFilename,
       __exportMime: exportMime,
       __exportBitrate: exportBitrate,
+      __exportFrameTimeout: exportFrameTimeout,
+      __exportCodecCandidates: exportCodecCandidates,
       __selectMp4Codec: selectMp4Codec,
+      __EXPORT_WORKER_SOURCE: EXPORT_WORKER_SOURCE,
+      __EXPORT_MAX_BITRATE: EXPORT_MAX_BITRATE,
       __EXPORT_WIDTH: EXPORT_WIDTH,
       __EXPORT_HEIGHT: EXPORT_HEIGHT,
       __EXPORT_MIN_DURATION: EXPORT_MIN_DURATION,

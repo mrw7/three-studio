@@ -70,10 +70,12 @@ SRT captions and music metadata; share snapshots include it, and the share
 viewer reads a projection from
 `/three-workbench/share/<id>/presentation`. The Film drawer renders an ordered
 shot sequence (eased start→end camera per shot, hard cuts) through the existing
-deterministic `capture-frame` protocol with an explicit 1080p/aspect plan and
-an optional Opus audio track; it does not add a second renderer. The share
-viewer adds a read-only manual sidebar, BOM/hotspot lists, print-to-PDF and a
-local QR code. See [`MANUAL-FILM.md`](MANUAL-FILM.md).
+deterministic `capture-frame` protocol with an explicit 1080p/4K aspect plan
+and an optional Opus audio track; it does not add a second renderer. The 4K
+path moves `VideoEncoder` + `mp4-muxer` into a same-origin module worker that
+receives transferred RGBA frames; 1080p keeps the in-line encoder. The share
+viewer adds a read-only manual sidebar, BOM/hotspot lists, projected leader
+lines, print-to-PDF and a local QR code. See [`MANUAL-FILM.md`](MANUAL-FILM.md).
 
 ## Server
 
