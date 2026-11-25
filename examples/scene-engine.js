@@ -1,0 +1,516 @@
+// ============================================================
+//  涡扇发动机 · 产品展示场景（说明书用）
+//  Engine: 双转子高涵道比涡扇，程序化建模，无外部资源
+//  说明书步骤依赖的 UID：engine-fan / engine-core / engine-combustor /
+//  engine-turbine / engine-nozzle / engine-nacelle / engine-pylon
+// ============================================================
+
+setBackground('#0a0d12');
+
+const DEG = Math.PI / 180;
+const S = (x, y, z) => new THREE.Vector3(x, y, z);
+
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.32;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+scene.background = new THREE.Color(0x0a0d12);
+scene.fog = new THREE.FogExp2(0x0a0d12, 0.028);
+
+camera.fov = 34;
+// Intake-side 3/4 view: the fan and inlet lip read best from -Z.
+camera.position.set(7.4, 4.2, -9.6);
+camera.updateProjectionMatrix();
+controls.target.set(0, 0.9, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.07;
+controls.minDistance = 3.6;
+controls.maxDistance = 22;
+controls.maxPolarAngle = Math.PI * 0.52;
+controls.update();
+
+// ------------------------------------------------------------
+// 材质：蒙皮钛合金 / 高温合金 / 碳纤维 / 玻璃
+// ------------------------------------------------------------
+function brushedTexture() {
+  const w = 512, h = 512;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.fillStyle = '#8d949c';
+  g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 2600; i += 1) {
+    const y = Math.random() * h;
+    const len = 40 + Math.random() * 220;
+    const a = 0.02 + Math.random() * 0.06;
+    g.strokeStyle = Math.random() > 0.5 ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a})`;
+    g.lineWidth = 0.6 + Math.random() * 1.2;
+    g.beginPath();
+    g.moveTo(Math.random() * w, y);
+    g.lineTo(Math.random() * w + len, y + (Math.random() - 0.5) * 1.5);
+    g.stroke();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(6, 2);
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+
+const brushed = brushedTexture();
+
+const MAT = {
+  skin: new THREE.MeshStandardMaterial({
+    color: 0xc3cbd4, metalness: 0.94, roughness: 0.34, map: brushed,
+    envMapIntensity: 1.15,
+  }),
+  dark: new THREE.MeshStandardMaterial({
+    color: 0x2b3138, metalness: 0.85, roughness: 0.46, map: brushed,
+    envMapIntensity: 0.9,
+  }),
+  hot: new THREE.MeshStandardMaterial({
+    color: 0x6d6255, metalness: 1.0, roughness: 0.28, envMapIntensity: 1.5,
+  }),
+  carbon: new THREE.MeshStandardMaterial({
+    color: 0x14181d, metalness: 0.42, roughness: 0.62, envMapIntensity: 0.7,
+  }),
+  brass: new THREE.MeshStandardMaterial({
+    color: 0xd8a760, metalness: 1.0, roughness: 0.22, envMapIntensity: 1.6,
+  }),
+  glass: new THREE.MeshPhysicalMaterial({
+    color: 0x9fd0ff, metalness: 0.1, roughness: 0.06, transmission: 0.86,
+    thickness: 0.6, transparent: true, opacity: 0.62, envMapIntensity: 1.4,
+  }),
+  glow: new THREE.MeshStandardMaterial({
+    color: 0x1a2430, emissive: 0xff7a2e, emissiveIntensity: 2.4, roughness: 0.5,
+  }),
+};
+
+// ------------------------------------------------------------
+// 环境：程序化工作室 HDRI（等距柱状），给金属真实反射
+// ------------------------------------------------------------
+function buildStudioEnvironment() {
+  const w = 1024, h = 512;
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  const lg = g.createLinearGradient(0, 0, 0, h);
+  lg.addColorStop(0.0, '#0b1018');
+  lg.addColorStop(0.42, '#22303f');
+  lg.addColorStop(0.52, '#31465c');
+  lg.addColorStop(0.62, '#1b2530');
+  lg.addColorStop(1.0, '#06080b');
+  g.fillStyle = lg;
+  g.fillRect(0, 0, w, h);
+
+  // 三块柔光箱：主光、侧逆、底部补光
+  const strip = (cx, cy, sw, sh, color, alpha) => {
+    const grad = g.createRadialGradient(cx, cy, 0, cx, cy, Math.max(sw, sh));
+    grad.addColorStop(0, color.replace('ALPHA', String(alpha)));
+    grad.addColorStop(1, color.replace('ALPHA', '0'));
+    g.fillStyle = grad;
+    g.beginPath();
+    g.ellipse(cx, cy, sw, sh, 0, 0, Math.PI * 2);
+    g.fill();
+  };
+  strip(w * 0.24, h * 0.34, 190, 120, 'rgba(255,246,232,ALPHA)', 0.95);
+  strip(w * 0.70, h * 0.28, 140, 100, 'rgba(150,196,255,ALPHA)', 0.55);
+  strip(w * 0.48, h * 0.86, 340, 60, 'rgba(255,176,96,ALPHA)', 0.30);
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.mapping = THREE.EquirectangularReflectionMapping;
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+scene.environment = buildStudioEnvironment();
+
+// ------------------------------------------------------------
+// 舞台
+// ------------------------------------------------------------
+const world = new THREE.Group();
+world.name = 'engine-world';
+scene.add(world);
+
+// 展厅地面
+const floor = new THREE.Mesh(
+  new THREE.CircleGeometry(16, 96),
+  new THREE.MeshStandardMaterial({ color: 0x10141a, metalness: 0.35, roughness: 0.72 }),
+);
+floor.rotation.x = -Math.PI / 2;
+floor.position.y = -1.62;
+floor.receiveShadow = true;
+world.add(floor);
+
+const grid = new THREE.GridHelper(24, 48, 0x1d2a38, 0x141c26);
+grid.position.y = -1.615;
+grid.material.transparent = true;
+grid.material.opacity = 0.5;
+world.add(grid);
+
+// 灯光：主光 / 轮廓 / 底部反弹 / 短舱内补光
+const keyLight = new THREE.DirectionalLight(0xfff3e2, 4.2);
+keyLight.position.set(5.2, 7.4, -4.6);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 1;
+keyLight.shadow.camera.far = 30;
+keyLight.shadow.camera.left = -8;
+keyLight.shadow.camera.right = 8;
+keyLight.shadow.camera.top = 8;
+keyLight.shadow.camera.bottom = -8;
+keyLight.shadow.bias = -0.0006;
+world.add(keyLight);
+
+const rimLight = new THREE.DirectionalLight(0x86bcff, 3.4);
+rimLight.position.set(-6.4, 3.4, 5.2);
+world.add(rimLight);
+
+const fillLight = new THREE.DirectionalLight(0xcfe0ff, 1.5);
+fillLight.position.set(-3.2, 1.2, -7.5);
+world.add(fillLight);
+
+// 进气口内的补光：让风扇与核心机在暗腔里可读
+const inletGlow = new THREE.PointLight(0xffe3c0, 18, 9, 2);
+inletGlow.position.set(0, 0.55, -2.6);
+world.add(inletGlow);
+
+const bounce = new THREE.PointLight(0xffb070, 30, 16, 2);
+bounce.position.set(0, -1.1, 2.6);
+world.add(bounce);
+
+const hemi = new THREE.HemisphereLight(0x9dc4ff, 0x0a0d12, 1.05);
+world.add(hemi);
+
+// ------------------------------------------------------------
+// 发动机总装
+// ------------------------------------------------------------
+const engine = new THREE.Group();
+engine.name = 'turbofan';
+engine.position.set(0, 0.55, 0);
+world.add(engine);
+
+const AXIS = new THREE.Vector3(0, 0, 1);   // 进气在 -Z，尾喷在 +Z
+const R_NACELLE = 1.62;
+const R_CORE = 0.78;
+
+// ---- 短舱（含进气唇口） ----
+const nacelleGroup = new THREE.Group();
+nacelleGroup.name = 'nacelle';
+engine.add(nacelleGroup);
+
+const lip = new THREE.Mesh(
+  new THREE.TorusGeometry(R_NACELLE - 0.06, 0.135, 24, 96),
+  MAT.skin,
+);
+lip.position.z = -2.02;
+lip.castShadow = true;
+lip.receiveShadow = true;
+nacelleGroup.add(lip);
+
+const nacelleShell = new THREE.Mesh(
+  new THREE.CylinderGeometry(R_NACELLE, R_NACELLE * 0.93, 2.62, 96, 1, true),
+  new THREE.MeshStandardMaterial({
+    color: 0xd6dee7, metalness: 0.92, roughness: 0.32, map: brushed,
+    side: THREE.DoubleSide, envMapIntensity: 1.2,
+  }),
+);
+nacelleShell.rotation.x = Math.PI / 2;
+nacelleShell.position.z = -0.68;
+nacelleShell.castShadow = true;
+nacelleShell.receiveShadow = true;
+nacelleGroup.add(nacelleShell);
+
+// 短舱内壁：深色吸音层
+const nacelleInner = new THREE.Mesh(
+  new THREE.CylinderGeometry(R_NACELLE * 0.972, R_NACELLE * 0.9, 2.56, 96, 1, true),
+  new THREE.MeshStandardMaterial({ color: 0x1b2027, metalness: 0.4, roughness: 0.82, side: THREE.BackSide }),
+);
+nacelleInner.rotation.x = Math.PI / 2;
+nacelleInner.position.z = -0.68;
+nacelleGroup.add(nacelleInner);
+
+// 风扇机匣前缘环
+const caseRing = new THREE.Mesh(
+  new THREE.TorusGeometry(R_NACELLE * 0.965, 0.05, 12, 96),
+  MAT.dark,
+);
+caseRing.position.z = -1.84;
+nacelleGroup.add(caseRing);
+
+// 反推格栅（两段）
+for (const z of [0.28, 0.62]) {
+  const grille = new THREE.Mesh(
+    new THREE.CylinderGeometry(R_NACELLE * 0.945, R_NACELLE * 0.945, 0.24, 96, 1, true),
+    new THREE.MeshStandardMaterial({ color: 0x2f373f, metalness: 0.8, roughness: 0.55, side: THREE.DoubleSide }),
+  );
+  grille.rotation.x = Math.PI / 2;
+  grille.position.z = z;
+  nacelleGroup.add(grille);
+}
+
+wb.id(nacelleGroup, 'engine-nacelle');
+
+// ---- 吊挂（pylon）：从短舱顶部向上收窄，根部埋进短舱 ----
+const pylonShape = new THREE.Shape();
+pylonShape.moveTo(-0.9, -0.55);
+pylonShape.lineTo(-0.42, 0.78);
+pylonShape.lineTo(0.42, 0.78);
+pylonShape.lineTo(0.86, -0.55);
+pylonShape.closePath();
+const pylon = new THREE.Mesh(
+  new THREE.ExtrudeGeometry(pylonShape, { depth: 0.3, bevelEnabled: true, bevelSize: 0.04, bevelThickness: 0.04, bevelSegments: 2 }),
+  MAT.dark,
+);
+pylon.position.set(0, 1.62, 0.15);
+pylon.rotation.y = Math.PI / 2;
+pylon.castShadow = true;
+wb.id(pylon, 'engine-pylon');
+engine.add(pylon);
+
+// ---- 风扇（转子叶片） ----
+const fanGroup = new THREE.Group();
+fanGroup.name = 'fan';
+fanGroup.position.z = -1.62;
+engine.add(fanGroup);
+
+const spinnerProfile = [];
+for (let i = 0; i <= 24; i += 1) {
+  const t = i / 24;
+  const r = Math.sin(t * Math.PI * 0.5) * 0.42;
+  spinnerProfile.push(new THREE.Vector2(Math.max(0.0001, r), -0.34 + t * 0.86));
+}
+const spinner = new THREE.Mesh(
+  new THREE.LatheGeometry(spinnerProfile, 48),
+  MAT.dark,
+);
+spinner.castShadow = true;
+fanGroup.add(spinner);
+
+const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.44, 0.34, 48), MAT.dark);
+hub.rotation.x = Math.PI / 2;
+hub.position.z = 0.12;
+fanGroup.add(hub);
+
+const BLADES = 22;
+const bladeGeo = new THREE.BoxGeometry(0.075, 0.98, 0.05);
+bladeGeo.translate(0, 0.49, 0);
+for (let i = 0; i < BLADES; i += 1) {
+  const angle = (i / BLADES) * Math.PI * 2;
+  const blade = new THREE.Mesh(bladeGeo, MAT.skin);
+  blade.position.set(Math.cos(angle) * 0.44, Math.sin(angle) * 0.44, 0.06);
+  blade.rotation.z = angle - Math.PI / 2;
+  // 叶片扭转：叶根到叶尖的桨距角变化
+  blade.rotation.y = 0.42;
+  blade.castShadow = true;
+  // 用顶点位移做出渐缩叶型
+  const pos = blade.geometry.attributes.position;
+  for (let v = 0; v < pos.count; v += 1) {
+    const y = pos.getY(v);
+    const k = y / 0.98;
+    pos.setX(v, pos.getX(v) * (1 - k * 0.55));
+  }
+  pos.needsUpdate = true;
+  blade.geometry.computeVertexNormals();
+  fanGroup.add(blade);
+}
+wb.id(fanGroup, 'engine-fan');
+
+// ---- 核心机（压气机 + 燃烧室 + 涡轮） ----
+const coreGroup = new THREE.Group();
+coreGroup.name = 'core';
+coreGroup.position.z = 0.1;
+engine.add(coreGroup);
+
+const coreShell = new THREE.Mesh(
+  new THREE.CylinderGeometry(R_CORE, R_CORE * 0.86, 2.28, 64, 1, true),
+  MAT.hot,
+);
+coreShell.rotation.x = Math.PI / 2;
+coreShell.position.z = 0.2;
+coreShell.castShadow = true;
+coreGroup.add(coreShell);
+
+// 压气机级（多级叶片环）
+function compressorStage(z, radius, count) {
+  const stage = new THREE.Group();
+  stage.position.z = z;
+  const disc = new THREE.Mesh(new THREE.TorusGeometry(radius - 0.05, 0.05, 10, 48), MAT.dark);
+  stage.add(disc);
+  const g = new THREE.BoxGeometry(0.045, radius * 0.34, 0.03);
+  g.translate(0, radius * 0.17, 0);
+  for (let i = 0; i < count; i += 1) {
+    const a = (i / count) * Math.PI * 2;
+    const b = new THREE.Mesh(g, MAT.skin);
+    b.position.set(Math.cos(a) * (radius - 0.11), Math.sin(a) * (radius - 0.11), 0);
+    b.rotation.z = a - Math.PI / 2;
+    b.rotation.y = 0.5;
+    stage.add(b);
+  }
+  return stage;
+}
+for (let i = 0; i < 5; i += 1) {
+  coreGroup.add(compressorStage(-0.86 + i * 0.28, R_CORE * (0.98 - i * 0.045), 34));
+}
+
+// 燃烧室：环形火焰筒 + 喷油嘴
+const combustorGroup = new THREE.Group();
+combustorGroup.name = 'combustor';
+combustorGroup.position.z = 0.56;
+coreGroup.add(combustorGroup);
+
+const liner = new THREE.Mesh(
+  new THREE.TorusGeometry(0.55, 0.17, 18, 64),
+  new THREE.MeshStandardMaterial({
+    color: 0x3a2c22, metalness: 0.9, roughness: 0.42,
+    emissive: 0xff6a18, emissiveIntensity: 1.35,
+  }),
+);
+liner.castShadow = true;
+combustorGroup.add(liner);
+
+const injectors = new THREE.Group();
+for (let i = 0; i < 16; i += 1) {
+  const a = (i / 16) * Math.PI * 2;
+  const nozzle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.028, 0.05, 0.16, 10),
+    MAT.brass,
+  );
+  nozzle.position.set(Math.cos(a) * 0.55, Math.sin(a) * 0.55, -0.14);
+  nozzle.rotation.x = Math.PI / 2;
+  injectors.add(nozzle);
+}
+combustorGroup.add(injectors);
+wb.id(combustorGroup, 'engine-combustor');
+
+// 涡轮：3 级高温叶片
+const turbineGroup = new THREE.Group();
+turbineGroup.name = 'turbine';
+turbineGroup.position.z = 1.0;
+coreGroup.add(turbineGroup);
+
+for (let s = 0; s < 3; s += 1) {
+  const stage = new THREE.Group();
+  stage.position.z = s * 0.2;
+  const disc = new THREE.Mesh(new THREE.TorusGeometry(0.62 - s * 0.03, 0.06, 12, 48), MAT.hot);
+  stage.add(disc);
+  const g = new THREE.BoxGeometry(0.05, 0.3, 0.055);
+  g.translate(0, 0.15, 0);
+  for (let i = 0; i < 40; i += 1) {
+    const a = (i / 40) * Math.PI * 2;
+    const b = new THREE.Mesh(g, MAT.hot);
+    b.position.set(Math.cos(a) * (0.56 - s * 0.03), Math.sin(a) * (0.56 - s * 0.03), 0);
+    b.rotation.z = a - Math.PI / 2;
+    b.rotation.y = -0.55;
+    stage.add(b);
+  }
+  turbineGroup.add(stage);
+}
+wb.id(turbineGroup, 'engine-turbine');
+
+wb.id(coreGroup, 'engine-core');
+
+// ---- 尾喷管 ----
+const nozzleGroup = new THREE.Group();
+nozzleGroup.name = 'nozzle';
+nozzleGroup.position.z = 1.42;
+coreGroup.add(nozzleGroup);
+
+const coneProfile = [];
+for (let i = 0; i <= 20; i += 1) {
+  const t = i / 20;
+  coneProfile.push(new THREE.Vector2(0.52 - t * 0.34, t * 0.9));
+}
+const nozzleCone = new THREE.Mesh(
+  new THREE.LatheGeometry(coneProfile, 64),
+  new THREE.MeshStandardMaterial({
+    color: 0x5b5348, metalness: 1.0, roughness: 0.3,
+    emissive: 0x2a1608, emissiveIntensity: 0.7,
+  }),
+);
+nozzleCone.rotation.x = Math.PI / 2;
+nozzleCone.castShadow = true;
+nozzleGroup.add(nozzleCone);
+
+const nozzleRing = new THREE.Mesh(
+  new THREE.TorusGeometry(0.5, 0.045, 12, 64),
+  MAT.hot,
+);
+nozzleRing.position.z = 0.9;
+nozzleGroup.add(nozzleRing);
+wb.id(nozzleGroup, 'engine-nozzle');
+
+// ---- 附件齿轮箱 + 管路（细节层） ----
+const accessory = new THREE.Group();
+accessory.name = 'accessory';
+engine.add(accessory);
+const gearbox = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.38, 0.86), MAT.dark);
+gearbox.position.set(0, -0.92, 0.36);
+gearbox.castShadow = true;
+accessory.add(gearbox);
+
+for (let i = 0; i < 6; i += 1) {
+  const pipe = new THREE.Mesh(
+    new THREE.TubeGeometry(
+      new THREE.CatmullRomCurve3([
+        S(-0.62 + i * 0.06, -0.72, -0.3 + i * 0.16),
+        S(-0.86 - i * 0.02, -0.5, 0.2 + i * 0.14),
+        S(-0.7, -0.24, 0.7 + i * 0.1),
+      ]),
+      24, 0.018, 8, false,
+    ),
+    MAT.brass,
+  );
+  accessory.add(pipe);
+}
+
+// 涡轮后温度探针
+for (let i = 0; i < 6; i += 1) {
+  const a = (i / 6) * Math.PI * 2 + 0.3;
+  const probe = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.34, 8), MAT.glass);
+  probe.position.set(Math.cos(a) * 0.6, Math.sin(a) * 0.6, 1.22);
+  accessory.add(probe);
+}
+
+// ---- 地面接触阴影贴片 ----
+const contactTex = (() => {
+  const size = 256;
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const g = c.getContext('2d');
+  const grd = g.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  grd.addColorStop(0, 'rgba(0,0,0,0.55)');
+  grd.addColorStop(0.55, 'rgba(0,0,0,0.18)');
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = grd;
+  g.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(c);
+})();
+const contact = new THREE.Mesh(
+  new THREE.PlaneGeometry(6.4, 6.4),
+  new THREE.MeshBasicMaterial({ map: contactTex, transparent: true, depthWrite: false }),
+);
+contact.rotation.x = -Math.PI / 2;
+contact.position.set(0, -1.605, 0);
+world.add(contact);
+
+// ------------------------------------------------------------
+// 动画
+// ------------------------------------------------------------
+let fanAngle = 0;
+let coreAngle = 0;
+onFrame(({ time }) => {
+  fanAngle += 0.9 / 60;
+  coreAngle += 1.5 / 60;
+  fanGroup.rotation.z = -fanAngle * Math.PI * 2;
+  for (const stage of turbineGroup.children) stage.rotation.z = -coreAngle * Math.PI * 2 * 0.55;
+  for (const stage of coreGroup.children) {
+    if (stage.name === 'combustor' || stage.name === 'turbine' || stage.name === 'nozzle') continue;
+    stage.rotation.z = -coreAngle * Math.PI * 2 * 0.7;
+  }
+  // 燃烧室脉动
+  const pulse = 0.9 + Math.sin(time * 9.5) * 0.18 + Math.sin(time * 23.0) * 0.06;
+  liner.material.emissiveIntensity = 1.15 * pulse;
+  nozzleCone.material.emissiveIntensity = 0.45 + 0.25 * pulse;
+  bounce.intensity = 22 + Math.sin(time * 3.1) * 3.4;
+});

@@ -20,7 +20,7 @@
   "scripts": {
     "start": "./standalone/start.sh",
     "start:harness": "./start.sh",
-    "test": "node --test tests/assets.test.mjs tests/behavior.test.mjs tests/demos.test.mjs tests/export.test.mjs tests/export-fbx.test.mjs tests/history.test.mjs tests/license.test.mjs tests/presentation.test.mjs tests/profile-merge.test.mjs tests/share.test.mjs tests/portable-store.test.mjs tests/smoke.test.mjs tests/standalone-server.test.mjs tests/studio-ai.test.mjs tests/templates.test.mjs tests/tracks.test.mjs standalone/plugins/runtime.test.mjs standalone/settings.test.mjs standalone/sessions.test.mjs",
+    "test": "node --test tests/assets.test.mjs tests/behavior.test.mjs tests/demos.test.mjs tests/examples.test.mjs tests/export.test.mjs tests/export-fbx.test.mjs tests/history.test.mjs tests/license.test.mjs tests/presentation.test.mjs tests/profile-merge.test.mjs tests/share.test.mjs tests/portable-store.test.mjs tests/smoke.test.mjs tests/standalone-server.test.mjs tests/studio-ai.test.mjs tests/templates.test.mjs tests/tracks.test.mjs standalone/plugins/runtime.test.mjs standalone/settings.test.mjs standalone/sessions.test.mjs",
     "test:disk": "node --test tests/disk.test.mjs",
     "migrate:portable": "node standalone/migrate-portable.mjs",
     "merge:portable": "node standalone/merge-portable.mjs",
