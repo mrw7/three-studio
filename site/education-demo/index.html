@@ -23,64 +23,63 @@
       <span class="brand-mark">O</span>
       <span><strong>ORBIT LAB</strong><small>THREE STUDIO WORKSHOP</small></span>
     </a>
-    <nav class="topnav" aria-label="课程导航">
-      <a href="#steps">课程步骤</a>
-      <a href="#code">代码</a>
-      <a href="#workshop">工作坊</a>
+    <nav class="topnav" aria-label="Lesson navigation">
+      <a href="#steps">Lesson steps</a>
+      <a href="#code">Code</a>
+      <a href="#workshop">Workshop</a>
     </nav>
-    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20workshop">预约工作坊 <span aria-hidden="true">↗</span></a>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20workshop">Book a workshop <span aria-hidden="true">↗</span></a>
   </header>
 
   <main class="lesson">
     <aside class="steps" id="steps">
       <p class="eyebrow">WORKSHOP 01 / 90 MIN</p>
-      <h1>用 Three.js<br><em>搭一个太阳系</em></h1>
-      <p class="lede">从空场景开始，一步一步加入太阳、行星、轨道和月球。
-        每一步都有可运行的代码，适合设计师、前端和创意开发者。</p>
-      <ol class="step-list" aria-label="课程步骤">
-        <li><button type="button" data-step="0" aria-current="true"><span>01</span><span>搭好舞台<small>场景、相机、灯光</small></span></button></li>
-        <li><button type="button" data-step="1"><span>02</span><span>点亮太阳<small>材质与点光源</small></span></button></li>
-        <li><button type="button" data-step="2"><span>03</span><span>让行星公转<small>轨道与动画</small></span></button></li>
-        <li><button type="button" data-step="3"><span>04</span><span>加一颗月球<small>层级与相对运动</small></span></button></li>
+      <h1>Use Three.js<br><em>to build a solar system</em></h1>
+      <p class="lede">Start with an empty scene and add the sun, planets, orbits and moon step by step. Every step has runnable code—built for designers, front-end developers and creative technologists.</p>
+      <ol class="step-list" aria-label="Lesson steps">
+        <li><button type="button" data-step="0" aria-current="true"><span>01</span><span>Set the stage<small>Scene, camera, lights</small></span></button></li>
+        <li><button type="button" data-step="1"><span>02</span><span>Light the sun<small>Materials and point lights</small></span></button></li>
+        <li><button type="button" data-step="2"><span>03</span><span>Make planets orbit<small>Orbits and animation</small></span></button></li>
+        <li><button type="button" data-step="3"><span>04</span><span>Add a moon<small>Hierarchy and relative motion</small></span></button></li>
       </ol>
       <div class="progress"><span id="progress-bar"></span></div>
       <p class="step-count" id="step-count">STEP 01 / 04</p>
       <div class="workshop-note" id="workshop">
         <span>NEXT WORKSHOP</span>
-        <strong>AI Three.js 交付工作坊</strong>
-        <small>2 天 · 企业/团队 · 从 prompt 到可上线页面</small>
-        <a href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20workshop">预约名额 <span aria-hidden="true">↗</span></a>
+        <strong>AI Three.js delivery workshop</strong>
+        <small>2 days · teams · prompt to production page</small>
+        <a href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20workshop">Book a seat <span aria-hidden="true">↗</span></a>
       </div>
     </aside>
 
-    <section class="stage" aria-label="太阳系实时预览">
+    <section class="stage" aria-label="Live solar system preview">
       <canvas id="scene"></canvas>
       <div class="stage-top">
         <span>LIVE SCENE</span>
         <strong id="stage-label">STEP 01 · STAGE</strong>
       </div>
-      <div class="stage-hint">拖动旋转 · 滚轮缩放</div>
+      <div class="stage-hint">Drag to rotate · Scroll to zoom</div>
       <div class="stage-controls">
-        <button type="button" id="prev-step" aria-label="上一步">←</button>
-        <button type="button" id="play-toggle" aria-pressed="true">暂停动画</button>
-        <button type="button" id="next-step" aria-label="下一步">下一步 →</button>
+        <button type="button" id="prev-step" aria-label="Previous">←</button>
+        <button type="button" id="play-toggle" aria-pressed="true">Pause animation</button>
+        <button type="button" id="next-step" aria-label="Next">Next →</button>
       </div>
     </section>
 
     <aside class="code-panel" id="code">
       <div class="code-head">
-        <span>当前步骤</span>
-        <strong id="code-title">搭好舞台</strong>
+        <span>Current step</span>
+        <strong id="code-title">Set the stage</strong>
       </div>
       <pre><code id="code-block"></code></pre>
-      <button type="button" class="copy-code" id="copy-code">复制代码</button>
+      <button type="button" class="copy-code" id="copy-code">Copy code</button>
       <div class="tip" id="tip"></div>
-      <a class="code-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20workshop">想学完整流程？预约工作坊 <span aria-hidden="true">↗</span></a>
+      <a class="code-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20workshop">Want the full workflow? Book a workshop <span aria-hidden="true">↗</span></a>
     </aside>
   </main>
 
   <footer class="site-footer">
-    <span>ORBIT LAB 是为 Three Studio 教育工作坊 demo 虚构的课程，不是真实课程品牌。</span>
+    <span>ORBIT LAB is a fictional course created for a Three Studio education demo; it is not a real course brand.</span>
     <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
   </footer>
 

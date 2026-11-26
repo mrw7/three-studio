@@ -26,19 +26,18 @@
       <span class="brand-mark">S</span>
       <span><strong>SONAR</strong><small>MOTION STUDY · THREE STUDIO</small></span>
     </a>
-    <nav class="topnav" aria-label="导航">
+    <nav class="topnav" aria-label="Navigation">
       <a href="../index.html">Demo gallery</a>
       <a href="../data-demo/">Next: SIGNAL</a>
     </nav>
-    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20audio%20visualizer">做同款可视化 <span aria-hidden="true">↗</span></a>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20audio%20visualizer">Make this visualizer <span aria-hidden="true">↗</span></a>
   </header>
 
   <main class="overlay">
     <section class="hero-copy">
       <p class="eyebrow">MOTION STUDY 03 / AUDIO REACTIVE</p>
-      <h1>让声音<br><em>被看见。</em></h1>
-      <p class="lede">麦克风或内置合成音轨，实时驱动 96 根频谱柱、波形环和粒子。
-        所有反应都来自 Web Audio API 的 AnalyserNode。</p>
+      <h1>Make sound<br><em>visible.</em></h1>
+      <p class="lede">Microphone or built-in synth drives 96 spectrum bars, a waveform ring and particles live. Every reaction comes from the Web Audio API AnalyserNode.</p>
     </section>
 
     <div class="hud" aria-live="polite">
@@ -47,31 +46,31 @@
       <div><span>FPS</span><strong id="fps">—</strong></div>
     </div>
 
-    <div class="controls" role="group" aria-label="音频控制">
-      <button type="button" id="mic">启用麦克风</button>
-      <button type="button" id="demo">播放 Demo 音轨</button>
-      <button type="button" id="pause" disabled>暂停</button>
-      <button type="button" id="reset">重置视角</button>
+    <div class="controls" role="group" aria-label="Audio controls">
+      <button type="button" id="mic">Enable microphone</button>
+      <button type="button" id="demo">Play demo track</button>
+      <button type="button" id="pause" disabled>Pause</button>
+      <button type="button" id="reset">Reset view</button>
     </div>
 
-    <p class="hint">拖动旋转 · 滚轮缩放</p>
+    <p class="hint">Drag to rotate · Scroll to zoom</p>
   </main>
 
   <div class="gate" id="gate">
     <div class="gate-card">
       <p class="eyebrow">SONAR / AUDIO INPUT</p>
-      <h2>选择声音来源</h2>
-      <p>麦克风只在本地处理，不上传。Demo 音轨是一段静音驱动的合成信号，点击后开始。</p>
+      <h2>Choose an audio source</h2>
+      <p>The microphone is processed locally and never uploaded. The demo track is a silent procedural signal; click to start.</p>
       <div class="gate-actions">
-        <button type="button" id="gate-mic">启用麦克风</button>
-        <button type="button" id="gate-demo">播放 Demo 音轨</button>
+        <button type="button" id="gate-mic">Enable microphone</button>
+        <button type="button" id="gate-demo">Play demo track</button>
       </div>
-      <small>需要浏览器允许音频/麦克风权限。</small>
+      <small>The browser needs audio/microphone permission.</small>
     </div>
   </div>
 
   <footer class="site-footer">
-    <span>SONAR 是 Three Studio 的程序化音频可视化 demo。</span>
+    <span>SONAR is a procedural audio visualizer demo for Three Studio.</span>
     <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
   </footer>
 

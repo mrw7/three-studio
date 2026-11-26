@@ -206,7 +206,7 @@ for (const part of MANUAL.parts) {
   item.append(no, name, qty)
   if (part.uid !== null) {
     item.style.cursor = 'pointer'
-    item.title = '点击聚焦该零件'
+    item.title = 'Click to focus this part'
     item.addEventListener('click', () => {
       applyHighlight(part.uid)
       focusUid(part.uid)

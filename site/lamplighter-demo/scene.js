@@ -38,23 +38,23 @@ void clock
 
 // ---- begin examples/scene-lamplighter.js ----
 // ============================================================
-//  《点灯人》The Lamplighter — 60 秒十镜短片
-//  雾夜 · 小机器人用胸口最后一颗灯泡点亮整条街
+//  The Lamplighter — a 60-second film in ten shots
+//  A foggy night; a small robot lights the whole street with the last bulb in its chest
 //
-//  镜头表（硬切，每镜独立机位）：
-//    S1  0–5   大全景  雾夜空街，远处一个微小光点
-//    S2  5–12  中景    抱着胸口的灯涉水前行
-//    S3 12–20  仰拍    停在灯柱下抬头
-//    S4 20–26  跟拍    沿灯柱攀爬
-//    S5 26–32  特写    手滑坠落，灯闪两下
-//    S6 32–38  中景    再次攀爬，把灯泡拧进灯座
-//    S7 38–42  全景    第一盏灯亮，光刺破雾
-//    S8 42–48  横移    光沿街传递，一排灯依次亮起
-//    S9 48–54  反打    胸口光灭，坐在灯柱下成为剪影
-//    S10 54–60 缓推升起 暖光漫回，灯带连成星河，标题浮现
+//  Shot list (hard cuts, an independent camera per shot):
+//    S1  0-5    wide         foggy empty street, one tiny point of light far off
+//    S2  5-12   medium       wading forward, holding the light in its chest
+//    S3 12-20   low angle    stops under the lamp post, looks up
+//    S4 20-26   tracking     climbing the post
+//    S5 26-32   close        its hand slips, falls, the light flickers twice
+//    S6 32-38   medium       climbs again, screws the bulb into the socket
+//    S7 38-42   wide         the first lamp wakes, light cuts through the fog
+//    S8 42-48   dolly        light runs down the street, lamp after lamp
+//    S9 48-54   reverse      the chest light dies, it sits as a silhouette
+//    S10 54-60  push up      warm light floods back, the lamps form a river, title
 //
-//  时间轴：onFrame 的 time 就是全片绝对时间（0–60），
-//  与 Film 面板导出的 capture-frame 采样时间一致。
+//  Timeline: onFrame's time is absolute film time (0-60), matching the
+//  capture-frame sampling the Film panel uses on export.
 // ============================================================
 
 setBackground('#05070c');
@@ -67,7 +67,7 @@ const smooth = v => { const t = clamp01(v); return t * t * (3 - 2 * t); };
 const easeInOut = v => { const t = clamp01(v); return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; };
 const lerp = (a, b, t) => a + (b - a) * t;
 
-// ---------- 渲染设定：电影感优先 ----------
+// ---------- render setup: cinematic first ----------
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.16;
 renderer.shadowMap.enabled = true;
@@ -82,7 +82,7 @@ camera.position.set(0, 2.2, 16);
 camera.updateProjectionMatrix();
 controls.enabled = false;
 
-// ---------- 程序化贴图 ----------
+// ---------- procedural textures ----------
 function canvasTexture(w, h, draw) {
   const c = document.createElement('canvas');
   c.width = w; c.height = h;
@@ -93,7 +93,7 @@ function canvasTexture(w, h, draw) {
   return t;
 }
 
-// 水渍路面：深色沥青 + 湿反光条纹
+// wet asphalt: dark road surface with specular streaks
 const roadTex = canvasTexture(512, 512, (g, w, h) => {
   g.fillStyle = '#0a0e14';
   g.fillRect(0, 0, w, h);
@@ -118,7 +118,7 @@ const roadTex = canvasTexture(512, 512, (g, w, h) => {
 roadTex.wrapS = roadTex.wrapT = THREE.RepeatWrapping;
 roadTex.repeat.set(4, 22);
 
-// 光晕贴片（灯泡 / 灯柱光斑）
+// halo sprites (bulb glow / lamp pool on the road)
 const glowTex = canvasTexture(128, 128, (g, w, h) => {
   const grd = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
   grd.addColorStop(0, 'rgba(255,238,205,1)');
@@ -129,7 +129,7 @@ const glowTex = canvasTexture(128, 128, (g, w, h) => {
   g.fillRect(0, 0, w, h);
 });
 
-// ---------- 世界 ----------
+// ---------- world ----------
 const world = new THREE.Group();
 world.name = 'lamplighter';
 scene.add(world);
@@ -137,7 +137,7 @@ scene.add(world);
 const STREET_LEN = 96;
 const STREET_HALF = 5.2;
 
-// 地面
+// ground
 const road = new THREE.Mesh(
   new THREE.PlaneGeometry(STREET_HALF * 2, STREET_LEN),
   new THREE.MeshStandardMaterial({
@@ -151,7 +151,7 @@ road.rotation.x = -Math.PI / 2;
 road.receiveShadow = true;
 world.add(road);
 
-// 两侧人行道
+// sidewalks on both sides
 for (const side of [-1, 1]) {
   const walk = new THREE.Mesh(
     new THREE.BoxGeometry(2.4, 0.16, STREET_LEN),
@@ -162,7 +162,7 @@ for (const side of [-1, 1]) {
   world.add(walk);
 }
 
-// 剪影建筑：两侧错落的楼体
+// silhouette buildings: staggered blocks on both sides
 const buildingMat = new THREE.MeshStandardMaterial({ color: 0x080b11, metalness: 0.1, roughness: 0.95 });
 let seed = 20261125;
 const rand = () => {
@@ -179,7 +179,7 @@ for (let i = 0; i < 34; i += 1) {
   b.position.set(side * (STREET_HALF + 3.4 + rand() * 5), h / 2, z);
   world.add(b);
 
-  // 零星窗火：极少数亮着的窗
+    // a few lit windows: only a handful are ever on
   if (rand() > 0.62) {
     const winMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xffc98a).multiplyScalar(0.7) });
     const win = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), winMat);
@@ -189,7 +189,7 @@ for (let i = 0; i < 34; i += 1) {
   }
 }
 
-// 远景天际线剪影
+// distant skyline silhouette
 const skyline = new THREE.Group();
 for (let i = 0; i < 40; i += 1) {
   const h = 6 + rand() * 26;
@@ -199,7 +199,7 @@ for (let i = 0; i < 40; i += 1) {
 }
 world.add(skyline);
 
-// ---------- 路灯 ----------
+// ---------- lamp posts ----------
 const LAMP_COUNT = 9;
 const LAMP_Z = [];
 const lamps = [];
@@ -228,13 +228,13 @@ for (let i = 0; i < LAMP_COUNT; i += 1) {
   pole.castShadow = true;
   group.add(pole);
 
-  // 灯臂
+    // lamp arm
   const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.9, 10), poleMat);
   arm.rotation.z = -Math.PI / 2.6;
   arm.position.set(0.34, LAMP_HEIGHT + 0.28, 0);
   group.add(arm);
 
-  // 灯头灯罩
+    // lamp head and shade
   const shade = new THREE.Mesh(
     new THREE.ConeGeometry(0.4, 0.34, 18, 1, true),
     new THREE.MeshStandardMaterial({ color: 0x232b35, metalness: 0.9, roughness: 0.36, side: THREE.DoubleSide }),
@@ -243,7 +243,7 @@ for (let i = 0; i < LAMP_COUNT; i += 1) {
   shade.castShadow = true;
   group.add(shade);
 
-  // 灯泡（默认灭）
+    // the bulb itself (off by default)
   const bulbMat = new THREE.MeshStandardMaterial({
     color: 0x1a1a18, emissive: 0xffcf8f, emissiveIntensity: 0, roughness: 0.32,
   });
@@ -251,7 +251,7 @@ for (let i = 0; i < LAMP_COUNT; i += 1) {
   bulb.position.set(0.68, LAMP_HEIGHT + 0.16, 0);
   group.add(bulb);
 
-  // 光晕贴片
+    // halo sprite
   const halo = new THREE.Mesh(
     new THREE.PlaneGeometry(2.6, 2.6),
     new THREE.MeshBasicMaterial({
@@ -262,12 +262,12 @@ for (let i = 0; i < LAMP_COUNT; i += 1) {
   halo.position.copy(bulb.position);
   group.add(halo);
 
-  // 点光源（默认关）
+    // point light (off by default)
   const light = new THREE.PointLight(0xffc178, 0, 26, 2);
   light.position.copy(bulb.position);
   group.add(light);
 
-  // 落在地面/身体上的光斑
+    // pool of light on the road and on the body
   const pool = new THREE.Mesh(
     new THREE.PlaneGeometry(7.5, 7.5),
     new THREE.MeshBasicMaterial({
@@ -283,7 +283,7 @@ for (let i = 0; i < LAMP_COUNT; i += 1) {
 }
 wb.id(lamps[HERO_LAMP].group, 'lamp-hero');
 
-// ---------- 主角：小机器人 ----------
+// ---------- the character: a small robot ----------
 const robot = new THREE.Group();
 robot.name = 'lamplighter';
 robot.position.set(0, 0, 2.2);
@@ -304,12 +304,12 @@ const torso = new THREE.Mesh(new THREE.CapsuleGeometry(BODY_R, BODY_H - BODY_R *
 torso.castShadow = true;
 body.add(torso);
 
-// 胸口灯座
+// chest socket
 const socketRing = new THREE.Mesh(new THREE.TorusGeometry(0.115, 0.028, 10, 24), metalLight);
 socketRing.position.set(0, 0.06, BODY_R * 0.94);
 body.add(socketRing);
 
-// 胸口灯泡（角色唯一的光源）
+// chest bulb: the character's only light source
 const chestLightMat = new THREE.MeshStandardMaterial({
   color: 0x2a2018, emissive: 0xffd39a, emissiveIntensity: 3.4, roughness: 0.28,
 });
@@ -331,7 +331,7 @@ const chestLight = new THREE.PointLight(0xffc98d, 3.4, 6.5, 2);
 chestLight.position.set(0, 0.06, BODY_R * 1.1);
 body.add(chestLight);
 
-// 头
+// head
 const head = new THREE.Group();
 head.position.y = 0.48;
 body.add(head);
@@ -340,7 +340,7 @@ skull.scale.set(1, 0.92, 0.95);
 skull.castShadow = true;
 head.add(skull);
 
-// 眼睛：两条细缝，由胸口光反射点亮
+// eyes: two thin slits, lit by the reflection from the chest light
 const eyeMat = new THREE.MeshBasicMaterial({ color: 0xffd7a3 });
 for (const side of [-1, 1]) {
   const eye = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.016, 0.01), eyeMat);
@@ -354,7 +354,7 @@ const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.022, 10, 8), chestL
 antennaTip.position.set(0.05, 0.34, 0);
 head.add(antennaTip);
 
-// 手臂（可摆动 / 攀爬）
+// arms (swing while walking / reach while climbing)
 function makeArm(side) {
   const shoulder = new THREE.Group();
   shoulder.position.set(side * (BODY_R + 0.03), 0.26, 0);
@@ -384,7 +384,7 @@ function makeArm(side) {
 const armL = makeArm(-1);
 const armR = makeArm(1);
 
-// 腿
+// legs
 function makeLeg(side) {
   const hip = new THREE.Group();
   hip.position.set(side * 0.105, 0.44, 0);
@@ -409,7 +409,7 @@ function makeLeg(side) {
 const legL = makeLeg(-1);
 const legR = makeLeg(1);
 
-// 胸口灯的湿地反光：小尺寸、低强度，贴在路面上跟随机器人水平移动
+// the chest light reflecting off the wet road: small, weak, follows the robot
 const chestPool = new THREE.Mesh(
   new THREE.PlaneGeometry(2.0, 2.0),
   new THREE.MeshBasicMaterial({
@@ -423,7 +423,7 @@ world.add(chestPool);
 
 wb.id(robot, 'lamplighter-robot');
 
-// ---------- 雾 / 雨丝 ----------
+// ---------- fog / rain streaks ----------
 const fogParticles = (() => {
   const count = 1400;
   const pos = new Float32Array(count * 3);
@@ -443,7 +443,7 @@ const fogParticles = (() => {
   return { pts, mat, pos };
 })();
 
-// ---------- 标题 ----------
+// ---------- title card ----------
 const titleTexture = canvasTexture(1024, 512, (g, w, h) => {
   g.clearRect(0, 0, w, h);
   g.textAlign = 'center';
@@ -452,7 +452,7 @@ const titleTexture = canvasTexture(1024, 512, (g, w, h) => {
   g.fillText('The Lamplighter', w / 2, h * 0.44);
   g.fillStyle = 'rgba(255,222,180,0.62)';
   g.font = '400 30px Georgia, serif';
-  g.fillText('点 灯 人', w / 2, h * 0.58);
+  g.fillText('a small light, given away', w / 2, h * 0.58);
   g.fillStyle = 'rgba(255,210,160,0.34)';
   g.font = '400 18px system-ui, sans-serif';
   g.fillText('a sixty-second night', w / 2, h * 0.68);
@@ -465,8 +465,8 @@ title.position.set(0, 3.4, -18);
 title.renderOrder = 10;
 scene.add(title);
 
-// ---------- 机位表 ----------
-// 每镜独立机位，切换即硬切。构图围绕灯柱（x = POLE_X, z = -2.35）。
+// ---------- shot table ----------
+// One independent camera per shot; switching is a hard cut. Framing is
 const SHOTS = [
   { id: 'S1', start: 0, end: 5, pos: V3(-2.0, 2.9, 15.5), target: V3(-4.2, 2.6, -6), fov: 40 },
   { id: 'S2', start: 5, end: 12, pos: V3(-1.35, 1.05, 1.6), target: V3(-3.4, 0.72, -3.0), fov: 34 },
@@ -480,27 +480,27 @@ const SHOTS = [
   { id: 'S10', start: 54, end: 60, pos: V3(0.4, 1.5, 4.4), target: V3(-3.6, 2.6, -8.5), fov: 42 },
 ];
 
-// ---------- 关键帧曲线：机器人位置 / 姿态 ----------
-// 灯柱在世界坐标 x = LAMP_X (-4.7)、z = -2.35；灯头灯泡在 x ≈ -4.02、y ≈ 6.56。
-// 机器人必须贴着这根柱子走/爬，否则会悬在半空。
+// ---------- keyframe curves: robot position and pose ----------
+// The post sits at world x = LAMP_X (-4.7), z = -2.35; its bulb is at x ~ -4.02, y ~ 6.56.
+// The robot has to walk and climb against this post, or it floats in mid-air.
 const POLE_X = LAMP_X;               // -4.7
-const CLIMB_X = POLE_X + 0.38;       // 贴着柱面（柱半径 + 机身半径）
+const CLIMB_X = POLE_X + 0.38;       // hugging the pole (pole radius + body radius)
 const BULB_Y = LAMP_HEIGHT + 0.16;   // 6.56
-const CLIMB_TOP = BULB_Y - 1.2;      // 站到这个高度，抬手正好够到灯座
+const CLIMB_TOP = BULB_Y - 1.2;      // at this height the reach lands on the socket
 const LAMP_Z_HERO = HERO_LAMP_Z;     // -2.35
 
 const ROBOT_PATH = [
-  { t: 0, p: V3(-2.4, 0, -9.6) },                                   // 远处光点
-  { t: 5, p: V3(-3.0, 0, -3.4) },                                   // 走进中景
-  { t: 12, p: V3(CLIMB_X + 0.22, 0, LAMP_Z_HERO) },                 // 停到灯柱下
-  { t: 20, p: V3(CLIMB_X, 0, LAMP_Z_HERO) },                        // 攀爬起点（贴柱）
+  { t: 0, p: V3(-2.4, 0, -9.6) },                                   // a distant point of light
+  { t: 5, p: V3(-3.0, 0, -3.4) },                                   // walks into the medium shot
+  { t: 12, p: V3(CLIMB_X + 0.22, 0, LAMP_Z_HERO) },                 // stops under the lamp post
+  { t: 20, p: V3(CLIMB_X, 0, LAMP_Z_HERO) },                        // start of the climb, against the pole
   { t: 26, p: V3(CLIMB_X, CLIMB_TOP * 0.46, LAMP_Z_HERO) },
-  { t: 27.2, p: V3(CLIMB_X, 0.0, LAMP_Z_HERO) },                    // 坠落
-  { t: 32, p: V3(CLIMB_X, 0.0, LAMP_Z_HERO) },                      // 爬起来
-  { t: 38, p: V3(CLIMB_X, CLIMB_TOP, LAMP_Z_HERO) },                // 到灯座
+  { t: 27.2, p: V3(CLIMB_X, 0.0, LAMP_Z_HERO) },                    // the fall
+  { t: 32, p: V3(CLIMB_X, 0.0, LAMP_Z_HERO) },                      // gets up again
+  { t: 38, p: V3(CLIMB_X, CLIMB_TOP, LAMP_Z_HERO) },                // reaches the socket
   { t: 42, p: V3(CLIMB_X, CLIMB_TOP, LAMP_Z_HERO) },
   { t: 44, p: V3(CLIMB_X, CLIMB_TOP, LAMP_Z_HERO) },
-  { t: 48, p: V3(CLIMB_X, 0, LAMP_Z_HERO) },                        // 坐回灯柱下
+  { t: 48, p: V3(CLIMB_X, 0, LAMP_Z_HERO) },                        // sits back down under the post
   { t: 54, p: V3(CLIMB_X, 0, LAMP_Z_HERO) },
   { t: 60, p: V3(CLIMB_X, 0, LAMP_Z_HERO) },
 ];
@@ -517,54 +517,54 @@ function robotAt(t) {
   return { p: ROBOT_PATH[ROBOT_PATH.length - 1].p.clone(), k: 1 };
 }
 
-// 攀爬高度（世界 y）。第二次攀爬在 36.4s 到顶，随后在 S6 内完成拧灯。
+// climb height in world y; the second climb reaches the top at 36.4 s,
 const CLIMB_REACH = 36.4;
 const climbHeight = t => {
   if (t < 20) return 0;
   if (t < 26) return smooth((t - 20) / 6) * CLIMB_TOP * 0.46;
-  // 手滑：从半途失手坠落
+    // the slip: loses its grip halfway up and falls
   if (t < 27.2) return lerp(CLIMB_TOP * 0.46, 0, smooth((t - 26) / 1.2));
   if (t < 32) return 0;
   if (t < CLIMB_REACH) return smooth((t - 32) / (CLIMB_REACH - 32)) * CLIMB_TOP;
   return CLIMB_TOP;
 };
 
-// 胸口灯亮度曲线：全片的情绪线
+// chest-light brightness curve: the emotional line of the film
 function chestIntensity(t) {
-  // S1–S3：稳定微亮
+    // S1-S3: steady, faint
   if (t < 12) return 3.1;
-  // S3–S4：紧张地稳一点
+    // S3-S4: steadies with effort
   if (t < 26) return 3.0 + Math.sin(t * 2.2) * 0.12;
-  // S5 坠落：闪两下，几乎熄灭
+    // S5 the fall: two flickers, almost out
   if (t < 26.55) return 2.6;
   if (t < 26.75) return 0.15;
   if (t < 26.95) return 2.2;
   if (t < 27.15) return 0.1;
   if (t < 27.6) return 1.5;
   if (t < 32) return 1.5 + smooth((t - 27.6) / 4.4) * 1.3;
-  // S6：拧进灯座，全功率输出
+    // S6: screwed into the socket, full output
   if (t < 38) return 2.8 + smooth((t - 34) / 4) * 2.5;
   if (t < 40.5) return 5.3;
-  // S7–S8：光被转移出去，胸口急剧衰减
+    // S7-S8: the light is transferred away, the chest drains fast
   if (t < 48) return lerp(5.3, 0.35, smooth((t - 40.5) / 7.5));
-  // S9：熄灭
+    // S9: extinguished
   if (t < 54) return 0.35 * (1 - smooth((t - 48) / 2.4));
-  // S10：不再点亮（暖光来自街道）
+    // S10: never lights again (the warm light comes from the street)
   return 0;
 }
 
-// 街道点灯时刻：S7 点亮第一盏，S8 逐盏传递
+// street lighting timeline: S7 lights the first, S8 cascades down the row
 const LAMP_ORDER = [4, 3, 5, 2, 6, 1, 7, 0, 8];
 const LAMP_LIGHT_TIME = [38.4, 43.0, 43.9, 44.8, 45.7, 46.5, 47.2, 47.9, 48.5];
 
-// ---------- 每帧 ----------
+// ---------- per frame ----------
 const tmpVec = new THREE.Vector3();
 let shakeSeed = 0;
 
 onFrame(({ time }) => {
   const t = time % 60;
 
-  // ---- 机位：硬切 ----
+    // ---- camera: hard cuts ----
   let shot = SHOTS[SHOTS.length - 1];
   for (const s of SHOTS) {
     if (t >= s.start && t < s.end) { shot = s; break; }
@@ -573,7 +573,7 @@ onFrame(({ time }) => {
   camera.fov = shot.fov;
   camera.lookAt(shot.target);
 
-  // S10 缓推升起
+    // S10 slow push up
   if (shot.id === 'S10') {
     const k = easeInOut((t - 54) / 6);
     camera.position.x = lerp(0.4, 2.6, k);
@@ -582,13 +582,13 @@ onFrame(({ time }) => {
     camera.lookAt(tmpVec.set(-3.6, lerp(2.6, 1.9, k), -8.5));
     camera.fov = lerp(42, 33, k);
   }
-  // S4 跟拍：沿柱上升时轻微手持晃动
+    // S4 tracking: a slight handheld sway while climbing
   if (shot.id === 'S4' || shot.id === 'S6') {
     const w = t * 2.4;
     camera.position.x += Math.sin(w) * 0.035;
     camera.position.y += Math.cos(w * 1.3) * 0.028;
   }
-  // S5 坠落：镜头震动
+    // S5 the fall: camera shake
   if (t >= 26.55 && t < 27.6) {
     const amp = 0.11 * (1 - (t - 26.55) / 1.05);
     shakeSeed += 1;
@@ -599,7 +599,7 @@ onFrame(({ time }) => {
   }
   camera.updateProjectionMatrix();
 
-  // ---- 机器人 ----
+    // ---- the robot ----
   const { p } = robotAt(t);
   const h = climbHeight(t);
   const climbing = (t >= 20 && t < 26) || (t >= 32 && t < 38);
@@ -633,7 +633,7 @@ onFrame(({ time }) => {
     body.rotation.x = k * 0.5;
     head.rotation.x = k * 0.7;
   } else if (sitting) {
-    // 坐下：身体下沉、腿前伸
+        // seated: body sinks, legs forward
     const k = smooth((t - 48) / 2.2);
     robot.position.set(p.x, lerp(0.0, -0.16, k), p.z);
     robot.rotation.y = Math.PI * 0.62;
@@ -649,7 +649,7 @@ onFrame(({ time }) => {
     armL.elbow.rotation.x = 0.42;
     armR.elbow.rotation.x = 0.4;
   } else if (t >= 38 && t < 48) {
-    // 站在灯座高度拧灯泡：右手高举
+        // at socket height screwing the bulb in: right arm raised
     robot.position.set(p.x, h, p.z);
     robot.rotation.y = Math.PI * 0.5;
     robot.rotation.z = 0;
@@ -666,7 +666,7 @@ onFrame(({ time }) => {
     legR.knee.rotation.x = 0.42;
     head.rotation.x = -0.28;
   } else {
-    // 走路：程序化步态
+        // walking: procedural gait
     const walking = t >= 1.2 && t < 12.4;
     robot.position.set(p.x, 0, p.z);
     robot.rotation.y = 0;
@@ -686,7 +686,7 @@ onFrame(({ time }) => {
       armL.elbow.rotation.x = 0.36;
       armR.elbow.rotation.x = 0.36;
     } else {
-      // 站立：抱着胸口的灯
+            // standing: cradles the chest light
       robot.position.y = 0;
       body.rotation.x = 0;
       head.rotation.x = t < 5 ? -0.15 : 0.55;
@@ -702,7 +702,7 @@ onFrame(({ time }) => {
     }
   }
 
-  // ---- 胸口灯 ----
+    // ---- chest light ----
   const intensity = chestIntensity(t);
   const norm = clamp01(intensity / 5.3);
   chestLightMat.emissiveIntensity = intensity;
@@ -715,23 +715,23 @@ onFrame(({ time }) => {
   chestPool.material.opacity = norm * 0.18;
   antennaTip.material.emissiveIntensity = Math.max(0.1, intensity * 0.7);
 
-  // 眼睛随胸口光变暗
+    // eyes dim with the chest light
   const eyeLevel = 0.15 + norm * 0.85;
   for (const eye of head.children) {
     if (eye.material === eyeMat) eye.material.color.setRGB(1 * eyeLevel, 0.84 * eyeLevel, 0.64 * eyeLevel);
   }
 
-  // ---- 路灯 ----
+    // ---- street lamps ----
   for (let i = 0; i < lamps.length; i += 1) {
     const order = LAMP_ORDER.indexOf(i);
     const onAt = LAMP_LIGHT_TIME[order];
     let lit = 0;
     if (t >= onAt) {
       const age = t - onAt;
-      // 起亮时的爆闪，然后稳定
+            // burst on ignition, then steady
       const burst = age < 0.32 ? 1 + (1 - age / 0.32) * 2.6 : 1;
       lit = smooth(age / 0.5) * burst;
-      // 电流不稳的细微抖动
+            // faint flicker from unstable current
       lit *= 0.94 + Math.sin(t * 21 + i * 3.1) * 0.03 + Math.sin(t * 7.3 + i) * 0.03;
     }
     const lamp = lamps[i];
@@ -741,7 +741,7 @@ onFrame(({ time }) => {
     lamp.halo.scale.setScalar(1 + lit * 0.32);
     lamp.pool.material.opacity = Math.min(0.62, lit * 0.5);
 
-    // S10 暖光漫回：全街柔和铺满
+        // S10 warm light floods back: the whole street softens
     if (t > 55.5) {
       const warm = smooth((t - 55.5) / 3.4);
       lamp.light.intensity = Math.max(lamp.light.intensity, warm * 9);
@@ -749,11 +749,11 @@ onFrame(({ time }) => {
     }
   }
 
-  // 主灯柱的灯头正对主角，S6 拧灯时才有真正的受光
+    // the hero post's head faces the character, so S6 has real key light
   const hero = lamps[HERO_LAMP];
   hero.light.intensity += norm * 0.05;
 
-  // ---- 雾粒子缓慢漂移 ----
+    // ---- fog particles drift slowly ----
   const arr = fogParticles.pos;
   for (let i = 0; i < arr.length; i += 3) {
     arr[i + 2] += 0.014;
@@ -762,13 +762,13 @@ onFrame(({ time }) => {
   }
   fogParticles.pts.geometry.attributes.position.needsUpdate = true;
 
-  // ---- S1 远处光点（机器人尚未入画时，用胸口光代替）----
-  // ---- S10 标题 ----
+    // ---- S1 the distant point of light (the chest light stands in before the robot enters) ----
+    // ---- S10 title ----
   titleMat.opacity = smooth((t - 55.2) / 2.6) * (t > 58.8 ? 1 - smooth((t - 58.8) / 1.2) : 1);
   title.position.y = lerp(3.0, 4.1, smooth((t - 55.2) / 4));
   title.lookAt(camera.position);
 
-  // ---- 环境光随剧情变化 ----
+    // ---- ambient light follows the story ----
   const storyWarmth = t < 38 ? 0.06 : lerp(0.06, 0.42, smooth((t - 38) / 14));
   scene.fog.color.setRGB(0.05 + storyWarmth * 0.34, 0.078 + storyWarmth * 0.28, 0.125 + storyWarmth * 0.16);
   scene.fog.density = t < 38 ? 0.062 : lerp(0.062, 0.036, smooth((t - 38) / 16));

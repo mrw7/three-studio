@@ -323,7 +323,7 @@ function updateUI() {
 
 function setPlaying(value) {
   playing = value
-  if (pauseButton !== null) pauseButton.textContent = playing ? t('暂停漫游') : t('继续漫游')
+  if (pauseButton !== null) pauseButton.textContent = playing ? t('Pause tour') : t('Resume tour')
   if (pauseButton !== null) pauseButton.setAttribute('aria-pressed', playing ? 'true' : 'false')
 }
 

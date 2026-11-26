@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { t, language } from '../i18n.js'
+import { t } from '../i18n.js'
 import { OrbitControls } from 'three/addons/OrbitControls.js'
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js'
 
@@ -406,7 +406,9 @@ function toast(message) {
 }
 
 function priceTable() {
-  return PRICES[language()] ?? PRICES.en
+  // English-only gallery: the USD list is the only one rendered. PRICES.zh is
+  // kept as the original list-price reference, not as a live option.
+  return PRICES.en
 }
 
 function currentPrice() {
@@ -512,7 +514,7 @@ function exportGLB() {
   const button = document.getElementById('export-glb')
   if (button !== null) {
     button.disabled = true
-    button.textContent = t('导出中…')
+    button.textContent = t('Exporting…')
   }
   const exporter = new GLTFExporter()
   exporter.parse(lamp, result => {
@@ -525,15 +527,15 @@ function exportGLB() {
     setTimeout(() => URL.revokeObjectURL(url), 1500)
     if (button !== null) {
       button.disabled = false
-      button.innerHTML = `${t('下载 GLB')} <span aria-hidden="true">↓</span>`
+      button.innerHTML = `${t('Download GLB')} <span aria-hidden="true">↓</span>`
     }
-    toast(t('GLB 已导出'))
+    toast(t('GLB exported'))
   }, error => {
     if (button !== null) {
       button.disabled = false
-      button.innerHTML = `${t('下载 GLB')} <span aria-hidden="true">↓</span>`
+      button.innerHTML = `${t('Download GLB')} <span aria-hidden="true">↓</span>`
     }
-    toast(t('GLB 导出失败：') + (error instanceof Error ? error.message : String(error)))
+    toast(t('GLB export failed: ') + (error instanceof Error ? error.message : String(error)))
   }, { binary: true, onlyVisible: true })
 }
 
@@ -549,7 +551,7 @@ async function copyConfig() {
   }, null, 2)
   try {
     await navigator.clipboard.writeText(payload)
-    toast(t('配置 JSON 已复制'))
+    toast(t('Config JSON copied'))
   } catch (error) {
     const area = document.createElement('textarea')
     area.value = payload
@@ -557,7 +559,7 @@ async function copyConfig() {
     area.style.opacity = '0'
     document.body.append(area)
     area.select()
-    try { document.execCommand('copy'); toast(t('配置 JSON 已复制')) } catch (copyError) { toast(t('复制失败')) }
+    try { document.execCommand('copy'); toast(t('Config JSON copied')) } catch (copyError) { toast(t('Copy failed')) }
     area.remove()
   }
 }
@@ -569,7 +571,7 @@ document.getElementById('reset-view')?.addEventListener('click', () => {
   controls.target.set(0, 1.45, 0)
   controls.autoRotate = true
   controls.update()
-  toast(t('视角已重置'))
+  toast(t('View reset'))
 })
 
 function resize() {

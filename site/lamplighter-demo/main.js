@@ -101,7 +101,7 @@ function paint() {
 function setPlaying(next) {
   playing = next
   els.toggle.textContent = playing ? '❙❙' : '▶'
-  els.toggle.setAttribute('aria-label', playing ? '暂停' : '播放')
+  els.toggle.setAttribute('aria-label', playing ? 'Pause' : 'Play')
   if (playing) {
     els.hero.classList.add('is-hidden')
     els.player.classList.remove('is-dim')

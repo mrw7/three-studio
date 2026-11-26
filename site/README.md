@@ -17,7 +17,7 @@ in `runtime/`.
 
 - [`one-minute-demo/`](one-minute-demo/README.md) — ONE MINUTE, a 60-second
   procedural film with a six-chapter timeline and playback controls
-- [`lamplighter-demo/`](lamplighter-demo/README.md) — THE LAMPLIGHTER 点灯人, a
+- [`lamplighter-demo/`](lamplighter-demo/README.md) — THE LAMPLIGHTER, a
   60-second ten-shot film with hard cuts, a procedural character, SRT captions
   and a deep-linkable player
 - [`agency-demo/`](agency-demo/README.md) — AUREL scroll-driven 3D product page
@@ -56,13 +56,15 @@ hand-written `index.html`, `main.js`, `styles.css` and `README.md` alone. The
 `preview.png` frames are captured from the running pages; see each demo's README
 for the deep link used.
 
-English prices on the gallery are localized USD list prices, not a symbol-swapped
-copy of the CNY prices.
+Prices on the gallery are USD list prices, not a symbol-swapped copy of a CNY
+list.
 
-The gallery and every demo default to English. The header toggle switches to
-Chinese, reloads the page so dynamic labels rebuild through `t()` in
-[`i18n.js`](i18n.js), and remembers the choice in `localStorage`. Append
-`?lang=en` or `?lang=zh` to a URL to force a language for a shared link.
+The gallery and every demo are English-only. Copy is authored in English in the
+markup and in the scene modules; [`i18n.js`](i18n.js), is retained only because
+the demo modules import `t()` and `language()` from it, and because it still
+holds the historical zh→en dictionary used to migrate the pages. There is no
+language toggle and `?lang=` no longer changes what renders
+(`language()` returns `'en'` unconditionally).
 Contact buttons use `three.studio.2026@outlook.com`; change them if you deploy
 your own copy.
 

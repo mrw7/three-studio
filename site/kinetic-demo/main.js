@@ -269,7 +269,7 @@ document.getElementById('speed')?.addEventListener('input', event => {
 
 pauseButton?.addEventListener('click', () => {
   playing = !playing
-  pauseButton.textContent = playing ? t('暂停') : t('继续')
+  pauseButton.textContent = playing ? t('Pause') : t('Resume')
   pauseButton.setAttribute('aria-pressed', playing ? 'true' : 'false')
   controls.autoRotate = playing && autoRotate
 })

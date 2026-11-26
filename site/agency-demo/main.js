@@ -135,10 +135,10 @@ const swatches = [...document.querySelectorAll('[data-variant]')]
 const variantTitle = document.getElementById('variant-title')
 const variantCopy = document.getElementById('variant-copy')
 const variantNames = {
-  azure: ['Azure Blue', t('深海蓝陶瓷圈，冷光钢壳。像一段被冻结的蓝色时间。')],
-  graphite: ['Graphite', t('石墨灰表盘与拉丝钢，低调、克制，适合日常佩戴。')],
-  champagne: ['Champagne', t('香槟金与深棕陶瓷，暖光下的复古机械感。')],
-  ember: ['Ember', t('酒红陶瓷与暖色指针，像一枚仍在燃烧的机芯。')],
+  azure: ['Azure Blue', t('Deep-blue ceramic bezel and cool steel case. Like a frozen moment of blue time.')],
+  graphite: ['Graphite', t('Graphite dial and brushed steel—quiet, restrained, made for every day.')],
+  champagne: ['Champagne', t('Champagne gold and dark brown ceramic; vintage mechanics under warm light.')],
+  ember: ['Ember', t('Burgundy ceramic and warm hands, like a movement still burning.')],
 }
 
 function setVariant(name) {

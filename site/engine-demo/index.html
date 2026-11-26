@@ -1,12 +1,12 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#080b10">
-  <meta name="description" content="TURBOFAN — 涡扇发动机数字说明书：八步交互步骤、BOM 零件清单与热点标注。">
+  <meta name="description" content="TURBOFAN — a turbofan engine digital manual: eight interactive steps, a BOM parts list and hotspot annotations.">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='18' fill='%23080b10'/%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%236f8dff' stroke-width='3'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23e8c98a'/%3E%3Cpath d='M32 13v9M32 42v9M13 32h9M42 32h9' stroke='%236f8dff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
-  <title>TURBOFAN — 涡扇发动机数字说明书</title>
+  <title>TURBOFAN — turbofan engine digital manual</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="importmap">
     {
@@ -26,18 +26,18 @@
       <span class="brand-mark">T</span>
       <span><strong>TURBOFAN</strong><small>DIGITAL MANUAL · THREE STUDIO</small></span>
     </a>
-    <nav class="topnav" aria-label="Demo 导航">
+    <nav class="topnav" aria-label="Demo navigation">
       <a href="../index.html">Demo gallery</a>
       <a href="../lamplighter-demo/">Next: LAMPLIGHTER</a>
     </nav>
-    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20manual">做同款说明书 <span aria-hidden="true">↗</span></a>
+    <a class="top-cta" href="mailto:three.studio.2026@outlook.com?subject=Three%20Studio%20manual">Make this manual <span aria-hidden="true">↗</span></a>
   </header>
 
   <main class="layout">
-    <aside class="manual" aria-label="说明书步骤">
+    <aside class="manual" aria-label="Manual steps">
       <div class="manual-head">
         <p class="eyebrow">MANUAL / 8 STEPS</p>
-        <h1 id="manual-title">涡扇发动机</h1>
+        <h1 id="manual-title">Turbofan engine</h1>
         <p id="manual-sub" class="manual-sub"></p>
       </div>
 
@@ -46,24 +46,24 @@
       <div class="step-body" id="step-panel">
         <h2 id="step-title"></h2>
         <p id="step-text"></p>
-        <div id="step-hotspots" class="chips" aria-label="热点"></div>
+        <div id="step-hotspots" class="chips" aria-label="Hotspots"></div>
       </div>
 
-      <nav class="step-nav" aria-label="步骤导航">
-        <button type="button" id="prev">上一步</button>
+      <nav class="step-nav" aria-label="Step navigation">
+        <button type="button" id="prev">Previous</button>
         <span id="step-count"></span>
-        <button type="button" id="next">下一步</button>
+        <button type="button" id="next">Next</button>
       </nav>
 
       <details class="bom" id="bom-panel">
-        <summary>零件清单 / BOM <span id="bom-count"></span></summary>
+        <summary>Parts / BOM <span id="bom-count"></span></summary>
         <ul id="bom-list"></ul>
       </details>
     </aside>
   </main>
 
   <footer class="site-footer">
-    <span>TURBOFAN 是 Three Studio 的程序化产品说明书 demo，品牌与参数均为虚构。</span>
+    <span>TURBOFAN is a procedural Three Studio manual demo; the brand and figures are fictional.</span>
     <span>Built with <a href="https://github.com/mrw7/three-studio">Three Studio</a> · Three.js</span>
   </footer>
 

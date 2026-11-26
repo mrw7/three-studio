@@ -4,12 +4,12 @@ import { t, language } from '../i18n.js'
 const DURATION = 60
 const TAU = Math.PI * 2
 const CHAPTERS = [
-  { at: 0, zh: '种子', en: 'Seed' },
-  { at: 10, zh: '萌发', en: 'Germinate' },
-  { at: 20, zh: '生长', en: 'Grow' },
-  { at: 30, zh: '群星', en: 'Swarm' },
-  { at: 40, zh: '星海', en: 'Cosmos' },
-  { at: 50, zh: '归途', en: 'Return' },
+  { at: 0, name: 'Seed' },
+  { at: 10, name: 'Germinate' },
+  { at: 20, name: 'Grow' },
+  { at: 30, name: 'Swarm' },
+  { at: 40, name: 'Cosmos' },
+  { at: 50, name: 'Return' },
 ]
 
 const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
@@ -782,12 +782,12 @@ function formatTime(value) {
 }
 
 function updatePlayButton() {
-  playButton.textContent = t(playing ? '暂停' : '播放')
-  playButton.setAttribute('aria-label', t(playing ? '暂停' : '播放'))
+  playButton.textContent = t(playing ? 'Pause' : 'Play')
+  playButton.setAttribute('aria-label', t(playing ? 'Pause' : 'Play'))
 }
 
 function updateFullscreenButton() {
-  fullscreenButton.textContent = t(document.fullscreenElement ? '退出全屏' : '全屏')
+  fullscreenButton.textContent = t(document.fullscreenElement ? 'Exit fullscreen' : 'Fullscreen')
 }
 
 function setPlaying(next) {
@@ -814,7 +814,7 @@ function updateChapter(value) {
   if (index === lastChapter) return
   lastChapter = index
   chapterIndex.textContent = `CHAPTER ${String(index + 1).padStart(2, '0')} / ${String(CHAPTERS.length).padStart(2, '0')}`
-  chapterName.textContent = language() === 'zh' ? CHAPTERS[index].zh : CHAPTERS[index].en
+  chapterName.textContent = CHAPTERS[index].name
 }
 
 function updateUI(value) {

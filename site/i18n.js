@@ -406,6 +406,12 @@ const EN = {
 
 const normalize = value => String(value).replace(/\s+/g, ' ').trim()
 const ZH = Object.fromEntries(Object.entries(EN).map(([zh, en]) => [en, zh]))
+
+// The gallery is English-only now: every demo page, the index and the film
+// captions are authored in English, so the Chinese half of this dictionary is
+// kept resolved but never selected. `language()` still exists because the demo
+// modules call it to pick between English and CNY price lists, and because
+// `window.DemoI18N` is public surface; removing it would break those callers.
 const LANG_KEY = 'three-studio-demo-lang-v2'
 const LEGACY_LANG_KEY = 'three-studio-demo-lang'
 
@@ -419,19 +425,12 @@ const requestedLanguage = (() => {
 })()
 
 function language() {
-  if (requestedLanguage !== null) return requestedLanguage
-  try {
-    const stored = localStorage.getItem(LANG_KEY)
-    return stored === 'zh' ? 'zh' : 'en'
-  } catch (error) {
-    return 'en'
-  }
+  return 'en'
 }
 
 function t(value) {
   const key = normalize(value)
-  const lang = language()
-  const map = lang === 'zh' ? ZH : EN
+  const map = language() === 'zh' ? ZH : EN
   return map[key] ?? value
 }
 
@@ -475,33 +474,16 @@ function apply(root = document) {
 }
 
 function ensureToggle() {
-  if (document.querySelector('[data-lang-toggle]') !== null) return
-  const header = document.querySelector('.topbar, header')
-  if (header === null) return
-  const button = document.createElement('button')
-  button.type = 'button'
-  button.className = 'lang-toggle'
-  button.dataset.langToggle = ''
-  button.setAttribute('aria-label', 'Switch language')
-  button.textContent = language() === 'zh' ? 'EN' : '中文'
-  button.addEventListener('click', () => {
-    const next = language() === 'zh' ? 'en' : 'zh'
-    try { localStorage.setItem(LANG_KEY, next) } catch (error) { void error }
-    window.location.reload()
-  })
-  header.append(button)
-  if (!document.getElementById('demo-lang-style')) {
-    const style = document.createElement('style')
-    style.id = 'demo-lang-style'
-    style.textContent = '.lang-toggle{height:30px;padding:0 10px;border:1px solid currentColor;border-radius:999px;background:transparent;color:inherit;opacity:.72;font:9px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.06em;cursor:pointer;transition:opacity .2s ease}.lang-toggle:hover{opacity:1}'
-    document.head.append(style)
-  }
+  // The gallery is English-only, so no language toggle is injected. The old
+  // toggle wrote a localStorage flag and reloaded; with a single language that
+  // would be a control that does nothing.
+  return undefined
 }
 
 function init() {
   try {
     localStorage.removeItem(LEGACY_LANG_KEY)
-    if (requestedLanguage !== null) localStorage.setItem(LANG_KEY, requestedLanguage)
+    localStorage.removeItem(LANG_KEY)
   } catch (error) { void error }
   apply()
   ensureToggle()

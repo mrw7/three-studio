@@ -1,56 +1,56 @@
 // Generated from examples/turbofan-manual.json by
 // site/scripts/generate-demos.mjs — do not edit by hand.
 export const MANUAL = {
-  "title": "涡扇发动机 · 结构与工作原理",
+  "title": "Turbofan engine — structure and operation",
   "product": "TURBOFAN TF-900",
   "version": "1.0",
   "parts": [
     {
       "id": "part-fan",
       "number": "TF-01",
-      "name": "风扇转子（22 片宽弦叶片）",
+      "name": "Fan rotor, 22 wide-chord blades",
       "qty": 1,
       "uid": "s:engine-fan"
     },
     {
       "id": "part-nacelle",
       "number": "TF-02",
-      "name": "短舱与进气道",
+      "name": "Nacelle and inlet duct",
       "qty": 1,
       "uid": "s:engine-nacelle"
     },
     {
       "id": "part-pylon",
       "number": "TF-03",
-      "name": "吊挂",
+      "name": "Pylon",
       "qty": 1,
       "uid": "s:engine-pylon"
     },
     {
       "id": "part-core",
       "number": "TF-04",
-      "name": "核心机（5 级压气机）",
+      "name": "Core engine, 8-stage HP compressor",
       "qty": 1,
       "uid": "s:engine-core"
     },
     {
       "id": "part-comb",
       "number": "TF-05",
-      "name": "环形燃烧室与 16 个喷油嘴",
+      "name": "Annular combustor with 20 fuel nozzles",
       "qty": 1,
       "uid": "s:engine-combustor"
     },
     {
       "id": "part-turb",
       "number": "TF-06",
-      "name": "三级涡轮",
+      "name": "Two-stage HP and five-stage LP turbine",
       "qty": 1,
       "uid": "s:engine-turbine"
     },
     {
       "id": "part-noz",
       "number": "TF-07",
-      "name": "尾喷管与中心锥",
+      "name": "Core nozzle and exhaust plug",
       "qty": 1,
       "uid": "s:engine-nozzle"
     }
@@ -58,20 +58,20 @@ export const MANUAL = {
   "steps": [
     {
       "id": "step-1",
-      "title": "整机概览",
-      "body": "双转子高涵道比涡扇发动机。进气从左侧唇口进入，经风扇、核心机、涡轮，最后从右侧尾喷管排出。外涵道气流提供约 80% 的推力，内涵道驱动核心机做功。",
+      "title": "Whole engine",
+      "body": "A two-spool, high-bypass turbofan. Air enters through the inlet lip on the left and is split by the fan: the outer stream leaves through the bypass nozzle, the inner stream runs through the compressor, the combustor and the turbine before leaving through the core nozzle. Roughly eight of every ten kilograms of air bypass the core, and that bypass stream produces most of the thrust.",
       "camera": {
         "position": [
-          7.4,
-          4.2,
-          -9.6
+          9.1,
+          3,
+          -7.9
         ],
         "target": [
-          0,
-          0.9,
-          0
+          0.3,
+          0.3,
+          -0.1
         ],
-        "fov": 34
+        "fov": 31
       },
       "hidden": [],
       "highlight": null,
@@ -79,31 +79,36 @@ export const MANUAL = {
         {
           "id": "hs-1a",
           "uid": "s:engine-fan",
-          "label": "风扇"
+          "label": "Fan"
         },
         {
           "id": "hs-1b",
           "uid": "s:engine-nacelle",
-          "label": "短舱"
+          "label": "Nacelle"
+        },
+        {
+          "id": "hs-1c",
+          "uid": "s:engine-nozzle",
+          "label": "Exhaust"
         }
       ]
     },
     {
       "id": "step-2",
-      "title": "进气道与风扇",
-      "body": "进气唇口为圆形截面，内壁敷设吸音层以降低风扇噪声。22 片宽弦风扇叶片由钛合金制成，叶根到叶尖有约 24° 的桨距扭转，兼顾低噪声与抗外物损伤能力。",
+      "title": "Inlet and fan",
+      "body": "The inlet lip is a thin rounded ring; the throat behind it is lined with acoustic panels that absorb fan noise before it leaves the engine. Twenty-two wide-chord titanium blades carry the fan. Their stagger angle falls from about 58° at the root to 27° at the tip, which keeps the tip speed supersonic only at the outer edge and gives the blade its wide, twisted shape. Each blade weighs as little as 150 g despite being roughly the size of a person.",
       "camera": {
         "position": [
-          2.1,
-          1.5,
-          -6.4
+          4.2,
+          1.7,
+          -1.7
         ],
         "target": [
           0,
-          0.6,
-          -1.6
+          0.42,
+          -0.95
         ],
-        "fov": 38
+        "fov": 34
       },
       "hidden": [],
       "highlight": "s:engine-fan",
@@ -111,26 +116,31 @@ export const MANUAL = {
         {
           "id": "hs-2a",
           "uid": "s:engine-fan",
-          "label": "风扇转子"
+          "label": "Wide-chord rotor"
+        },
+        {
+          "id": "hs-2b",
+          "uid": "s:engine-nacelle",
+          "label": "Inlet lip"
         }
       ]
     },
     {
       "id": "step-3",
-      "title": "短舱与反推格栅",
-      "body": "短舱整流罩包住风扇与部分核心机，后段两圈格栅是反推装置的气流出口。短舱同时承担吊挂载荷，通过上方的吊挂与机翼连接。",
+      "title": "Nacelle and reverser",
+      "body": "The nacelle is the aerodynamic fairing around the fan. It forms the outer wall of the bypass duct and, on a real engine, carries the thrust reverser: the two trim lines on the fan cowl mark the sleeve that slides aft and exposes the cascade grilles, turning bypass air forward to brake the aircraft. The nacelle also picks up the engine load and hands it to the pylon.",
       "camera": {
         "position": [
-          5.2,
-          2.6,
-          1.2
+          5.4,
+          2,
+          0.2
         ],
         "target": [
           0,
-          0.9,
-          0.4
+          0.4,
+          -0.3
         ],
-        "fov": 36
+        "fov": 33
       },
       "hidden": [
         "s:engine-pylon"
@@ -140,26 +150,26 @@ export const MANUAL = {
         {
           "id": "hs-3a",
           "uid": "s:engine-nacelle",
-          "label": "反推格栅"
+          "label": "Reverser grille"
         }
       ]
     },
     {
       "id": "step-4",
-      "title": "核心机：五级轴流压气机",
-      "body": "核心机前段是五级轴流压气机，每级由转子叶片与静子叶片组成。空气逐级压缩后温度升至约 600 K，再进入燃烧室。",
+      "title": "Core engine: axial compressor",
+      "body": "Behind the fan, the core starts with a three-stage booster on the low-pressure spool, then hands the air to an eight-stage high-pressure compressor. Rotor rows spin while stator rows stay bolted to the casing; each pair adds pressure and removes swirl. By the last stage the air is roughly 30 times atmospheric pressure and about 600 K, and the annulus has narrowed to a fraction of its original height.",
       "camera": {
         "position": [
-          3.4,
+          3,
           1.2,
-          0.6
+          0.5
         ],
         "target": [
           0,
-          0.5,
-          -0.4
+          0.38,
+          -0.1
         ],
-        "fov": 30
+        "fov": 29
       },
       "hidden": [
         "s:engine-nacelle"
@@ -169,26 +179,31 @@ export const MANUAL = {
         {
           "id": "hs-4a",
           "uid": "s:engine-core",
-          "label": "压气机级"
+          "label": "Compressor stages"
+        },
+        {
+          "id": "hs-4b",
+          "uid": "s:engine-combustor",
+          "label": "Diffuser"
         }
       ]
     },
     {
       "id": "step-5",
-      "title": "环形燃烧室",
-      "body": "环形火焰筒内布置 16 个燃油喷嘴。燃油与高压空气混合燃烧，燃气温度可达 1800 K 以上；火焰筒内壁的冷却气膜保护金属不被烧穿。",
+      "title": "Annular combustor",
+      "body": "Twenty fuel nozzles feed a single annular flame tube. The liner is a double skin: the inner surface burns at over 1,800 K while cooling air, bled from the compressor, flows between the skins and enters through thousands of small holes to keep the metal below its melting point. Because the combustor is annular rather than a ring of separate cans, the engine stays short and the pressure loss stays low.",
       "camera": {
         "position": [
           2.6,
-          1.4,
+          1.05,
           1.9
         ],
         "target": [
           0,
-          0.65,
-          0.5
+          0.4,
+          0.45
         ],
-        "fov": 30
+        "fov": 29
       },
       "hidden": [
         "s:engine-nacelle"
@@ -198,60 +213,61 @@ export const MANUAL = {
         {
           "id": "hs-5a",
           "uid": "s:engine-combustor",
-          "label": "喷油嘴环"
+          "label": "Fuel nozzle ring"
         }
       ]
     },
     {
       "id": "step-6",
-      "title": "涡轮与尾喷",
-      "body": "三级涡轮从燃气中提取能量，经内轴带动压气机、经外轴带动风扇。做功后的燃气经尾喷管加速排出，中心锥用于整流并降低底部阻力。",
+      "title": "Turbine and exhaust",
+      "body": "The gas leaving the combustor drives two turbine stages on the high-pressure spool, then five more on the low-pressure spool. The HP turbine turns the compressor it sits beside; the LP turbine turns the fan through a shaft that runs down the centre of the engine. Downstream the flow accelerates through the core nozzle past the exhaust plug, which fairings the last turbine stage and reduces base drag.",
       "camera": {
         "position": [
-          4.2,
-          1.6,
-          4.4
+          4,
+          1.7,
+          3.6
         ],
         "target": [
           0,
-          0.7,
-          1.4
+          0.42,
+          1.05
         ],
-        "fov": 34
+        "fov": 33
       },
       "hidden": [
-        "s:engine-nacelle"
+        "s:engine-nacelle",
+        "s:engine-pylon"
       ],
       "highlight": "s:engine-turbine",
       "hotspots": [
         {
           "id": "hs-6a",
           "uid": "s:engine-turbine",
-          "label": "涡轮级"
+          "label": "Turbine stages"
         },
         {
           "id": "hs-6b",
           "uid": "s:engine-nozzle",
-          "label": "尾喷管"
+          "label": "Core nozzle"
         }
       ]
     },
     {
       "id": "step-7",
-      "title": "吊挂与安装",
-      "body": "吊挂把发动机的推力与重量传给机翼，内部走燃油、滑油与引气管路。发动机附件齿轮箱从内轴取轴功率，驱动燃油泵与发电机。",
+      "title": "Pylon and installation",
+      "body": "The pylon carries thrust and weight between the engine and the wing, and routes fuel, oil, hydraulic and bleed-air lines. Two mount links tie the fan case into the pylon: a forward mount that takes thrust and vertical load, and an aft mount that lets the case grow as it heats up. The accessory gearbox under the fan case takes shaft power off the HP spool to drive the fuel pumps, the oil pumps and the generators.",
       "camera": {
         "position": [
-          -5.6,
-          3.6,
-          -5.2
+          5.2,
+          3.8,
+          0.4
         ],
         "target": [
           0,
-          1.3,
-          0
+          0.85,
+          0.1
         ],
-        "fov": 36
+        "fov": 35
       },
       "hidden": [],
       "highlight": "s:engine-pylon",
@@ -259,26 +275,31 @@ export const MANUAL = {
         {
           "id": "hs-7a",
           "uid": "s:engine-pylon",
-          "label": "吊挂根部"
+          "label": "Wing attach point"
+        },
+        {
+          "id": "hs-7b",
+          "uid": "s:engine-nacelle",
+          "label": "Fan case mount"
         }
       ]
     },
     {
       "id": "step-8",
-      "title": "整机复检",
-      "body": "完成装配后按 ATA 72 章执行整机试车：检查风扇配平、核心机振动、滑油压力与排气温度。所有紧固件力矩与保险丝状态需逐项签字确认。",
+      "title": "Final inspection",
+      "body": "After assembly the engine goes to test: fan balance, core vibration, oil pressure and exhaust-gas temperature are logged across the operating range, then the engine is borescoped through the compressor and turbine stages. Every fastener torque and lockwire is signed off against ATA chapter 72 before the engine is released to the wing.",
       "camera": {
         "position": [
-          8.2,
-          4.8,
-          -6.2
+          9.4,
+          3.4,
+          -7.2
         ],
         "target": [
-          0,
-          0.9,
-          0
+          0.3,
+          0.3,
+          0.05
         ],
-        "fov": 32
+        "fov": 31
       },
       "hidden": [],
       "highlight": null,

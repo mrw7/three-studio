@@ -11,7 +11,7 @@ globals provided by the preview (`THREE`, `scene`, `camera`, `renderer`,
 - `scene-city.js` — procedural hand-drawn night city
 - `scene-engine.js` — procedural turbofan engine (fan, core, combustor, turbine,
   nozzle, nacelle, pylon). Ships with `turbofan-manual.json`.
-- `scene-lamplighter.js` — 《点灯人》/ *The Lamplighter*: a 60-second, ten-shot
+- `scene-lamplighter.js` — *The Lamplighter*: a 60-second, ten-shot
   film with hard cuts, procedural gait, climbing, a fall, a lamp-lighting
   cascade and a title card. Ships with `lamplighter-film.json`.
 

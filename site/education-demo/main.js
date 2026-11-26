@@ -263,7 +263,7 @@ if (earthMesh !== null) {
 
 const STEPS = [
   {
-    title: t('搭好舞台'),
+    title: t('Set the stage'),
     stage: 'STEP 01 · STAGE',
     code: `const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(42, width / height, 0.1, 120)
@@ -274,10 +274,10 @@ controls.target.set(0, 0, 0)
 
 scene.add(new THREE.HemisphereLight(0x9fc6ff, 0x05070a, 0.65))
 scene.add(new THREE.DirectionalLight(0xffffff, 1.1))`,
-    tip: t('先确定相机、灯光和可交互的控制器，再开始放物体。OrbitControls 让用户拖动旋转、滚轮缩放。'),
+    tip: t('Set the camera, lights and interactive controls before adding objects. OrbitControls lets users drag to rotate and scroll to zoom.'),
   },
   {
-    title: t('点亮太阳'),
+    title: t('Light the sun'),
     stage: 'STEP 02 · SUN',
     code: `const sun = new THREE.Mesh(
   new THREE.SphereGeometry(1.25, 64, 32),
@@ -291,10 +291,10 @@ scene.add(new THREE.DirectionalLight(0xffffff, 1.1))`,
 const sunLight = new THREE.PointLight(0xffcf6e, 220, 40, 2)
 sun.add(sunLight)
 scene.add(sun)`,
-    tip: t('emissive 让太阳自己发光，PointLight 负责照亮行星。太阳材质本身不会照亮别人，光源要单独加。'),
+    tip: t('emissive makes the sun glow; PointLight illuminates the planets. The sun material does not light others—add the light separately.'),
   },
   {
-    title: t('让行星公转'),
+    title: t('Make planets orbit'),
     stage: 'STEP 03 · ORBITS',
     code: `const planets = [
   { distance: 2.65, size: 0.18, color: 0x9fa6ad, speed: 0.95 },
@@ -317,10 +317,10 @@ for (const data of planets) {
 
 // onFrame
 for (const { pivot, speed } of pivots) pivot.rotation.y += delta * speed`,
-    tip: t('把公转放在 onFrame 里，用 delta 控制速度；不要用 setInterval。每颗行星用一个 pivot 旋转，位置更稳定。'),
+    tip: t('Put orbits in onFrame and use delta for speed; do not use setInterval. One pivot per planet keeps positions stable.'),
   },
   {
-    title: t('加一颗月球'),
+    title: t('Add a moon'),
     stage: 'STEP 04 · MOON',
     code: `const moonOrbit = new THREE.Group()
 earth.add(moonOrbit)
@@ -334,7 +334,7 @@ moonOrbit.add(moon)
 
 // onFrame
 moonOrbit.rotation.y += delta * 2.4`,
-    tip: t('把月球挂在 Earth 下面，它就会自动跟着地球公转；再让 moonOrbit 自己旋转，就有了“月球绕地球”。'),
+    tip: t('Parent the moon to Earth and it follows Earth’s orbit automatically; rotate moonOrbit itself to create the moon’s orbit around Earth.'),
   },
 ]
 
@@ -383,7 +383,7 @@ function applyStep(nextStep) {
   }
   prevButton.disabled = step === 0
   nextButton.disabled = step === STEPS.length - 1
-  nextButton.textContent = step === STEPS.length - 1 ? t('已完成') : t('下一步 →')
+  nextButton.textContent = step === STEPS.length - 1 ? t('Complete') : t('Next →')
 }
 
 for (const button of document.querySelectorAll('[data-step]')) {
@@ -394,14 +394,14 @@ nextButton.addEventListener('click', () => applyStep(step + 1))
 playButton.addEventListener('click', () => {
   playing = !playing
   playButton.setAttribute('aria-pressed', playing ? 'true' : 'false')
-  playButton.textContent = playing ? t('暂停动画') : t('继续动画')
+  playButton.textContent = playing ? t('Pause animation') : t('Resume animation')
   controls.autoRotate = playing
 })
 
 document.getElementById('copy-code').addEventListener('click', async () => {
   try {
     await navigator.clipboard.writeText(codeBlock.textContent)
-    toast(t('代码已复制'))
+    toast(t('Code copied'))
   } catch (error) {
     const area = document.createElement('textarea')
     area.value = codeBlock.textContent
@@ -409,7 +409,7 @@ document.getElementById('copy-code').addEventListener('click', async () => {
     area.style.opacity = '0'
     document.body.append(area)
     area.select()
-    try { document.execCommand('copy'); toast(t('代码已复制')) } catch (copyError) { toast(t('复制失败')) }
+    try { document.execCommand('copy'); toast(t('Code copied')) } catch (copyError) { toast(t('Copy failed')) }
     area.remove()
   }
 })

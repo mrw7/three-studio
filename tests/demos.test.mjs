@@ -60,7 +60,7 @@ test('one-minute film has a 60-second timeline and playback controls', async () 
   assert.match(html, /id="end-card"/)
 })
 
-test('English demo prices are localized and tiered', async () => {
+test('demo prices are English and tiered', async () => {
   const gallery = await readFile(join(site, 'index.html'), 'utf8')
   const i18n = await readFile(join(site, 'i18n.js'), 'utf8')
   const main = await readFile(join(site, 'configurator-demo', 'main.js'), 'utf8')
@@ -79,17 +79,24 @@ test('English demo prices are localized and tiered', async () => {
   ]) {
     assert.ok(i18n.includes(price), `English price ${price}`)
   }
+  // Tiered USD list prices render on the page itself, not only in the
+  // dictionary, so a visitor reading the English gallery sees them.
   for (const price of [
-    '¥1.5万–2.5万',
-    '¥2.5万–4万',
-    '¥6万–10万',
-    '¥10万–20万+',
-    '¥2,980',
-    '¥4,800',
-    '¥6,800–9,800',
-    '¥12,800–18,800',
+    '$3.5k–6k',
+    '$6k–10k',
+    '$13k–22k',
+    '$22k–45k+',
+    '$1,450–2,100',
+    '$2,700–4,000',
   ]) {
-    assert.ok(gallery.includes(price), `Chinese tier ${price}`)
+    assert.ok(gallery.includes(price), `USD tier renders on the page: ${price}`)
+  }
+  // No CNY price may survive on any demo page now that the gallery is English.
+  assert.ok(!gallery.includes('¥'), 'index.html carries no CNY list prices')
+  for (const demo of ['agency-demo', 'configurator-demo', 'education-demo']) {
+    const html = await readFile(join(site, demo, 'index.html'), 'utf8')
+    const js = await readFile(join(site, demo, 'main.js'), 'utf8')
+    assert.ok(!html.includes('¥'), demo + ' page carries no CNY prices')
   }
   for (const stale of ['$25k–50k', '$60k–150k', '$3k–8k/day', '$4.5k–9k', '$13k–28k', '$700–1,800/day']) {
     assert.ok(!i18n.includes(stale), `stale symbol-swapped price ${stale}`)

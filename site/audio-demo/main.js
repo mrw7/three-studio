@@ -275,9 +275,9 @@ async function startMic() {
     sourceNode = context.createMediaStreamSource(stream)
     sourceNode.connect(analyser)
     setSource('MIC')
-    toast(t('麦克风已接入'))
+    toast(t('Microphone connected'))
   } catch (error) {
-    toast(t('麦克风不可用，使用 Demo 音轨'))
+    toast(t('Microphone unavailable; using demo track'))
     startDemo()
   }
 }
@@ -315,9 +315,9 @@ async function startDemo() {
     trigger()
     demoTimer = setInterval(trigger, 230)
     setSource('DEMO')
-    toast(t('Demo 音轨已开始（静音驱动）'))
+    toast(t('Demo track started (silent driver)'))
   } catch (error) {
-    toast(t('音频初始化失败：') + (error instanceof Error ? error.message : String(error)))
+    toast(t('Audio initialization failed: ') + (error instanceof Error ? error.message : String(error)))
   }
 }
 
@@ -327,7 +327,7 @@ document.getElementById('gate-mic')?.addEventListener('click', startMic)
 document.getElementById('gate-demo')?.addEventListener('click', startDemo)
 pauseButton?.addEventListener('click', () => {
   paused = !paused
-  pauseButton.textContent = paused ? t('继续') : t('暂停')
+  pauseButton.textContent = paused ? t('Resume') : t('Pause')
 })
 document.getElementById('reset')?.addEventListener('click', () => {
   camera.position.set(0, 2.8, 7.6)
